@@ -41,7 +41,7 @@ macro(GeantExampleDef)
 
 
    add_executable(${ExampleName} ${ExampleMainSource})
-   target_link_libraries(${ExampleName} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v RealPhysics GeantExamplesRP ${ROOT_LIBRARIES} -lpthread ${Vc_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES} ${PROFILE_LIBRARIES})
+   target_link_libraries(${ExampleName} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Geant_v RealPhysics GeantExamplesRP ${ROOT_LIBRARIES} -lpthread ${Vc_LIBRARIES} ${HEPMC_LIBRARIES} ${NUMA_ALL_LIBRARIES})
    add_dependencies(${ExampleName} Geant_v RealPhysics GeantExamplesRP GeantNuma)
 
 

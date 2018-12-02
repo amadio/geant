@@ -150,7 +150,7 @@ else()
   endif()
   add_library(Geant_v SHARED ${sources})
   target_link_libraries(Geant_v -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} Vmagfield GeantNuma ${ROOT_LIBRARIES} ${VECGEOM_LIBRARIES}
-          Material ${VecCoreLib_LIBRARIES})
+          Material ${VecCoreLib_LIBRARIES} ${PROFILE_LIBRARIES})
 
   if (VECGEOM_GEANT4)
     #include(${Geant4_USE_FILE})

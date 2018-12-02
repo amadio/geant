@@ -122,7 +122,7 @@ set(TEST_FILES
 include_directories(BEFORE
     ${CMAKE_CURRENT_SOURCE_DIR}/TBBTestModules)
 add_library(TBBTestModules SHARED ${TEST_FILES})
-target_link_libraries(TBBTestModules TBBFrameworkCore GeantExamplesRP ${PROFILE_LIBRARIES})
+target_link_libraries(TBBTestModules TBBFrameworkCore GeantExamplesRP)
 
 if(CPPUNIT_FOUND)
   include_directories(${CPPUNIT_INCLUDE_DIR})
