@@ -12,7 +12,10 @@ echo "--------------------------------------------------------------------------
 ctest -VV -S ${THIS}/geantv-ctest.cmake
 
 cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/TestEm3
-./bench_all.sh 4
+./bench_all.sh 10
+
+cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/FullCMS
+./bench_all.sh 10
 
 status=$?
 
