@@ -47,10 +47,10 @@ cat >TestEm3_G4.mac <<EOL
 #
 # Geant4 macro for SimplyCalo simplified calorimeter modeling
 #
-/control/verbose 0
+/control/verbose 1
 /run/numberOfThreads ${CONFIG_THREADS}
-/run/verbose 0
-/tracking/verbose 0
+/run/verbose 1
+/tracking/verbose 1
 #
 # Set up the ATLASbar simplf. calorimeter: 50 Layers of 2.3 mm Lead and 5.7 mm liquid-Argon
 /testem/det/setSizeYZ 40 cm
