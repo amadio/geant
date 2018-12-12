@@ -133,5 +133,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::ReportResults(const Real_v hFinal
   }
 }
 
+
+}; /** End of namespace */ 
 #endif
 

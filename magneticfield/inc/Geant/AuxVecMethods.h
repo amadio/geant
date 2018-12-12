@@ -7,7 +7,6 @@ Real_v PowerIf(const Real_v value, double exponent, vecCore::Mask_v<Real_v> cond
 
 // Definitions
 // ===========---------------------------------------------------
-template <class T_Stepper, unsigned int Nvar>
 template <class Real_v>
 inline Real_v PowerIf(const Real_v value,
                       double       exponent,
