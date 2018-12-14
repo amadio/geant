@@ -52,6 +52,7 @@ bool Event::StopTrack(RunManager *runmgr, TaskData *td)
 #ifdef VECCORE_CUDA
   assert(0 && "StopTrack not implemented yet for CUDA host/device code.");
 #else
+  // td->fNinflight--;
   int ndone     = fNdone.fetch_add(1) + 1;
   int ntracks   = fNtracks.load();
   int ninflight = ntracks - ndone;
@@ -98,5 +99,5 @@ bool Event::Prioritize()
   return true;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

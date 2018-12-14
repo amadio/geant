@@ -138,7 +138,7 @@ public:
 
   static int SteppingLoop(TaskData *td, bool flush);
 
-  static int FlushOneLane(TaskData *td);
+  static int FlushOneLane(TaskData *td, bool share);
 
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();

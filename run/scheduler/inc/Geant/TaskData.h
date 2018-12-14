@@ -100,6 +100,9 @@ public:
   int fNkilled  = 0;               /** Total number of tracks killed */
   int fNshared  = 0;               /** Overestimate of number of tracks shared in the 'shared' queue */
   int fMaxShare = 1 << 13;         /** Maximum number of shared tracks */
+  // int fNinflight = 0;              /** Number of tracks in flight in this task */
+  int fNinitialB = 0; /** Number of initial baskets imported */
+  // std::atomic_int fStealCounter;
 
   geantphysics::PhysicsData *fPhysicsData        = nullptr; /** Physics data per thread */
   WorkspaceForFieldPropagation *fSpace4FieldProp = nullptr; /** Thread scratch for Field Propagation Stage */
@@ -321,20 +324,28 @@ public:
     // - first try the queue from the next task slot
     size_t nsteal = 0;
     int slot      = td->fTaskSlot;
-    bool first    = true;
     Track *track  = nullptr;
-    assert(td == fActiveTasks[slot].load());
+    // Take its own shared tracks
+    while (td->fQshare->dequeue(track)) {
+      tofill->AddTrack(track);
+      nsteal++;
+    }
+    if (nsteal > 0) return nsteal;
+    slot = (slot + 1) % fMaxThreads;
+
     // Round robin over slots and get the share queue of the attached task
-    while (first || (slot != td->fTaskSlot)) {
+    while (slot != td->fTaskSlot) {
       TaskData *tdnext = fActiveTasks[slot].load();
+      assert(tdnext != td);
       while (tdnext && tdnext->fQshare->dequeue(track)) {
         tofill->AddTrack(track);
+        // td->fNinflight++;
+        // tdnext->fStealCounter++;
         nsteal++;
       }
       if (nsteal) return nsteal;
       // Round-robin to next active task
-      slot  = (slot + 1) % fMaxThreads;
-      first = false;
+      slot = (slot + 1) % fMaxThreads;
     }
     return nsteal;
   }

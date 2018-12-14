@@ -1,5 +1,6 @@
 #include "Geant/EventSet.h"
 
+#include <sstream>
 #include "Geant/Error.h"
 #include "Geant/Event.h"
 #include "Geant/EventServer.h"
@@ -14,7 +15,7 @@ EventSet::EventSet(size_t nevents) : fNdone(0)
   fMarkers = new EventMarker *[nevents];
   for (size_t i = 0; i < nevents; ++i) {
     fMarkers[i] = new EventMarker;
-    fMarkers[i]->fDone.clear();
+    fMarkers[i]->fDone.store(false);
   }
 }
 
@@ -26,7 +27,7 @@ EventSet::EventSet(std::vector<Event *> const &events) : fNdone(0)
   for (size_t i = 0; i < fNevents; ++i) {
     fMarkers[i]         = new EventMarker;
     fMarkers[i]->fEvent = events[i];
-    fMarkers[i]->fDone.clear();
+    fMarkers[i]->fDone.store(false);
   }
   fNadded = fNevents;
 }
@@ -57,9 +58,25 @@ bool EventSet::AddEvent(Event *event)
 void EventSet::Print() const
 {
   // Print the event set content
+  std::stringstream os;
+  os << "events: ";
   for (size_t i = 0; i < fNevents; ++i)
-    std::cerr << " " << fMarkers[i]->fEventNumber;
-  std::cerr << "\n";
+    os << " " << fMarkers[i]->fEventNumber;
+  std::cout << os.str() << std::endl;
+}
+
+//______________________________________________________________________________
+void EventSet::Info(std::string &info) const
+{
+  std::stringstream os;
+  for (size_t i = 0; i < fNevents; ++i) {
+    os << fMarkers[i]->fEventNumber;
+    if (fMarkers[i]->fDone.load())
+      os << "(done)  ";
+    else
+      os << "  ";
+  }
+  info = os.str();
 }
 
 //______________________________________________________________________________
@@ -68,7 +85,8 @@ bool EventSet::MarkDone(int event_number)
   size_t slot;
   if (!Contains(event_number, slot)) return false;
   // Check if event is already marked as done
-  if (!fMarkers[slot]->fDone.test_and_set(std::memory_order_acquire)) {
+  if (!fMarkers[slot]->fDone.load()) {
+    fMarkers[slot]->fDone.store(true);
     size_t ndone = fNdone.fetch_add(1) + 1;
     if (ndone == fNevents) {
       fDone = true;
@@ -80,5 +98,5 @@ bool EventSet::MarkDone(int event_number)
   return true;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

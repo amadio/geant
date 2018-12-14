@@ -266,7 +266,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
       track->SetBoundary(true);
       track->SetStatus(kBoundary);
       if (track->NextPath()->IsOutside()) track->SetStatus(kExitingSetup);
-      if (track->GetStep() < 1.E-8) td->fNsmall++;
+      // if (track->GetStep() < 1.E-8) td->fNsmall++;
     } else {
       track->SetBoundary(false);
       track->SetStage(kGeometryStepStage);
@@ -757,7 +757,7 @@ bool FieldPropagationHandler::IsSameLocation(Track &track, TaskData *td)
   track.SetBoundary(true);
   track.SetStatus(kBoundary);
   if (track.NextPath()->IsOutside()) track.SetStatus(kExitingSetup);
-  if (track.GetStep() < 1.E-8) td->fNsmall++;
+  // if (track.GetStep() < 1.E-8) td->fNsmall++;
   return false;
 }
 

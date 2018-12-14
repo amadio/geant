@@ -140,9 +140,14 @@ bool WorkloadManager::TransportTracksTask(EventSet *workload, TaskData *td)
     Error("TransportTracksTask", "No task data object available!!!");
     return false;
   }
+  std::string info;
+  workload->Info(info);
+  Printf("=== Task %d started processing event set: %s", td->fTid, info.c_str());
 
   Propagator *propagator = td->fPropagator;
   RunManager *runmgr     = propagator->fRunMgr;
+  // td->fNinflight         = 0;
+  // td->fStealCounter.store(0);
   /*** STEPPING LOOP ***/
   bool flush = false;
   while (!workload->IsDone()) {
@@ -150,23 +155,35 @@ bool WorkloadManager::TransportTracksTask(EventSet *workload, TaskData *td)
     auto feedres = PreloadTracksForStep(td);
     flush        = (feedres == FeederResult::kNone) || (feedres == FeederResult::kError) || workload->IsDone();
     SteppingLoop(td, flush);
-    if (workload->IsDone()) break;
-    if (flush) {
+    if (workload->IsDone()) {
+      if (!flush) SteppingLoop(td, true);
+      break;
+    }
+
+    if (flush && 0) {
       // There is no more work in the server but the workload is not yet
       // completed. We cannot return as the workload is not done, so we need to
       // put the thread on hold. This should not be significant overhead given
       // that it can only happen if the worker has finished its own work and there
       // is no other work from the server.
 
+      // assert(td->fNinflight == td->fStealCounter.load());
+      // Printf("=== Task %d suspended", td->fTid);
       workload->SleepUntilDone();
+      // Printf("=== Task %d resumed", td->fTid);
       assert(workload->IsDone());
       continue;
     }
   }
 
+  workload->Info(info);
+  assert(td->fQshare->size() == 0);
+  Printf("=== Task %d finished processing event set: %s", td->fTid, info.c_str());
   delete workload;
 
   // Release the task data
+  // td->fNinflight -= td->fStealCounter.load();
+  // assert(td->fNinflight == 0);
   runmgr->GetTDManager()->ReleaseTaskData(td);
   return true;
 }
@@ -200,27 +217,34 @@ void WorkloadManager::TransportTracksV3(Propagator *propagator)
   }
 
   EventServer *evserv = runmgr->GetEventServer();
+  // td->fNinflight      = 0;
+  // td->fStealCounter.store(0);
 
   /*** STEPPING LOOP ***/
-  bool flush = false;
+  bool flushed = false;
   while (1) {
     // Check if simulation has finished
     auto feedres = PreloadTracksForStep(td);
     if (feedres == FeederResult::kStop) break;
-    if (flush) {
-      if ((feedres == FeederResult::kNone) | (feedres == FeederResult::kError)) {
-        if (!evserv->EventsServed()) {
-          // geant::Warning("", "=== Task %d suspended due to missing workload", tid);
-          propagator->fWMgr->Wait();
-          // geant::Info("", "=== Task %d resuming...", tid);
-        }
-        continue;
+    bool notracks = feedres != FeederResult::kWork;
+    if (flushed && notracks) {
+      // assert(td->fNinflight == td->fStealCounter.load());
+      if (!evserv->EventsServed()) {
+        // There are still events in the server, we need to wait...
+        // geant::Warning("", "=== Task %d suspended due to missing workload", tid);
+        propagator->fWMgr->Wait();
+        // geant::Info("", "=== Task %d resuming...", tid);
       }
+      // Try to get tracks again
+      continue;
     }
-    flush = (feedres == FeederResult::kNone) | (feedres == FeederResult::kError);
-    // if (flush) geant::Info("", "=== Task %d flushing...", tid);
-    SteppingLoop(td, flush);
+    // Do the stepping, if no tracks we need to flush
+    SteppingLoop(td, notracks);
+    flushed = notracks;
   }
+
+  // td->fNinflight -= td->fStealCounter.load();
+  // assert(td->fNinflight == 0);
   propagator->fWMgr->DoneQueue()->push_force(nullptr);
   propagator->fWMgr->StartAll();
   // Final reduction of counters
@@ -257,11 +281,13 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(TaskData *td
   EventServer *evserv = td->fPropagator->fRunMgr->GetEventServer();
   if (evserv->HasTracks()) {
     // In the initial phase we distribute a fair share of baskets to all propagators
-    if (!evserv->IsInitialPhase() || td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
-      ninjected = evserv->FillStackBuffer(td->fStackBuffer, evserv->GetBsize(), td, error);
+    // if (!evserv->IsInitialPhase() || td->fPropagator->fNbfeed < td->fPropagator->fRunMgr->GetInitialShare())
+    ninjected = evserv->FillStackBuffer(td->fStackBuffer, evserv->GetBsize(), td, error);
   }
   // If no tracks in the buffer, try to find some work
-  if (ninjected == 0) ninjected = td->fPropagator->fRunMgr->GetTDManager()->StealTracks(td, td->fStageBuffers[0]);
+  // td->fNinflight += ninjected;
+  if (ninjected == 0 && td->fNthreads > 1)
+    ninjected = td->fPropagator->fRunMgr->GetTDManager()->StealTracks(td, td->fStageBuffers[0]);
 
   if (ninjected) return FeederResult::kWork;
   if (error) return FeederResult::kError;
@@ -269,7 +295,7 @@ WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(TaskData *td
 }
 
 //______________________________________________________________________________
-int WorkloadManager::FlushOneLane(TaskData *td)
+int WorkloadManager::FlushOneLane(TaskData *td, bool share)
 {
   // Flush a single track lane from the stack-like buffer into the first stage.
   // Check the stack buffer and flush priority events first
@@ -281,14 +307,16 @@ int WorkloadManager::FlushOneLane(TaskData *td)
   if (ninjected) return ninjected;
 
   // Check if the worker may share some work after each generation
-  size_t ntodo = td->fStackBuffer->GetNtracks();
-  if (ntodo >= kShareThreshold) {
-    // How many tracks shared already
-    size_t nshared  = td->fQshare->size();
-    size_t ntoshare = kShareFraction * ntodo;
-    if (nshared < ntoshare) {
-      td->fStackBuffer->ShareTracks(ntoshare - nshared, *td->fQshare);
-      if (td->fPropagator->fWMgr->GetNsuspended()) td->fPropagator->fWMgr->StartOne();
+  if (share && td->fNthreads > 1) {
+    const size_t ntodo = td->fStackBuffer->GetNtracks();
+    if (ntodo >= kShareThreshold) {
+      // How many tracks shared already
+      size_t nshared  = td->fQshare->size();
+      size_t ntoshare = kShareFraction * ntodo;
+      if (nshared < ntoshare) {
+        td->fStackBuffer->ShareTracks(ntoshare - nshared, *td->fQshare);
+        if (td->fPropagator->fWMgr->GetNsuspended()) td->fPropagator->fWMgr->StartOne();
+      }
     }
   }
 
@@ -315,11 +343,17 @@ int WorkloadManager::SteppingLoop(TaskData *td, bool flush)
   // tracks are processed normally. The flush mode stops if tracks are available again in the
   // server.
 
+  constexpr int kFlushThreshold = 20; // tunable ???
+  bool external_loop            = td->fPropagator->fConfig->fRunMode == GeantConfig::kExternalLoop;
+  if (external_loop && flush) {
+    td->fPropagator->fRunMgr->GetTDManager()->StealTracks(td, td->fStageBuffers[0]);
+  }
   int nprocessed = 0;
   int nproc      = 0;
   int ninput     = 0;
   int istage     = 0;
-  int ninjected  = FlushOneLane(td);
+  bool flushreq  = flush;
+  int ninjected  = FlushOneLane(td, !flush);
   // Flush the input buffer lane by lane, starting with higher generations.
   // Exit loop when buffer is empty or when the stages are cosidered flushed
   while (ninjected || flush) {
@@ -340,9 +374,13 @@ int WorkloadManager::SteppingLoop(TaskData *td, bool flush)
       istage = (istage + 1) % kNstages;
       if (istage == 0) {
         // Checkpoint
+        if (flush && td->fStackBuffer->GetNtracks() > kFlushThreshold)
+          flush = false;
+        else if (flushreq && !flush && td->fStackBuffer->GetNtracks() == 0)
+          flush = true;
         // If no activity in the loop inject next lane from the buffer
         if (ninput == 0 && nproc == 0) {
-          ninjected = FlushOneLane(td);
+          ninjected = FlushOneLane(td, !external_loop /*!flush*/);
           if (!ninjected) return nprocessed;
           break;
         }

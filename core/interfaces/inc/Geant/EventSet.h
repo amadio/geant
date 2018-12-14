@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <vector>
+#include <string>
 
 #include "Geant/Config.h"
 #include "Geant/condition_locker.h"
@@ -31,7 +32,7 @@ class EventSet {
   struct EventMarker {
     Event *fEvent = nullptr; /** Event */
     int fEventNumber;        /** Event number */
-    std::atomic_flag fDone;  /** Done flag */
+    std::atomic<bool> fDone; /** Done flag */
   };
 
 private:
@@ -77,6 +78,9 @@ public:
   /** @brief Print the data set */
   void Print() const;
 
+  /** @brief GetInfo about the data set */
+  void Info(std::string &info) const;
+
   /** @brief Check if the all events in the set are completed. */
   GEANT_FORCE_INLINE
   bool IsDone() const { return fDone; }
@@ -85,7 +89,7 @@ public:
   void SleepUntilDone() { fLocker.Wait(); }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

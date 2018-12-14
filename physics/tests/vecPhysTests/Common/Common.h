@@ -20,12 +20,12 @@
 #include <array>
 #include <Geant/EMModel.h>
 
+using geant::TaskData;
+using geantphysics::EMModel;
 using geantphysics::LightTrack;
 using geantphysics::LightTrack_v;
-using geantphysics::EMModel;
 using geantphysics::Material;
 using geantphysics::MaterialCuts;
-using geant::TaskData;
 
 const int kBasketSize    = 256;
 const int kBasketSamples = 10000;
@@ -269,7 +269,7 @@ std::vector<int> GetGVCodeHist(const LightTrack_v &tracks)
   auto &ptTable = geantphysics::Particle::GetInternalParticleTable();
   ptHist.insert(ptHist.begin(), ptTable.size(), 0);
   for (int i = 0; i < tracks.GetNtracks(); ++i) {
-    assert(tracks.GetGVcode(i) >= 0 && tracks.GetGVcode(i) < ptTable.size());
+    assert(tracks.GetGVcode(i) >= 0 && tracks.GetGVcode(i) < (int)ptTable.size());
     ptHist[tracks.GetGVcode(i)]++;
   }
   return ptHist;
@@ -281,7 +281,7 @@ std::vector<int> GetGVCodeHist(const LightTrack *tracks, int N)
   auto &ptTable = geantphysics::Particle::GetInternalParticleTable();
   ptHist.insert(ptHist.begin(), ptTable.size(), 0);
   for (int i = 0; i < N; ++i) {
-    assert(tracks[i].GetGVcode() >= 0 && tracks[i].GetGVcode() < ptTable.size());
+    assert(tracks[i].GetGVcode() >= 0 && tracks[i].GetGVcode() < (int)ptTable.size());
     ptHist[tracks[i].GetGVcode()]++;
   }
   return ptHist;

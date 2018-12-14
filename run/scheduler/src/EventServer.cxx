@@ -31,6 +31,7 @@ EventServer::EventServer(int nactive_max, RunManager *runmgr)
   // Constructor
   assert(nactive_max > 0 && nactive_max < 4096);
   fLastActive.store(-1);
+  bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
 
   // Create event slots
   fEvents = new Event *[fNactiveMax];
@@ -42,7 +43,8 @@ EventServer::EventServer(int nactive_max, RunManager *runmgr)
   // Create empty events
   bool generate = fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator;
   int nthreads  = runmgr->GetNthreadsTotal();
-  int ngen      = vecCore::math::Max(fNactiveMax, nthreads);
+  if (external_loop || nthreads == 1) fInitialPhase = false;
+  int ngen = vecCore::math::Max(fNactiveMax, nthreads);
   if (generate) {
     fNevents = fRunMgr->GetConfig()->fNtotal;
     ngen     = vecCore::math::Min(ngen, fNevents);
@@ -139,7 +141,7 @@ bool EventServer::AddEvent(Event *event)
   // Adds one event into the queue of pending events.
   bool external_loop = fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop;
   int evt            = event->GetEvent();
-  assert(evt < fNevents);
+  assert(fRunMgr->GetConfig()->fRunMode == GeantConfig::kExternalLoop || evt < fNevents);
   // The vertex must be defined
   vecgeom::Vector3D<double> vertex = event->GetVertex();
   int ntracks                      = event->GetNprimaries();
@@ -203,6 +205,8 @@ bool EventServer::AddEvent(Event *event)
     fInitialBsize   = Min<int>(basket_size, nperthread_init, nperevent);
     fNbasketsInit   = fNtracksInit / fInitialBsize;
     if (fNtracksInit % fInitialBsize > 0) fNbasketsInit++;
+    fMaxInit = fNbasketsInit / nthreads;
+    if (fMaxInit % nthreads > 0) fMaxInit++;
     printf("=== Buffering %d baskets of size %d feeding %d threads\n", fNbasketsInit, fInitialBsize, nthreads);
   }
 
@@ -348,23 +352,26 @@ int EventServer::FillStackBuffer(StackLikeBuffer *buffer, int ntracks, TaskData 
 
   // *** I should template on the container to be filled, making sure that all
   //     containers provide AddTrack(Track *)
+  error = kNoerr;
   if (!fHasTracks) {
     error = kDone;
     return 0;
   }
+  int ntodo = ntracks;
+  if (fInitialPhase) {
+    if (td->fNinitialB >= fMaxInit) return 0;
+    td->fNinitialB++;
+    ntodo       = fInitialBsize;
+    int nserved = fNserved.fetch_add(1) + 1;
+    if (nserved >= fNbasketsInit) fInitialPhase = false;
+  }
   int ndispatched = 0;
-  for (int i = 0; i < ntracks; ++i) {
+  for (int i = 0; i < ntodo; ++i) {
     Track *track = GetNextTrack(td, error);
     if (!track) break;
     buffer->AddTrack(track);
     ndispatched++;
   }
-  if (fInitialPhase) {
-    int nserved = fNserved.fetch_add(1) + 1;
-    if (nserved >= fNbasketsInit) fInitialPhase = false;
-  }
-
-  if (ndispatched > 0) error = kNoerr;
   return ndispatched;
 }
 

@@ -53,6 +53,7 @@ private:
   int fNtracksInit  = 0;         /** Initial number of tracks in the buffer. */
   int fNbasketsInit = 0;         /** Initial number of baskets to be served */
   int fInitialBsize = 0;         /** Initial basket size */
+  int fMaxInit      = 0;         /** Maximum number of baskets taken by a thread in the initial phase */
   std::atomic_int fNactive;      /** Number of deployed events */
   std::atomic_int fNserved;      /** Number of baskets served */
   std::atomic_int fLastActive;   /** Last activated event */
@@ -66,7 +67,7 @@ private:
   bool fEventsServed  = false;   /** All events served */
   // bool fDone = false;                  /** All events transported */
   bool fHasTracks    = false;   /** Server has tracks to dispatch */
-  bool fInitialPhase = false;   /** Server in initial dispatch phase */
+  bool fInitialPhase = true;    /** Server in initial dispatch phase */
   Event **fEvents    = nullptr; /** Events to be dispatched */
   int fBindex        = 0;       /** Basket manager index */
   queue_slots fFreeSlots;       /** Queue of free event slots */
@@ -98,6 +99,9 @@ public:
 
   GEANT_FORCE_INLINE
   int GetNbasketsInit() const { return fNbasketsInit; }
+
+  GEANT_FORCE_INLINE
+  int GetMaxInit() const { return fMaxInit; }
 
   GEANT_FORCE_INLINE
   int GetNactiveMax() const { return fNactiveMax; }

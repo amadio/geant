@@ -30,7 +30,7 @@ void LinearPropagationHandler::DoIt(Track *track, Basket &output, TaskData *td)
   // Scalar geometry length computation. The track is moved into the output basket.
 
   // Do straight propagation to physics process or boundary
-  if (track->GetSnext() < 1.E-8) td->fNsmall++;
+  // if (track->GetSnext() < 1.E-8) td->fNsmall++;
   track->MakeStep(track->GetSnext());
   // Update total number of steps
   td->fNsteps++;
@@ -81,7 +81,7 @@ void LinearPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
   TrackVec_t &tracks = input.Tracks();
   // This loop should autovectorize
   for (auto track : tracks) {
-    if (track->GetSnext() < 1.E-8) td->fNsmall++;
+    // if (track->GetSnext() < 1.E-8) td->fNsmall++;
     track->MakeStep(track->GetSnext());
   }
 

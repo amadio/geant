@@ -99,6 +99,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
       const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
       // get a Track geantTrack;
       geant::Track &geantTrack = td->GetNewTrack();
+      // td->fNinflight++;
       // set the new track properties
       //      int t = secLt[isec].GetTrackIndex();          // parent Track index in the input Track_v
       geantTrack.SetEvent(track->Event());

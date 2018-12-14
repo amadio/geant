@@ -90,6 +90,7 @@ void GeomQueryHandler::DoIt(Track *track, Basket &output, TaskData *td)
   // be handled separately
   ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
   td->fNsnext++;
+  if (track->GetSnext() < 1.E-8) td->fNsmall++;
   if (track->IsPrePropagationDone())
     track->SetStage(kPropagationStage);
   else
@@ -198,6 +199,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket &output, TaskData *td)
       }
 #endif
       track->SetSnext(track_geo.fSnextV[itr]);
+      if (track->GetSnext() < 1.E-8) td->fNsmall++;
       track->SetSafety(0);
       track->SetBoundary(!track_geo.fCompSafetyV[itr]);
     }
@@ -238,6 +240,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket &output, TaskData *td)
       }
 #endif
       track->SetSnext(track_geo.fSnextV[itr]);
+      if (track->GetSnext() < 1.E-8) td->fNsmall++;
       track->SetSafety(track_geo.fSafetyV[itr]);
       track->SetBoundary(!track_geo.fCompSafetyV[itr]);
     }
@@ -245,6 +248,7 @@ void GeomQueryHandler::DoIt(Basket &input, Basket &output, TaskData *td)
     for (size_t itr = 0; itr < i; ++itr) {
       Track *track = tracks[track_geo.fIdV[itr]];
       ScalarNavInterfaceVGM::NavFindNextBoundary(*track);
+      if (track->GetSnext() < 1.E-8) td->fNsmall++;
     }
   }
 

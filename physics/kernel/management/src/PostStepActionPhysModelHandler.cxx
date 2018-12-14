@@ -90,6 +90,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
       const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
       // get a Track geantTrack;
       geant::Track &geantTrack = td->GetNewTrack();
+      // td->fNinflight++;
 
       geantTrack.SetEvent(track->Event());
       geantTrack.SetEvslot(track->EventSlot());
@@ -206,6 +207,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
     // get a Track geantTrack;
     geant::Track &geantTrack = td->GetNewTrack();
+    // td->fNinflight++;
 
     geantTrack.SetEvent(track->Event());
     geantTrack.SetEvslot(track->EventSlot());
