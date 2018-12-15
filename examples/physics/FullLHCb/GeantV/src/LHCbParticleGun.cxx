@@ -48,9 +48,7 @@ LHCbParticleGun::LHCbParticleGun()
   fZDir = 0.;
 }
 
-LHCbParticleGun::~LHCbParticleGun()
-{
-}
+LHCbParticleGun::~LHCbParticleGun() {}
 
 // set number of primary vertex and the fixed vertex position and give it back to the EventServer
 geant::EventInfo LHCbParticleGun::NextEvent(geant::TaskData *td)

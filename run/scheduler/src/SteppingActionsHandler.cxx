@@ -33,11 +33,10 @@ void SteppingActionsHandler::DoIt(Track *track, Basket &output, TaskData *td)
   // If track made too many steps, deposit all kinetic energy and kill it
   if (track->Status() != kNew) track->IncrementNsteps();
   if (track->GetNsteps() > fPropagator->fConfig->fNstepsKillThr) {
-    Error(
-        "SteppingActions",
-        "track %d from event %d looping -> killing it. Momentum = %7.4g , type = %d, parent = %d  primary= %d",
-        track->Particle(), track->Event(), track->P(), track->GVcode(), track->Mother(),
-        track->PrimaryParticleIndex());
+    Error("SteppingActions",
+          "track %d from event %d looping -> killing it. Momentum = %7.4g , type = %d, parent = %d  primary= %d",
+          track->Particle(), track->Event(), track->P(), track->GVcode(), track->Mother(),
+          track->PrimaryParticleIndex());
     track->SetStatus(kKilled);
     track->Stop();
   }

@@ -63,6 +63,6 @@ private:
   ParticleGun(const ParticleGun &);            // no imp.
   ParticleGun &operator=(const ParticleGun &); // no imp.
 };
-}
+} // namespace geantphysics
 
 #endif

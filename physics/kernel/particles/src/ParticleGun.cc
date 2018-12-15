@@ -9,8 +9,7 @@ namespace geantphysics {
 
 //______________________________________________________________________________
 ParticleGun::ParticleGun()
-    : fAverage(0),                     
-      fPartEkin(0.03),                 // kinetic energy of the primary [GeV] : 30 MeV
+    : fAverage(0), fPartEkin(0.03),    // kinetic energy of the primary [GeV] : 30 MeV
       fXPos(0.),                       // (x,y,z) position of the primary particles: (0,0,0)
       fYPos(0.), fZPos(0.), fXDir(0.), // direction vector of the primary particles: (0,0,1)
       fYDir(0.), fZDir(1.), fGVPartIndex(-1), fMass(0), fCharge(0), fPTotal(0), fETotal(0), fRndgen(0)
@@ -21,8 +20,8 @@ ParticleGun::ParticleGun()
 //______________________________________________________________________________
 ParticleGun::ParticleGun(int aver, int gvcode, double partekin, double xpos, double ypos, double zpos, double xdir,
                          double ydir, double zdir)
-    : fAverage(aver), fPartEkin(partekin), fXPos(xpos), fYPos(ypos), fZPos(zpos), fXDir(xdir), fYDir(ydir),
-      fZDir(zdir), fGVPartIndex(gvcode), fMass(0), fCharge(0), fPTotal(0), fETotal(0), fRndgen(0)
+    : fAverage(aver), fPartEkin(partekin), fXPos(xpos), fYPos(ypos), fZPos(zpos), fXDir(xdir), fYDir(ydir), fZDir(zdir),
+      fGVPartIndex(gvcode), fMass(0), fCharge(0), fPTotal(0), fETotal(0), fRndgen(0)
 {
   // Constructor
   // ensure normality of the direction vector
@@ -97,4 +96,4 @@ void ParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData * /*
   gtrack.SetE(fETotal);
   gtrack.SetP(fPTotal);
 }
-}
+} // namespace geantphysics

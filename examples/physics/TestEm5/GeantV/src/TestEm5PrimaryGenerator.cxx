@@ -35,9 +35,7 @@ TestEm5PrimaryGenerator::TestEm5PrimaryGenerator(const TestEm5DetectorConstructi
   fPTotal = 0.;
 }
 
-TestEm5PrimaryGenerator::~TestEm5PrimaryGenerator()
-{
-}
+TestEm5PrimaryGenerator::~TestEm5PrimaryGenerator() {}
 
 void TestEm5PrimaryGenerator::InitPrimaryGenerator()
 {

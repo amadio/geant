@@ -34,9 +34,7 @@ TestEm3PrimaryGenerator::TestEm3PrimaryGenerator(TestEm3DetectorConstruction *de
   fPTotal = 0.;
 }
 
-TestEm3PrimaryGenerator::~TestEm3PrimaryGenerator()
-{
-}
+TestEm3PrimaryGenerator::~TestEm3PrimaryGenerator() {}
 
 void TestEm3PrimaryGenerator::InitPrimaryGenerator()
 {

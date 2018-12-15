@@ -48,9 +48,7 @@ CMSParticleGun::CMSParticleGun()
   fZDir = 0.;
 }
 
-CMSParticleGun::~CMSParticleGun()
-{
-}
+CMSParticleGun::~CMSParticleGun() {}
 
 // set number of primary vertex and the fixed vertex position and give it back to the EventServer
 geant::EventInfo CMSParticleGun::NextEvent(geant::TaskData *td)
