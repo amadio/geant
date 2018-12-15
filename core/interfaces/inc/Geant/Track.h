@@ -132,7 +132,6 @@ private:
   int fParticle            = -1;      /** Index of corresponding particle */
   int fPrimaryIndx         = -1;      /** Index of the primary particle in the current event */
   int fMother              = -1;      /** Index of mother particle */
-  int fPDG                 = 0;       /** Particle pdg code */
   int fGVcode              = 0;       /** GV particle code */
   int fEindex              = 0;       /** Element index */
   int fBindex              = 0;       /** Index in the track block */
@@ -257,11 +256,6 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int Mother() const { return fMother; }
-
-  /** @brief Getter for the particle pdg code */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  int PDG() const { return fPDG; }
 
   /** @brief Getter for the GV particle code */
   VECCORE_ATT_HOST_DEVICE
@@ -761,11 +755,6 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void SetMother(int mother) { fMother = mother; }
-
-  /** @brief Setter for particle pdg code */
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  void SetPDG(int pdg) { fPDG = pdg; }
 
   /** @brief Setter for GV particle code */
   VECCORE_ATT_HOST_DEVICE

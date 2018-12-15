@@ -99,6 +99,7 @@ set(headers
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TrackGeo.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/UserApplication.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/UserDetectorConstruction.h
+   ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/UserFieldConstruction.h
    ${CMAKE_SOURCE_DIR}/run/userapp/inc/Geant/MyHit.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/Factory.h
    ${CMAKE_SOURCE_DIR}/core/interfaces/inc/Geant/FactoryStore.h

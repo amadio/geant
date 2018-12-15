@@ -23,7 +23,6 @@ class ParticleGun : public PrimaryGenerator {
 private:
   int fAverage; // Average number of tracks for Poisson distribution
 
-  int fPDG;         // PDG code of parimary particles
   double fPartEkin; // kinetic energy of the primary [GeV]
   double fXPos;     // (x,y,z) position of the primary particles
   double fYPos;

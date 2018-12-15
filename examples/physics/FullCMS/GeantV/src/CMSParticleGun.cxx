@@ -107,7 +107,6 @@ void CMSParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData *
               << std::endl;
     exit(-1);
   }
-  const int pPartPDG     = pParticle->GetPDGCode();
   const int pPartGVc     = pParticle->GetInternalCode();
   const double pPartMass = pParticle->GetPDGMass();
   const double pPartChrg = pParticle->GetPDGCharge();
@@ -115,7 +114,6 @@ void CMSParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData *
   const double pPartPt   = std::sqrt((pPartEt - pPartMass) * (pPartEt + pPartMass));
   //
   // set the primary track
-  gtrack.SetPDG(pPartPDG);
   gtrack.SetGVcode(pPartGVc);
   gtrack.SetPosition(fXPos, fYPos, fZPos);
   gtrack.SetDirection(pParticleDir[0], pParticleDir[1], pParticleDir[2]);

@@ -16,7 +16,6 @@ TestEm3PrimaryGenerator::TestEm3PrimaryGenerator(TestEm3DetectorConstruction *de
   fPrimaryPerEvent     = 1;
   fParticle            = nullptr;
   //
-  fPDG         = 0;
   fGVPartIndex = 0;
   //
   fPrimaryEkin = 10. * geant::units::GeV;
@@ -48,7 +47,6 @@ void TestEm3PrimaryGenerator::InitPrimaryGenerator()
               << std::endl;
     exit(-1);
   }
-  fPDG         = fParticle->GetPDGCode();
   fGVPartIndex = fParticle->GetInternalCode();
   fMass        = fParticle->GetPDGMass();
   fCharge      = fParticle->GetPDGCharge();
@@ -76,7 +74,6 @@ geant::EventInfo TestEm3PrimaryGenerator::NextEvent(geant::TaskData * /*td*/)
 
 void TestEm3PrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData * /*td*/)
 {
-  gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);
   gtrack.SetDirection(fXDir, fYDir, fZDir);

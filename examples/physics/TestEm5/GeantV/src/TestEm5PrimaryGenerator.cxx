@@ -17,7 +17,6 @@ TestEm5PrimaryGenerator::TestEm5PrimaryGenerator(const TestEm5DetectorConstructi
   fPrimaryPerEvent     = 1;
   fParticle            = nullptr;
   //
-  fPDG         = 0;
   fGVPartIndex = 0;
   //
   fPrimaryEkin = 15.7 * geant::units::MeV;
@@ -49,7 +48,6 @@ void TestEm5PrimaryGenerator::InitPrimaryGenerator()
               << std::endl;
     exit(-1);
   }
-  fPDG         = fParticle->GetPDGCode();
   fGVPartIndex = fParticle->GetInternalCode();
   fMass        = fParticle->GetPDGMass();
   fCharge      = fParticle->GetPDGCharge();
@@ -77,7 +75,6 @@ geant::EventInfo TestEm5PrimaryGenerator::NextEvent(geant::TaskData * /*td*/)
 
 void TestEm5PrimaryGenerator::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData * /*td*/)
 {
-  gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);
   gtrack.SetDirection(fXDir, fYDir, fZDir);

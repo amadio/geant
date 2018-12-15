@@ -25,7 +25,7 @@ target_link_libraries(Vmagfield  -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${VECGEOM_L
 # Install the files
 #
 install(TARGETS Vmagfield LIBRARY DESTINATION lib)
-
+install(FILES ${headers} DESTINATION inc/Geant)
 add_subdirectory(tests)
 
 #----------------------------------------------------------------------------------------------

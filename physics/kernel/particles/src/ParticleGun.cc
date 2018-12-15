@@ -9,7 +9,7 @@ namespace geantphysics {
 
 //______________________________________________________________________________
 ParticleGun::ParticleGun()
-    : fAverage(0), fPDG(11),           // PDG code of the primary: 11 -> e-
+    : fAverage(0),                     
       fPartEkin(0.03),                 // kinetic energy of the primary [GeV] : 30 MeV
       fXPos(0.),                       // (x,y,z) position of the primary particles: (0,0,0)
       fYPos(0.), fZPos(0.), fXDir(0.), // direction vector of the primary particles: (0,0,1)
@@ -21,7 +21,7 @@ ParticleGun::ParticleGun()
 //______________________________________________________________________________
 ParticleGun::ParticleGun(int aver, int gvcode, double partekin, double xpos, double ypos, double zpos, double xdir,
                          double ydir, double zdir)
-    : fAverage(aver), fPDG(-1), fPartEkin(partekin), fXPos(xpos), fYPos(ypos), fZPos(zpos), fXDir(xdir), fYDir(ydir),
+    : fAverage(aver), fPartEkin(partekin), fXPos(xpos), fYPos(ypos), fZPos(zpos), fXDir(xdir), fYDir(ydir),
       fZDir(zdir), fGVPartIndex(gvcode), fMass(0), fCharge(0), fPTotal(0), fETotal(0), fRndgen(0)
 {
   // Constructor
@@ -88,7 +88,6 @@ void ParticleGun::GetTrack(int /*n*/, geant::Track &gtrack, geant::TaskData * /*
 {
   // here I get the n-th generated track and copy it to gtrack
   // they are all the same here, so no dependence on n
-  gtrack.SetPDG(fPDG);
   gtrack.SetGVcode(fGVPartIndex);
   gtrack.SetPosition(fXPos, fYPos, fZPos);
   gtrack.SetDirection(fXDir, fYDir, fZDir);

@@ -35,8 +35,8 @@ void SteppingActionsHandler::DoIt(Track *track, Basket &output, TaskData *td)
   if (track->GetNsteps() > fPropagator->fConfig->fNstepsKillThr) {
     Error(
         "SteppingActions",
-        "track %d from event %d looping -> killing it. Momentum = %7.4g , type = %d, pdg= %d, parent = %d  primary= %d",
-        track->Particle(), track->Event(), track->P(), track->GVcode(), track->PDG(), track->Mother(),
+        "track %d from event %d looping -> killing it. Momentum = %7.4g , type = %d, parent = %d  primary= %d",
+        track->Particle(), track->Event(), track->P(), track->GVcode(), track->Mother(),
         track->PrimaryParticleIndex());
     track->SetStatus(kKilled);
     track->Stop();

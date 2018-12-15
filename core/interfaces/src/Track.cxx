@@ -83,7 +83,6 @@ Track &Track::operator=(const Track &other)
     fParticle           = other.fParticle;
     fPrimaryIndx        = other.fPrimaryIndx;
     fMother             = other.fMother;
-    fPDG                = other.fPDG;
     fGVcode             = other.fGVcode;
     fEindex             = other.fEindex;
     fCharge             = other.fCharge;
@@ -143,7 +142,6 @@ void Track::Clear(const char *)
   fParticle    = -1;
   fPrimaryIndx = -1;
   fMother      = 0;
-  fPDG         = 0;
   fGVcode      = 0;
   fEindex      = 0;
   fCharge      = 0;
@@ -222,7 +220,7 @@ Material_t *Track::GetMaterial() const
   return ((Material_t *)fVolume->GetMaterialPtr());
 }
 
-//______________________________________________________________________________
+//______________________________________________________________________________p
 VECCORE_ATT_HOST_DEVICE
 void Track::SetPath(VolumePath_t const *const path)
 {
@@ -243,29 +241,12 @@ void Track::SetNextPath(VolumePath_t const *const path)
 void Track::Print(const char *msg) const
 {
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
-  // auto pTable = geantphysics::Particle::GetTheParticleTable();
-  // auto particle = pTable[fGVcode];
-  // int pdgCode = particle->GetPDGCode();
-  // const std::string particleName= particle->GetName();
 
-  int pdgCode = fPDG; // It is correctly set for primaries ...
-  if (fPDG == 0) {
-    if (fGVcode == 22) {
-      pdgCode = 11;
-    } // e-
-    else if (fGVcode == 42) {
-      pdgCode = 22;
-    } // gamma
-    else if (fGVcode == 23) {
-      pdgCode = -11;
-    } // e+
-  }
-
-  printf("%s: evt=%d slt=%d part=%d prim=%d mth=%d pdg=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d "
+  printf("%s: evt=%d slt=%d part=%d prim=%d mth=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d "
          "status=%s mass=%g "
          "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g "
          "ile=%g bdr=%d\n",
-         msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, pdgCode, fGVcode, fEindex, fBindex, fCharge, fProcess,
+         msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, fGVcode, fEindex, fBindex, fCharge, fProcess,
          fNsteps, (int)fSpecies, status[int(fStatus)], fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE, fTime,
          fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
 
