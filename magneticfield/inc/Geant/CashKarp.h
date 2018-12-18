@@ -60,7 +60,7 @@ public:
                              const Real_v dydx[], const Real_v &charge, const Real_v &hStep, Real_v yOut[],
                              Real_v yErr[]
                              //, ScratchSpaceCashKarp<Real_v>* sp
-  );
+                             ) const;
 #endif
 
   //  ------Start of mandatory methods ( for transitional period. ) ------------
@@ -68,7 +68,7 @@ public:
   GEANT_FORCE_INLINE
   void StepWithErrorEstimate(const Double_v yInput[], // Consider __restrict__
                              const Double_v dydx[], const Double_v &charge, const Double_v &hStep, Double_v yOut[],
-                             Double_v yErr[])
+                             Double_v yErr[]) const
   {
     StepWithErrorEstimate<Double_v>(yInput, dydx, charge, hStep, yOut, yErr);
   }
@@ -82,7 +82,7 @@ public:
 #endif
 
   template <typename Real_v>
-  GEANT_FORCE_INLINE void RightHandSideInl(Real_v y[], const Real_v &charge, Real_v dydx[])
+  GEANT_FORCE_INLINE void RightHandSideInl(Real_v y[], const Real_v &charge, Real_v dydx[]) const
   {
     assert(fEquation_Rhs != nullptr);
     fEquation_Rhs->T_Equation::template RightHandSide<Real_v>(y, charge, dydx);
@@ -170,7 +170,7 @@ public:
 
         const Real_v dydx[], const Real_v &charge, const Real_v &Step, Real_v yOut[], Real_v yErr[]
         //, CashKarp<T_Equation,Nvar>::template ScratchSpaceCashKarp<Real_v>& sp
-    )
+        ) const
 {
   // const double a2 = 0.2 , a3 = 0.3 , a4 = 0.6 , a5 = 1.0 , a6 = 0.875;
   typename CashKarp<T_Equation, Nvar>::template ScratchSpaceCashKarp<Real_v> sp;

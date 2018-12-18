@@ -16,6 +16,9 @@ struct FieldTrack;
 
 class FlexIntegrationDriver {
 public:
+  FlexIntegrationDriver() {}
+  virtual ~FlexIntegrationDriver() {}
+  
   /**
     // Scalar method
     virtual

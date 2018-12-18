@@ -117,8 +117,8 @@ public:                                    // with description
                                                                // a step size for the next step.
   // Limit the next step's size within a range around the current one.
 
-  inline int GetMaxNoSteps() const;
-  inline void SetMaxNoSteps(int val);
+  inline unsigned int GetMaxNoSteps() const;
+  inline void SetMaxNoSteps(unsigned int val);
   //  Modify and Get the Maximum number of Steps that can be
   //   taken for the integration of a single segment -
   //   (ie a single call to AccurateAdvance).
@@ -277,12 +277,12 @@ inline VScalarIntegrationStepper *ScalarIntegrationDriver::GetStepper()
   return fpStepper;
 }
 
-inline int ScalarIntegrationDriver::GetMaxNoSteps() const
+inline unsigned int ScalarIntegrationDriver::GetMaxNoSteps() const
 {
   return fMaxNoSteps;
 }
 
-inline void ScalarIntegrationDriver::SetMaxNoSteps(int val)
+inline void ScalarIntegrationDriver::SetMaxNoSteps(unsigned int val)
 {
   fMaxNoSteps = val;
 }

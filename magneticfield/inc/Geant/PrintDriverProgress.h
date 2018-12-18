@@ -24,7 +24,7 @@ void ReportResults(const Real_v hFinal, const Real_v errmaxSqFinal, const Real_v
 
 
 
-template <class T_Stepper, unsigned int Nvar>
+// template <class T_Stepper, unsigned int Nvar>
 template <class Real_v>
 void // SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::
    ReportConditionLanes(vecCore::Mask_v<Real_v> problemVec,
@@ -61,10 +61,11 @@ void // SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::
 // ---------------------------------------------------------
 
 
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-void SimpleIntegrationDriver<T_Stepper, Nvar>::ReportStatus(const Real_v x, const Real_v charge, const Real_v hTry,
-                                                            const Real_v errmaxSqFinal, const Real_v yValues[]) const
+// template <class T_Stepper, unsigned int Nvar>
+template <class Real_v, unsigned int Nvar>
+   void // SimpleIntegrationDriver<T_Stepper, Nvar>::
+   ReportStatus(const Real_v x, const Real_v charge, const Real_v hTry,
+                const Real_v errmaxSqFinal, const Real_v yValues[]) // const
 {
   // Method to report intermediate state of integration, including
   //   - error ratios
@@ -89,10 +90,12 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::ReportStatus(const Real_v x, cons
 
 
 
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-void SimpleIntegrationDriver<T_Stepper, Nvar>::ReportResults(const Real_v hFinal, const Real_v errmaxSqFinal,
-                                                             const Real_v yOutput[]) const
+// template <class T_Stepper, unsigned int Nvar>
+template <class Real_v, unsigned int Nvar>
+void // SimpleIntegrationDriver<T_Stepper, Nvar>::
+   ReportResults(const Real_v hFinal,
+                 const Real_v errmaxSqFinal,
+                 const Real_v yOutput[]     ) // const
 {
   // Method to report intermediate state of integration, including
   //   - error ratios

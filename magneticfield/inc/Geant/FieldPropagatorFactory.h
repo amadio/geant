@@ -38,8 +38,8 @@ enum StepperTypeNum { kBogackiShampineStepper=4 ,  kCashKarpStepper= 6, kDormand
 // template<typename Field_t> // , typename Equation_t>
 class FieldPropagatorFactory {
 public:
-  static constexpr unsigned int Nvar = 6; // Integration will occur over 3-position & 3-momentum coord.
-  // using Equation_t = TMagFieldEquation<Field_t,Nvar>;
+  static constexpr unsigned int NumVar = 6; // Integration will occur over 3-position & 3-momentum coord.
+  // using Equation_t = TMagFieldEquation<Field_t,NumVar>;
 
   // Initialise the classes required for tracking in field
 
@@ -106,7 +106,7 @@ private:
 inline GUFieldPropagator *FieldPropagatorFactory::CreatePropagator( // Field_t&              gvField,
     ScalarIntegrationDriver *integrDriver, double relEpsilonTolerance, FlexIntegrationDriver *flexDriver)
 {
-  // using Equation_t =  TMagFieldEquation<Field_t,Nvar>;
+  // using Equation_t =  TMagFieldEquation<Field_t,NumVar>;
   const char *methodName             = "FieldPropagatorFactory::CreatePropagator";
   GUFieldPropagator *fieldPropagator = nullptr;
 
@@ -184,12 +184,12 @@ inline ScalarIntegrationDriver *FieldPropagatorFactory::CreateScalarDriver(Field
 
   // cout << methodName << " called. " << endl;
 
-  using Equation_t = ScalarMagFieldEquation<Field_t, Nvar>;
+  using Equation_t = ScalarMagFieldEquation<Field_t, NumVar>;
   auto gvEquation  = FieldEquationFactory::CreateMagEquation<Field_t>(&gvField);
   auto                                                                  // VScalarIntegrationStepper*
       aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
 
-  auto scalarDriver = new ScalarIntegrationDriver(minStepSize, aStepper, Nvar, statisticsVerbosity);
+  auto scalarDriver = new ScalarIntegrationDriver(minStepSize, aStepper, NumVar, statisticsVerbosity);
 
   if (fVerboseConstruct) {
     std::cout << methodName << ": Parameters for RK integration in magnetic field: "; //  << endl;

@@ -747,7 +747,6 @@ OldIntegrationDriver<T_Stepper, Nvar>
   // const int vecCore::VectorSize<Real_v>() = vecgeom::vecCore::VectorSize<Real_v>();
   // const int ncompSVEC = TemplateFieldTrack<Real_v>::ncompSVEC;
   
-  Real_v errmax_sq;
   Real_v xnew ;
   Real_v yerr [ncompSVEC], 
          ytemp[ncompSVEC];
@@ -777,6 +776,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
   
   do
   {
+     Real_v errmax_sq=0.0;
      Real_v errpos_sq=0.0;    // square of displacement error
      Real_v errmom_sq=0.0;    // square of momentum vector difference
 
@@ -949,7 +949,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
   Real_v errStretchOld = fSafetyFactor * Exp( (0.5*fPowerGrow) * Log(emax2pos) ); // Was: Log(errmax_sqFinal) );
   // ReportRowOfDoubles( "-raw-errStretch", errStretch);
   errStretchOld = Min( errStretchOld,  Real_v(fMaxSteppingIncrease));
-  Bool_v  zeroErr = errmax_sq <= minErr2; 
+  Bool_v  zeroErr = errmax_sqFinal <= minErr2; 
   // Fix the size for steps with zero error !!
   vecCore::MaskedAssign( errStretchOld, zeroErr, Real_v(fMaxSteppingIncrease) );
   // ReportRowOfDoubles( "old: errStretch", errStretchOld);
@@ -957,8 +957,8 @@ OldIntegrationDriver<T_Stepper, Nvar>
 // #endif
   
   // Check against fErrcon to avoid calling power ... saves work if any are 'over' max
-  Bool_v  underThresh = errmax_sq <= fErrcon*fErrcon;
-  Real_v  errStretch = fSafetyFactor * PowerIf(errmax_sq, 0.5*fPowerGrow, !underThresh );
+  Bool_v  underThresh = errmax_sqFinal <= fErrcon*fErrcon;
+  Real_v  errStretch = fSafetyFactor * PowerIf(errmax_sqFinal, 0.5*fPowerGrow, !underThresh );
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
   // Overwriting them!
   vecCore::MaskedAssign( errStretch, underThresh, Real_v(fMaxSteppingIncrease) );
@@ -982,7 +982,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
 
   bool OGSreport= true;
   if( partDebug && OGSreport ) {
-     ReportRowOfDoubles( "OGS: errmax2", errmax_sq );
+     ReportRowOfDoubles( "OGS: errmax2 (final)", errmax_sqFinal );
      ReportRowOfDoubles( "OGS: h-did ", hdid);
      ReportRowOfDoubles( "OGS:  new-x", x);
      ReportRowOfDoubles( "OGS: h-next", hnext);
