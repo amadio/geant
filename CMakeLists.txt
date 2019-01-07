@@ -17,6 +17,7 @@ include(cmake/modules/DoxygenSetup.cmake)
 cmake_minimum_required(VERSION 3.7.0 FATAL_ERROR)
 project(GEANTV)
 enable_language(CXX)
+set(GEANTV_VERSION pre-beta-2)
 
 if(APPLE)
   set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
