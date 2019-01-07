@@ -598,6 +598,6 @@ add_subdirectory(physics/generators)
 # Process Doxygen file
 #
 if(DOXYGEN_FOUND)
-  message(${DOXYFILE_SOURCE_DIRS})
+  set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/doc")
   configure_file("${DOXYFILE_IN}" "${DOXYFILE}" @ONLY)
 endif()
