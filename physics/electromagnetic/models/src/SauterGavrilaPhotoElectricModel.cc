@@ -874,12 +874,16 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
   double r1       = td->fRndm->uniform();
   size_t shellIdx = 0;
   size_t tmp      = Z;
-  if (GetUseSamplingTables() && fNShells[tmp] > 1) {
-    double r2 = td->fRndm->uniform();
-    SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
-  } else {
-    SampleShell(gammaekin0, Z, r1, shellIdx);
-  }
+
+  /* TEMPORARY COMMENTED OUT UNTILL DEBUGGING THE CRASH IN SampleShellAlias (A.G. Jan 8 2019) */
+  //  if (GetUseSamplingTables() && fNShells[tmp] > 1) {
+  //    double r2 = td->fRndm->uniform();
+  //    SampleShellAlias(gammaekin0, tmp, r1, r2, shellIdx);
+  //  } else {
+  //    SampleShell(gammaekin0, Z, r1, shellIdx);
+  //  }
+
+  if (fNShells[tmp] > 1) SampleShell(gammaekin0, Z, r1, shellIdx);
 
   // Retrieving ionized shell bindingEnergy
   double bindingEnergy = (*(fParamHigh[Z]))[shellIdx * 7 + 1];
@@ -991,20 +995,30 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
     nshells[i] = fNShellsUsed[zed[i]];
   }
   if (GetUseSamplingTables()) {
+    /* TEMPORARY INSERTED SCALAR VERSION UNTILL DEBUGGING THE CRASH IN SampleShellAlias (A.G. Jan 8 2019) */
+    size_t shellIdx = 0;
+    // calling the scalar implementation for the sampling of the shell
+    for (int i = 0; i < N; i++) {
+      double r1 = td->fRndm->uniform();
+      SampleShell(kin[i], zed[i], r1, shellIdx);
+      sampledShells[i] = shellIdx;
+    }
+
     for (int i = 0; i < N; i += kVecLenD) {
 
       Double_v gammaekin;
-      IndexD_v nshells_v, z;
+      // IndexD_v nshells_v, z;
       vecCore::Load(gammaekin, kin + i);
-      vecCore::Load(nshells_v, nshells + i);
-      vecCore::Load(z, zed + i);
+      // vecCore::Load(nshells_v, nshells + i);
+      // vecCore::Load(z, zed + i);
 
       // SAMPLING OF THE SHELL WITH ALIAS
-      IndexD_v shellIdx(0), sampledShells_v(0);
-      Double_v r1     = td->fRndm->uniformV();
-      Double_v r2     = td->fRndm->uniformV();
-      sampledShells_v = SampleShellAliasVec(gammaekin, z, r1, r2);
-      vecCore::Store(sampledShells_v, sampledShells + i);
+      // IndexD_v sampledShells_v(0);
+      // Double_v r1     = td->fRndm->uniformV();
+      // Double_v r2     = td->fRndm->uniformV();
+      // sampledShells_v = SampleShellAliasVec(gammaekin, z, r1, r2);
+      // vecCore::Store(sampledShells_v, sampledShells + i);
+
       // SAMPLING OF THE ANGLE WITH ALIAS
       Double_v cosTheta_v;
       MaskDI_v activateSamplingAngle(gammaekin <= 100 * geant::units::MeV);
