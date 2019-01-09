@@ -11,11 +11,17 @@ echo "--------------------------------------------------------------------------
 #---Run the CTest script depending on the compiler------------------------------------------
 ctest -VV -S ${THIS}/geantv-ctest.cmake
 
-cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/TestEm3
-./bench_all.sh 10
+if [ "$MODE" = "benchmarks" ]; then
 
-cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/FullCMS
-./bench_all.sh 10
+    echo Running benchmarks
+    
+    cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/TestEm3
+    ./bench_all.sh 10
+    
+    cd $CMAKE_INSTALL_PREFIX/bin/benchmarks/FullCMS
+    ./bench_all.sh 10
+   
+fi
 
 status=$?
 
