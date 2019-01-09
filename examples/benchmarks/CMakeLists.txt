@@ -1,14 +1,15 @@
 # generate and install benchmark scripts
-set(_macros TestEm3/TestEm3_G4 
-            TestEm3/TestEm3_GV 
-            FullCMS/FullCMS_G4 
-            FullCMS/FullCMS_GV)
+set(_examples TestEm3
+              FullCMS)
+set(_mcs      G4 GV)
 
-foreach(_macro ${_macros})
-  configure_file(${_macro}.run.in
-                 ${CMAKE_BINARY_DIR}/bin/benchmarks/${_macro}.run
+foreach(_example ${_examples})
+foreach(_mc ${_mcs})
+  configure_file(${_example}/${_example}_${_mc}.run.in
+                 ${CMAKE_BINARY_DIR}/bin/benchmarks/${_example}/${_example}_${_mc}.run
                  IMMEDIATE @ONLY)
-  install(FILES ${CMAKE_BINARY_DIR}/bin/benchmarks/${_macro}.run DESTINATION bin/benchmarks)
+  install(PROGRAMS ${CMAKE_BINARY_DIR}/bin/benchmarks/${_example}/${_example}_${_mc}.run DESTINATION bin/benchmarks/${_example})
+endforeach()
 endforeach()
 
 file(GLOB config_testem3 TestEm3/*.sh)
