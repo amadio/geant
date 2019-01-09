@@ -23,7 +23,7 @@
 
 /**
  * @brief Class NumaBlockMgr
- * @detailed The class is managing allocation of blocks of POD data for a given
+ * @details The class is managing allocation of blocks of POD data for a given
  *           NUMA node. The allocation for single blocks is using numa_aligned_malloc.
  */
 namespace geant {
@@ -147,7 +147,7 @@ public:
     // printf("    current is now: %d (%d)\n", CurrentBlock()->GetId(), CurrentBlock()->GetNode());
     block = CurrentBlock();
     // Blocks are large, unlikely to be emptied righ away, but you never know...
-    obj           = block->GetObject(index);
+    obj = block->GetObject(index);
     if (!obj) obj = &GetObject(index);
     // There is no link anymore to the replaced block but once released by all users
     // it will go back in the block list
@@ -170,7 +170,7 @@ public:
 
   numa_block_ptr CurrentBlock() const { return (fCurrent.load()); }
 };
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

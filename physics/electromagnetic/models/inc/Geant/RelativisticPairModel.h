@@ -226,9 +226,9 @@ protected:
     double fDeltaMaxTsai;
     /** @brief \f$ Z(Z+\eta(Z)) \f$ with \f$ \eta(Z) = L_{inel}/[L_{el}-f_c]\f$*/
     double fEtaValue;
-    /** @brief \f$ s_1 = \sqrt{2} Z^{2/3}/(184.15^2)*/
+    /** @brief \f$ s_1 = \sqrt{2} Z^{2/3}/(184.15^2)\f$ */
     double fVarS1Cond;
-    /** @brief \f$  1/\ln(s_1) */
+    /** @brief \f$  1/\ln(s_1) \f$ */
     double fILVarS1Cond;
   };
 

@@ -12,9 +12,6 @@ class Spline;
  * @class   XSectionsVector
  * @author  M Bandieramonte
  * @date    September 2017
- *
- *
- * \cite
  */
 
 class XSectionsVector {

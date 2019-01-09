@@ -12,6 +12,7 @@ if(DOXYGEN_FOUND)
   include(FindPackageHandleStandardArgs)
   find_package_handle_standard_args(DOXYFILE_IN DEFAULT_MSG "DOXYFILE_IN")
   if(DOXYFILE_IN_FOUND)
+    include(ExternalProject)
     set(DOXYFILE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/doc/Doxygen" CACHE PATH "Doxygen output directory")
     set(DOXYFILE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/doc/Doxygen" CACHE PATH "Doxygen documentation installation directory")
     set(DOXYFILE_SOURCE_DIRS "")
@@ -37,8 +38,17 @@ if(DOXYGEN_FOUND)
     add_custom_target(doxydir
       COMMAND ${CMAKE_COMMAND} -E make_directory ${DOXYFILE_OUTPUT_DIR}
       COMMENT "Creating doc directory")
+    
+    ExternalProject_Add( mathjax
+        URL http://lcgpackages.web.cern.ch/lcgpackages/tarFiles/sources/mathjax.tar.gz
+        SOURCE_DIR ${DOXYFILE_OUTPUT_DIR}/html
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        EXCLUDE_FROM_ALL TRUE
+    )
 
-    add_dependencies(doxygen doxydir)
+    add_dependencies(doxygen doxydir mathjax)
 
     set(DOXYFILE_DOT "NO")
     if(DOXYGEN_DOT_EXECUTABLE)
@@ -50,23 +60,23 @@ if(DOXYGEN_FOUND)
     if(DOXYFILE_LATEX)
       find_package(LATEX)
       if(LATEX_FOUND)
-	set_property(DIRECTORY APPEND PROPERTY
-	  ADDITIONAL_MAKE_CLEAN_FILES
-	  "${DOXYFILE_OUTPUT_DIR}/latex")
+        set_property(DIRECTORY APPEND PROPERTY
+        ADDITIONAL_MAKE_CLEAN_FILES
+        "${DOXYFILE_OUTPUT_DIR}/latex")
 
-	set(DOXYFILE_GENERATE_LATEX "YES")
-	if(PDFLATEX_COMPILER)
-	  set(DOXYFILE_PDFLATEX "YES")
-	endif()
+        set(DOXYFILE_GENERATE_LATEX "YES")
+        if(PDFLATEX_COMPILER)
+          set(DOXYFILE_PDFLATEX "YES")
+        endif()
 
-	add_custom_command(TARGET doxygen
-	  POST_BUILD
-	  COMMAND "${CMAKE_MAKE_PROGRAM}"
-	  COMMENT	"Running LaTeX for Doxygen documentation in ${DOXYFILE_OUTPUT_DIR}/${DOXYFILE_LATEX_DIR}..."
-	  WORKING_DIRECTORY "${DOXYFILE_OUTPUT_DIR}/latex")
+        add_custom_command(TARGET doxygen
+                           POST_BUILD
+                           COMMAND "${CMAKE_MAKE_PROGRAM}"
+                           COMMENT	"Running LaTeX for Doxygen documentation in ${DOXYFILE_OUTPUT_DIR}/${DOXYFILE_LATEX_DIR}..."
+                           WORKING_DIRECTORY "${DOXYFILE_OUTPUT_DIR}/latex")
 
-	install(FILES ${DOXYFILE_OUTPUT_DIR}/latex/refman.pdf
-	  DESTINATION ${DOXYFILE_INSTALL_DIR})
+        install(FILES ${DOXYFILE_OUTPUT_DIR}/latex/refman.pdf
+                DESTINATION ${DOXYFILE_INSTALL_DIR})
 
       endif()
     endif()
@@ -82,12 +92,10 @@ if(DOXYGEN_FOUND)
     add_dependencies(doc doxygen)
 
     add_custom_command(TARGET uninstall
-      COMMAND ${CMAKE_COMMAND} -E remove_directory ${DOXYFILE_INSTALL_DIR}
-      COMMENT "Removing Doxygen documentation")
-
+                       COMMAND ${CMAKE_COMMAND} -E remove_directory ${DOXYFILE_INSTALL_DIR}
+                       COMMENT "Removing Doxygen documentation")
   endif()
-
   install(DIRECTORY ${DOXYFILE_OUTPUT_DIR}/html
-    DESTINATION ${DOXYFILE_INSTALL_DIR} OPTIONAL)
+          DESTINATION ${DOXYFILE_INSTALL_DIR} OPTIONAL)
   set(DOXYFILE_SOURCE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/doc/doxygenTpl")
 endif()

@@ -10,14 +10,14 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 class TaskData;
 }
-}
+} // namespace geant
 
 namespace geantphysics {
 inline namespace GEANT_IMPL_NAMESPACE {
 class Material;
 class Element;
-}
-}
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geantphysics
 
 #include <string>
 #include <Geant/AliasTableAlternative.h>
@@ -44,8 +44,8 @@ class LightTrack;
 class MollerBhabhaIonizationModel : public EMModel {
 public:
   /**
-  * @name Constructor, destructor:
-  */
+   * @name Constructor, destructor:
+   */
   //@{
   /**
    * @brief Constructor.
@@ -59,8 +59,8 @@ public:
   //@}
 
   /**
-  * @name Implemented EMModel base class methods:
-  */
+   * @name Implemented EMModel base class methods:
+   */
   //@{
   /** @brief Interface method to initilize the model. */
   virtual void Initialize();
@@ -124,17 +124,17 @@ protected:
   double ComputeXSectionPerVolume(const Material *mat, const double pcutenergy, const double primekin);
 
   /**
-    * @brief Internal method to sample (restricted) kinetic energy transfered to the electron in Moller/Bhabha
-    *        scattering (from sampling tables).
-    *
-    *  @param[in] matcut     Pointer to the material-production cut object in which the interaction happens.
-    *  @param[in] primekin   Kinetic energy of the primary particle i.e. e-/e+.
-    *  @param[in] r1         Random number distributed uniformly in [0,1].
-    *  @param[in] r2         Random number distributed uniformly in [0,1].
-    *  @param[in] r3         Random number distributed uniformly in [0,1].
-    *  @return    Sample of kinetic energy transfered to the electron (in internal [energy] units) in Moller/Bhabha
-    *             interaction.
-    */
+   * @brief Internal method to sample (restricted) kinetic energy transfered to the electron in Moller/Bhabha
+   *        scattering (from sampling tables).
+   *
+   *  @param[in] matcut     Pointer to the material-production cut object in which the interaction happens.
+   *  @param[in] primekin   Kinetic energy of the primary particle i.e. e-/e+.
+   *  @param[in] r1         Random number distributed uniformly in [0,1].
+   *  @param[in] r2         Random number distributed uniformly in [0,1].
+   *  @param[in] r3         Random number distributed uniformly in [0,1].
+   *  @return    Sample of kinetic energy transfered to the electron (in internal [energy] units) in Moller/Bhabha
+   *             interaction.
+   */
   double SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin, const double r1, const double r2,
                               const double r3);
 
@@ -143,22 +143,22 @@ protected:
                                        geant::Double_v r2, geant::Double_v r3);
 
   /**
-    * @brief Internal method to sample (restricted) kinetic energy transfered to the electron in Moller/Bhabha
-    *        scattering (with rejection).
-    *
-    *  @param[in] matcut     Pointer to the material-production cut object in which the interaction happens.
-    *  @param[in] primekin   Kinetic energy of the primary particle i.e. e-/e+.
-    *  @param[in] td         Pointer to the (thread local) Geant task data (used to generate random numbers).
-    *  @return    Sample of kinetic energy transfered to the electron (in internal [energy] units) in Moller/Bhabha
-    *             interaction.
-    */
+   * @brief Internal method to sample (restricted) kinetic energy transfered to the electron in Moller/Bhabha
+   *        scattering (with rejection).
+   *
+   *  @param[in] matcut     Pointer to the material-production cut object in which the interaction happens.
+   *  @param[in] primekin   Kinetic energy of the primary particle i.e. e-/e+.
+   *  @param[in] td         Pointer to the (thread local) Geant task data (used to generate random numbers).
+   *  @return    Sample of kinetic energy transfered to the electron (in internal [energy] units) in Moller/Bhabha
+   *             interaction.
+   */
   double SampleEnergyTransfer(const MaterialCuts *matcut, const double primekin, const geant::TaskData *td);
 
   void SampleEnergyTransfer(const double *elProdCut, const double *primekin, double *epsOut, int N,
                             const geant::TaskData *td);
 
-  /** @brief Internal method to build energy transfer sampling tables under <em>linear approximation of
-   *         the p.d.f.</em>.
+  /** @brief Internal method to build energy transfer sampling tables under
+   *  <em>linear approximation of the p.d.f.</em>.
    *
    *  Used at initialisation of the model to prepare energy transfer related transformed variable
    *  sampling tables for all different material-electron production cut pairs over an e-/e+ kinetic energy grid.
@@ -170,37 +170,37 @@ protected:
   void BuildSamplingTableForMaterialCut(const MaterialCuts *matcut, int indxlocal);
 
   /** @brief Internal method to compute (restricted) ionization atomic cross section per electron.
-    *
-    * @param[in] pcutenergy Electron kinetic energy production threshold.
-    * @param[in] primekin   Kinetic energy of the primary electron.
-    * @return               Cross section per electron.
-    */
+   *
+   * @param[in] pcutenergy Electron kinetic energy production threshold.
+   * @param[in] primekin   Kinetic energy of the primary electron.
+   * @return               Cross section per electron.
+   */
   double ComputeXSectionPerElectron(const double pcutenergy, const double primekin);
 
   /** @brief Internal method to compute (unnormalized) probaility density function of kinetic energy transfer related
-    *        transformed variable in Moller scattering.
-    *
-    * This method is used at initialisation by #BuildOneLinAlias to prepare energy transfer
-    * related sampling tables for run-time sampling of energy transfer in Moller scattering.
-    *
-    * @param[in] xi         Kinetic energy transfer related transformed variable.
-    * @param[in] pcutenergy Electron kinetic energy production threshold.
-    * @param[in] primekin   Kinetic energy of the primary electron.
-    * @return    (Unnormalized) probability of the given kinetic energy transfer related transformed variable.
-    */
+   *        transformed variable in Moller scattering.
+   *
+   * This method is used at initialisation by #BuildOneLinAlias to prepare energy transfer
+   * related sampling tables for run-time sampling of energy transfer in Moller scattering.
+   *
+   * @param[in] xi         Kinetic energy transfer related transformed variable.
+   * @param[in] pcutenergy Electron kinetic energy production threshold.
+   * @param[in] primekin   Kinetic energy of the primary electron.
+   * @return    (Unnormalized) probability of the given kinetic energy transfer related transformed variable.
+   */
   double ComputeMollerPDF(const double xi, const double pcutenergy, const double primekin);
 
   /** @brief Internal method to compute (unnormalized) probaility density function of kinetic energy transfer related
-    *        transformed variable in Bhabha scattering.
-    *
-    * This method is used at initialisation by #BuildOneLinAlias to prepare energy transfer
-    * related sampling tables for run-time sampling of energy transfer in Bhabha scattering.
-    *
-    * @param[in] xi            Kinetic energy transfer related transformed variable.
-    * @param[in] prodcutenergy Electron kinetic energy production threshold.
-    * @param[in] particleekin  Kinetic energy of the primary positron.
-    * @return    (Unnormalized) probability of the given kinetic energy transfer related transformed variable.
-    */
+   *        transformed variable in Bhabha scattering.
+   *
+   * This method is used at initialisation by #BuildOneLinAlias to prepare energy transfer
+   * related sampling tables for run-time sampling of energy transfer in Bhabha scattering.
+   *
+   * @param[in] xi            Kinetic energy transfer related transformed variable.
+   * @param[in] prodcutenergy Electron kinetic energy production threshold.
+   * @param[in] particleekin  Kinetic energy of the primary positron.
+   * @return    (Unnormalized) probability of the given kinetic energy transfer related transformed variable.
+   */
   double ComputeBhabhaPDF(const double xi, const double pcutenergy, const double primekin);
 
   void ClearSamplingTables();
@@ -216,12 +216,12 @@ protected:
     /** @brief Reduced photon energy related transformed variable values. */
     std::vector<double> fXdata;
     /** @brief The probability density function values (not necessarily normalised) over the reduced photon energy
-      *        related transformed variable values.
-      */
+     *        related transformed variable values.
+     */
     std::vector<double> fYdata;
     /** @brief The alias probabilities (not necessarily normalised) over the reduced photon energy related transformed
-      *        variable values.
-      */
+     *        variable values.
+     */
     std::vector<double> fAliasW;
     /** @brief The alias indices over the reduced photon energy related transformed variable values. */
     std::vector<int> fAliasIndx;

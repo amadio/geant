@@ -252,15 +252,15 @@ namespace NudyPhysics {
     matrixd2 fSigmaUniOfMts;
     /// \brief sigma for each reaction after unionization of energy
     rowint fEnergyLocationMts;
-    /// \breif MT wise starting energy for cross-section
+    /// \brief MT wise starting energy for cross-section
     rowint fMtNumbers, fMtNum4, fMtNum5, fMtNum6;
-    /// \breif MT numbers
+    /// \brief MT numbers
     rowd fEnergyMts, fSigmaMts, fQvalueTemp;
     /// \brief MT numbers for sigma in file3
     rowd fELinearFile3, fXLinearFile3;
-    /// \breif energy and Xsec
+    /// \brief energy and Xsec
     rowd fEneTemp, fSigTemp;
-    /// \breif temporary vectors to store energy and sigma
+    /// \brief temporary vectors to store energy and sigma
     rowd fE1, fP1, fE2, fP2, fE3, fP3, INorm;
     /// \brief standard file 5 parameters from ENDF manual
     rowint fNbt1, fInt1;

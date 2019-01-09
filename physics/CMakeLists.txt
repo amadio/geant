@@ -130,5 +130,5 @@ endif()
 #----------------------------------------------------------------------------------------------
 if(DOXYGEN_FOUND)
   set(DOXYFILE_SOURCE_DIRS "${DOXYFILE_SOURCE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
-  set(DOXYFILE_CITE_BIB_FILES "${DOXYFILE_CITE_BIB_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/physics/models/EM/doc/biblio.bib" PARENT_SCOPE)
+  set(DOXYFILE_CITE_BIB_FILES "${DOXYFILE_CITE_BIB_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/electromagnetic/models/doc/biblio.bib" PARENT_SCOPE)
 endif()

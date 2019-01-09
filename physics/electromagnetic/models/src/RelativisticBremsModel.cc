@@ -438,9 +438,8 @@ R RelativisticBremsModel::ComputeDXSecPerAtom(R egamma, R etotal, R zet)
  * where \f$\alpha\f$ is the fine structure constant, \f$r_e\f$ is the classical electron radius,
  * \f$k\f$ is the emitted photon energy, \f$y=k/E_t\f$ is the emitted photon energy in pre-interaction \f$e^-/e^+\f$
  * total
- *  energy (\f$ E_t\f$) units, \f$Z\f$ is the target atomic number, \f$f\f$ is the Coulomb correction \cite
- * davies1954theory
- * [Eqs.(36-38)]
+ *  energy (\f$ E_t\f$) units, \f$Z\f$ is the target atomic number, \f$f\f$ is the Coulomb correction
+ * \cite davies1954theory [Eqs.(36-38)]
  *  \f[
  *   f(\nu) = \nu^2 \sum_{n=1}^{\infty} \frac{1}{n(n^2+\nu^2)} = \nu^2 \left[  1/(1+\nu^2)  + 0.20206 - 0.0369\nu^2
  *            + 0.0083\nu^4 - 0.002\nu^6 \right]

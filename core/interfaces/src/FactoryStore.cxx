@@ -31,7 +31,7 @@ FactoryStore *FactoryStore::Instance(int nclients)
 }
 
 /**
- * @Delete all stored types and factories, ressetting the singleton pointer
+ * Delete all stored types and factories, ressetting the singleton pointer
  */
 //______________________________________________________________________________
 FactoryStore::~FactoryStore()
@@ -44,7 +44,7 @@ FactoryStore::~FactoryStore()
 }
 
 /**
- * @Delete a single factory at the given slot.
+ * Delete a single factory at the given slot.
  */
 //______________________________________________________________________________
 void FactoryStore::RemoveFactory(int islot)

@@ -18,14 +18,14 @@
 
 /**
  * @brief Class TrackManager
- * @detailed The class is managing allocation of blocks of tracks for a given NUMA
+ * @details The class is managing allocation of blocks of tracks for a given NUMA
  *           node. The allocation for single blocks is using numa_aligned_malloc.
  */
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 /**
  * @brief Class TrackManager
- * @detailed The track manager handles allocation and cleaning of track blocks.
+ * @details The track manager handles allocation and cleaning of track blocks.
  */
 class TrackManager {
   using size_t           = std::size_t;
@@ -101,7 +101,7 @@ public:
     return (fBlockMgr.ReleaseObject(block));
   }
 };
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

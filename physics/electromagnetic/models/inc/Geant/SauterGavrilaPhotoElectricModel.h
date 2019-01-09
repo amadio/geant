@@ -49,7 +49,7 @@ class XSectionsVector;
  * sub-shell, from which the electron is emitted, is randomly selected according to the relative cross-sections of all
  * subshells, determined at the given energy \f$E_0\f$, by interpolating the evaluated cross-section data from the EPICS
  * (Electron Photon Interaction Cross Sections) v.2014 data bank \cite epics2014. The interaction leaves the atom in an
- * excited state; the deexcitation process is not implemented yet. \cite
+ * excited state; the deexcitation process is not implemented yet.
  */
 
 class SauterGavrilaPhotoElectricModel : public EMModel {
@@ -285,8 +285,9 @@ protected:
   /**
    * @brief Private method to sample PhotoElectron direction with rejection sampling.
    *
-   * The polar angle of the photoelectron is sampled from the Sauter-Gavrila distribution (for K-shell) \cite
-   * sautergavrila, which is correct only to zero order in \f$\alpha Z\f$ : \f[ \frac{d\sigma}{d\cos\theta} \simeq
+   * The polar angle of the photoelectron is sampled from the Sauter-Gavrila distribution (for K-shell)
+   * \cite sautergavrila, which is correct only to zero order in
+   * \f$\alpha Z\f$ : \f[ \frac{d\sigma}{d\cos\theta} \simeq
    * \frac{{\sin^2\theta}}{(1-\beta\cos\theta)^4} \left\{1+\frac{1}{2}\gamma (\gamma -1)(\gamma -2)
    * (1-\beta\cos\theta) \right\} \f]
    *

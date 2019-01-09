@@ -263,19 +263,16 @@ int BetheHeitlerPairModel::SampleSecondaries(LightTrack &track, geant::TaskData 
  * The method computes atomic cross section of converion of gamma particle into e-/e+ pair based on the Geant4
  * \cite cirrone2010validation \cite agostinelli2003geant4 parametrization.
  *
- * According to the Geant4 documentation \cite g4physref, the numerical atomic cross sections \f$ \sigma(Z,E_{\gamma})
- \f$
- * as a function of the target atomic numberg \f$ Z \f$ and photon energy \f$ E_{\gamma}\f$ given in \cite
- hubbell1980pair
- * where approximated by the following function
+ * According to the Geant4 documentation \cite g4physref,
+ * the numerical atomic cross sections \f$ \sigma(Z,E_{\gamma})\f$
+ * as a function of the target atomic numberg \f$ Z \f$ and photon energy \f$ E_{\gamma}\f$ given
+ * in \cite hubbell1980pair where approximated by the following function
  * \f[
  *    \sigma(Z,E_{\gamma}) \approx \tilde{\sigma}(Z,E_{\gamma}) \equiv Z(Z+1) \left[
- *           + F_1(\kappa) + Z F_2(\kappa) + \frac{F_3(\kappa) }{Z}
-      \right]
+ *           + F_1(\kappa) + Z F_2(\kappa) + \frac{F_3(\kappa) }{Z} \right]
  * \f]
- * where \f$ \kappa = \ln[E_{\gamma}/(m_ec^2)] \f$ is the logarithm of the primary gamma energy in electron rest mass
- units
- * and \f$ F_i(\kappa) \equiv \sum_{j=0}^{5} a_{ij} \kappa^j\f$ with the parameter values
+ * where \f$ \kappa = \ln[E_{\gamma}/(m_ec^2)] \f$ is the logarithm of the primary gamma energy in electron rest
+ * mass units and \f$ F_i(\kappa) \equiv \sum_{j=0}^{5} a_{ij} \kappa^j\f$ with the parameter values
  * \f[
  *   \begin{array}{lcrr}
  *    a_{10} & = & +8.7842e+2  & \text{[barn]} \\

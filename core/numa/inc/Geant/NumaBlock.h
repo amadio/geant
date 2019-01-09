@@ -23,8 +23,8 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 /**
  * @brief Class NumaBlock
- * @detailed A NUMA block is a concurrent templated factory holding contiguously a
- *           number of objects. It keeps a counters for numbers of used objects.
+ * @details A NUMA block is a concurrent templated factory holding contiguously a
+ *          number of objects. It keeps a counters for numbers of used objects.
  */
 template <typename T>
 class NumaBlock {
@@ -152,7 +152,7 @@ public:
   GEANT_FORCE_INLINE int GetUsed() { return fUsed.load(); }
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif
