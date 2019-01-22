@@ -23,7 +23,7 @@ include_directories(
 )
 
 set(COMMON_HEADERS Common/Hist.h Common/Common.h)
-set(__extralibs benchmark::benchmark pthread)
+set(__extralibs benchmark::benchmark pthread ${Vc_LIBRARIES})
 
 
 if(${benchmark_FOUND})
