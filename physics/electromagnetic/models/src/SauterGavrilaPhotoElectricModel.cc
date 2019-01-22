@@ -63,10 +63,10 @@ bool *SauterGavrilaPhotoElectricModel::fCrossSection                  = nullptr;
 bool *SauterGavrilaPhotoElectricModel::fCrossSectionLE                = nullptr;
 
 SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::string &modelname, bool aliasActive)
-    : EMModel(modelname), nsec(5)
+    : EMModel(modelname), fNsec(5)
 {
 
-  fXsec.reserve(nsec);
+  fXsec.reserve(fNsec);
   SetUseSamplingTables(aliasActive);
   fMinPrimEnergy =
       1.e-12 * geant::units::eV; // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
@@ -778,7 +778,7 @@ size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex(const MaterialC
   size_t num                             = matCut->GetMaterial()->GetNumberOfElements();
   if (num > fXsec.size()) {
     fXsec.reserve(num);
-    nsec = num;
+    fNsec = num;
   }
   double cum = 0.;
   for (size_t i = 0; i < num; ++i) {

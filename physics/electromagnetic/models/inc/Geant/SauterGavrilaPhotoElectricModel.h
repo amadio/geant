@@ -426,7 +426,7 @@ protected:
   std::vector<int> fIndexBaseEn[gMaxSizeData];
 
   /** @brief dimension of fXsec vector, i.e. n. of elements in the volume . */
-  int nsec;
+  int fNsec;
   /** @brief Buffer vector used to store cross-sections per atom . */
   std::vector<double> fXsec;
 
