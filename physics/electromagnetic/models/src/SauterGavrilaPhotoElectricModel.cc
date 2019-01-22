@@ -63,9 +63,10 @@ bool *SauterGavrilaPhotoElectricModel::fCrossSection                  = nullptr;
 bool *SauterGavrilaPhotoElectricModel::fCrossSectionLE                = nullptr;
 
 SauterGavrilaPhotoElectricModel::SauterGavrilaPhotoElectricModel(const std::string &modelname, bool aliasActive)
-    : EMModel(modelname)
+    : EMModel(modelname), nsec(5)
 {
 
+  fXsec.reserve(nsec);
   SetUseSamplingTables(aliasActive);
   fMinPrimEnergy =
       1.e-12 * geant::units::eV; // Minimum of the gamma kinetic energy grid, used to sample the photoelectron direction
@@ -766,18 +767,18 @@ double SauterGavrilaPhotoElectricModel::ComputeMacroscopicXSection(const Materia
 }
 
 size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex(const MaterialCuts *matCut, double gammaekin0,
-                                                                 geant::TaskData *td) const
+                                                                 geant::TaskData *td)
 {
   size_t index = 0;
-  std::vector<double> mxsec(20, 0.);
 
   const Material *mat                     = matCut->GetMaterial();
   const double *theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
 
   const Vector_t<Element *> &theElements = mat->GetElementVector();
   size_t num                             = matCut->GetMaterial()->GetNumberOfElements();
-  if (num > mxsec.size()) {
-    mxsec.resize(num, 0.);
+  if (num > fXsec.size()) {
+    fXsec.reserve(num);
+    nsec = num;
   }
   double cum = 0.;
   for (size_t i = 0; i < num; ++i) {
@@ -786,17 +787,17 @@ size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex(const MaterialC
     cum += theAtomicNumDensityVector[i] * ComputeXSectionPerAtom(theElements[i]->GetZ(), gammaekin0);
     ;
     // store directly the cumulative
-    mxsec[i] = cum;
+    fXsec[i] = cum;
   }
   double rnd = cum * td->fRndm->uniform();
-  // double cumxsec=mxsec[0];
-  for (; index < num - 1 && rnd > mxsec[index]; ++index) { /*cumxsec += mxsec[index+1];*/
+  // double cumxsec=fXsec[0];
+  for (; index < num - 1 && rnd > fXsec[index]; ++index) { /*cumxsec += fXsec[index+1];*/
   }
   return index;
 }
 
 void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy,
-                                                                   geant::TaskData *td) const
+                                                                   geant::TaskData *td)
 {
 
   std::cout << "testSampleTargetElementIndex\n";

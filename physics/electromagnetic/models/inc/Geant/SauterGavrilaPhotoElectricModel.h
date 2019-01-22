@@ -20,7 +20,6 @@ class Element;
 } // namespace geantphysics
 
 #include <string>
-
 namespace geantphysics {
 
 class MaterialCuts;
@@ -152,7 +151,7 @@ public:
   double GetShellPrimEnLMin() { return fShellPrimEnLMin; }
   double GetShellPrimEnILDelta() { return fShellPrimEnILDelta; }
   double *GetShellLSamplingPrimEnergies() { return fShellLSamplingPrimEnergies; }
-  double *GetShellSamplingPrimEnergies() { return fShellSamplingPrimEnergies; }
+  double *GetShellSamplingPrimEnergies() { return fShellSamplingPrimEnergies; } 
 
   //@}
 
@@ -189,7 +188,7 @@ protected:
    * photoelectric effect.
    */
 
-  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::TaskData *td) const;
+  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::TaskData *td) ;
 
   //---------------------------------------------
   // TestSampleTargetElementIndex
@@ -205,7 +204,7 @@ protected:
    * @param[in] td        TaskData needed to generate random numbers.
    * @return              Output file SampleTargetElementIndexTest_Z that contains the expected pdf and the sampled one.
    */
-  void TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::TaskData *td) const;
+  void TestSampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::TaskData *td) ;
 
   //---------------------------------------------
   // CalculateDiffCrossSection
@@ -425,6 +424,11 @@ protected:
   std::vector<int> fIndexSortedDoubledBindingEn[gMaxSizeData];
   /** @brief INdexes of the base energies in the final vector. */
   std::vector<int> fIndexBaseEn[gMaxSizeData];
+  
+  /** @brief dimension of fXsec vector, i.e. n. of elements in the volume . */
+  int nsec;
+  /** @brief Buffer vector used to store cross-sections per atom . */
+  std::vector<double> fXsec;
 
   /** @brief Verbose level to control the printout. */
   int fVerboseLevel; // Verbose level to control the printout
