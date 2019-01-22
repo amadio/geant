@@ -99,24 +99,29 @@ void StdApplication::FinishRun()
 {
 #ifdef USE_ROOT
   if (fScore == kNoScore) return;
+  TFile::Open("stdapp.root", "RECREATE");
   TVirtualPad *pad;
   TCanvas *c3 = new TCanvas("Step size profile", "Standard GeantV scoring", 800, 1600);
   c3->Divide(2, 3);
   pad = c3->cd(1);
   fHeta->Sumw2();
+  fHeta->Write();
   fHeta->Draw("E");
   pad = c3->cd(2);
   pad->SetLogx();
   pad->SetLogy();
   fHpt->Sumw2();
+  fHpt->Write();
   fHpt->Draw("E");
   pad = c3->cd(3);
   pad->SetLogx();
   pad->SetLogy();
   fHStep->Sumw2();
+  fHStep->Write();
   fHStep->Draw("E");
   pad = c3->cd(4);
   pad->SetLogy();
+  fStepSize->Write();
   fStepSize->Draw();
   pad = c3->cd(5);
   pad->SetLogy();

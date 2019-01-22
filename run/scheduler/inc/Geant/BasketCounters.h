@@ -31,6 +31,7 @@ struct BasketCounters {
   volatile size_t *fCounters;     ///< counters
   volatile size_t *fFired;        ///< fired baskets per handler
   volatile size_t *fFlushed;      ///< flushed baskets per handler
+  volatile size_t *fNtracks;      ///< number of tracks per handler
 
   BasketCounters(size_t nhandlers)
   {
@@ -38,6 +39,7 @@ struct BasketCounters {
     fCounters  = new size_t[nhandlers];
     fFired     = new size_t[nhandlers];
     fFlushed   = new size_t[nhandlers];
+    fNtracks   = new size_t[nhandlers];
     Reset();
   }
 
@@ -46,6 +48,7 @@ struct BasketCounters {
     delete[] fCounters;
     delete[] fFired;
     delete[] fFlushed;
+    delete[] fNtracks;
   }
 
   GEANT_FORCE_INLINE
@@ -55,6 +58,7 @@ struct BasketCounters {
       fCounters[i] = 0;
       fFired[i]    = 0;
       fFlushed[i]  = 0;
+      fNtracks[i]  = 0;
     }
   }
 
@@ -67,12 +71,25 @@ struct BasketCounters {
       fCounters[i] += other.fCounters[i];
       fFired[i] += other.fFired[i];
       fFlushed[i] += other.fFlushed[i];
+      fNtracks[i] += other.fNtracks[i];
     }
     return *this;
   }
 
   GEANT_FORCE_INLINE
   size_t GetNcalls() const { return (fNscalar + fNvector); }
+
+  GEANT_FORCE_INLINE
+  size_t GetNtracks(size_t ihandler) const { return fNtracks[ihandler]; }
+
+  GEANT_FORCE_INLINE
+  size_t GetNtracks() const
+  {
+    size_t ntotal = 0;
+    for (size_t i = 0; i < fNhandlers; ++i) 
+      ntotal += fNtracks[i];
+    return ntotal;
+  }
 
   GEANT_FORCE_INLINE
   void Increment(size_t ihandler, size_t threshold)

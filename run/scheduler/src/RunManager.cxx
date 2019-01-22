@@ -121,6 +121,7 @@ bool RunManager::Initialize()
     Fatal(methodName, "The user application MUST be defined");
     return false;
   }
+  if (fConfig->fUseStdScoring) fStdApplication = new StdApplication(this);
 
   if (!fDetConstruction) {
     Warning(methodName, "The user detector construction should be defined");
@@ -212,10 +213,7 @@ bool RunManager::Initialize()
   fTDManager   = new TDManager(nthreads, fConfig->fMaxPerBasket);
 
   // Initialize application
-  if (fConfig->fUseStdScoring) {
-    fStdApplication = new StdApplication(this);
-    fStdApplication->Initialize();
-  }
+  if (fConfig->fUseStdScoring) fStdApplication->Initialize();
   fApplication->Initialize();
 
   // Attach user data and physics data to task data
@@ -535,8 +533,8 @@ void RunManager::RunSimulation()
   TaskData *td0 = fTDManager->GetTaskData(0);
   for (size_t stage = 0; stage < kNstages; ++stage) {
     SimulationStage *simstage = fPropagators[0]->GetStage(ESimulationStage(stage));
-    if (!simstage->IsBasketized()) continue;
     if (fConfig->fMonHandlers) simstage->PrintStatistics();
+    if (!simstage->IsBasketized()) continue;
     // Merge stage counters
     for (size_t i = 1; i < fTDManager->GetNtaskData(); ++i) {
       TaskData *td = fTDManager->GetTaskData(i);
@@ -603,6 +601,16 @@ size_t RunManager::GetNflushed(size_t istage, size_t ihandler) const
 }
 
 //______________________________________________________________________________
+size_t RunManager::GetNtracks(size_t istage, size_t ihandler) const
+{
+  // Get number of fired baskets for a specific handler over all workers
+  size_t ntracks = 0;
+  for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
+    ntracks += fTDManager->GetTaskData(i)->fCounters[istage]->fNtracks[ihandler];
+  return ntracks;
+}
+
+//______________________________________________________________________________
 size_t RunManager::GetNscalar(size_t istage) const
 {
   size_t nscalar = 0;
@@ -618,6 +626,15 @@ size_t RunManager::GetNvector(size_t istage) const
   for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
     nvector += fTDManager->GetTaskData(i)->fCounters[istage]->fNvector;
   return nvector;
+}
+
+//______________________________________________________________________________
+size_t RunManager::GetNtracks(size_t istage) const
+{
+  size_t ntracks = 0;
+  for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
+    ntracks += fTDManager->GetTaskData(i)->fCounters[istage]->GetNtracks();
+  return ntracks;
 }
 
 } // namespace GEANT_IMPL_NAMESPACE

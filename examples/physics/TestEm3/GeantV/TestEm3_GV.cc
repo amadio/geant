@@ -432,6 +432,7 @@ geant::RunManager *RunManager()
   if (parConfigVectorizedMSC == 2) runConfig->fUseSDMSC = true;
   // create the real physics main manager/interface object and set it in the RunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*runConfig));
+  runConfig->fUseStdScoring = false;
   //
   // Activate standard scoring
   // runConfig->fUseStdScoring = !parConfigIsPerformance;

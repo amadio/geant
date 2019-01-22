@@ -347,6 +347,8 @@ geant::RunManager *RunManager()
   // create the real physics main manager/interface object and set it in the RunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*runConfig));
 
+  runConfig->fUseStdScoring = false;
+
   return runManager;
 }
 

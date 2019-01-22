@@ -115,22 +115,20 @@ void SimulationStage::DeleteLocalHandlers()
 //______________________________________________________________________________
 void SimulationStage::PrintStatistics() const
 {
-  if (!fBasketized) return;
-  Printf("Stage %s statistics:", GetName());
+  //if (!fBasketized) return;
+  Printf("Stage %s statistics: %zu tracks", GetName(), fPropagator->fRunMgr->GetNtracks(fId));
   std::vector<size_t> ntracks(GetNhandlers(), 0);
   std::vector<size_t> idx(GetNhandlers());
   // initialize original index locations
   std::iota(idx.begin(), idx.end(), 0);
   for (int i = 0; i < GetNhandlers(); ++i) {
-    if (!fHandlers[i]->MayBasketize()) continue;
-    size_t nflushed = fPropagator->fRunMgr->GetNflushed(fId, i);
-    size_t nfired   = fPropagator->fRunMgr->GetNfired(fId, i);
-    ntracks[i]      = (nflushed + nfired) * fHandlers[i]->GetThreshold();
+    ntracks[i] = fPropagator->fRunMgr->GetNtracks(fId, i);
   }
   // sort indexes based on comparing values in v in decreasing order
   sort(idx.begin(), idx.end(), [&ntracks](size_t i1, size_t i2) { return ntracks[i1] > ntracks[i2]; });
   for (int i = 0; i < GetNhandlers(); ++i) {
     if (ntracks[idx[i]] > 0) {
+      if (i == 50) return;
       size_t nflushed = fPropagator->fRunMgr->GetNflushed(fId, idx[i]);
       size_t nfired   = fPropagator->fRunMgr->GetNfired(fId, idx[i]);
       std::cout << "=== " << fHandlers[idx[i]]->GetName() << ":  ntracks = " << ntracks[idx[i]]
@@ -210,6 +208,7 @@ int SimulationStage::FlushHandler(int i, TaskData *td, Basket &output)
   fHandlers[i]->Flush(bvector, td);
   td->fCounters[fId]->fFlushed[i]++;
   int nflushed = bvector.size();
+  td->fCounters[fId]->fNtracks[i] += nflushed;
   if (nflushed >= fPropagator->fConfig->fNvecThreshold) {
     td->fCounters[fId]->fNvector += bvector.size();
     if (fHandlers[i]->IsScalarDispatch())
@@ -250,6 +249,7 @@ int SimulationStage::FlushAndProcess(TaskData *td)
     if (handler) {
       td->fCounters[fId]->Increment(handler->GetId(), handler->GetThreshold());
       td->fCounters[fId]->fNscalar += size_t(fBasketized & handler->MayBasketize());
+      td->fCounters[fId]->fNtracks[handler->GetId()]++;
       handler->DoIt(track, output, td);
     } else
       output.AddTrack(track);
@@ -264,6 +264,7 @@ int SimulationStage::FlushAndProcess(TaskData *td)
     if (fHandlers[i]->IsActive() && (nbasket = fHandlers[i]->Flush(bvector, td))) {
       // btodo has some content, invoke DoIt
       td->fCounters[fId]->fFlushed[i]++;
+      td->fCounters[fId]->fNtracks[i] += bvector.size();
       if (bvector.size() >= (size_t)fPropagator->fConfig->fNvecThreshold) {
         td->fCounters[fId]->fNvector += bvector.size();
         if (fHandlers[i]->IsScalarDispatch())
@@ -349,12 +350,14 @@ int SimulationStage::Process(TaskData *td)
         if (handler->MayBasketize()) td->fCounters[fId]->fNscalar++;
       }
       // Scalar DoIt.
+      td->fCounters[fId]->fNtracks[handler->GetId()]++;
       handler->DoIt(track, output, td);
     } else {
       // Add the track to the handler, which may extract a full vector.
       if (handler->AddTrack(track, bvector, td)) {
         // Vector DoIt
         td->fCounters[fId]->fNvector += bvector.size();
+        td->fCounters[fId]->fNtracks[handler->GetId()] += bvector.size();
         td->fCounters[fId]->fFired[handler->GetId()]++;
         if (handler->IsScalarDispatch())
           handler->DoItScalar(bvector, output, td);
