@@ -141,8 +141,8 @@ public:
   int GetNumOfSecondaries() const { return fNumUsedSecondaries; }
 
   std::vector<LightTrack> &GetPrimaryTracks() { return fPrimaryTracks; }
-
   std::vector<int> &GetSecondaryFillVector() { return fSecondaryFillVector; }
+  std::vector<double> &GetXsecVector() { return fXsecVector; }
 
   LightTrack_v &GetPrimarySOA() { return fPrimaryLTs; }
   LightTrack_v &GetSecondarySOA() { return fSecondaryLTs; }
@@ -161,6 +161,7 @@ private:
   std::vector<LightTrack> fListOfSecondaries;
   std::vector<LightTrack> fPrimaryTracks;
   std::vector<int> fSecondaryFillVector;
+  std::vector<double> fXsecVector; //buffer to store atomic cross-sections values - pe effect
   LightTrack_v fPrimaryLTs;
   LightTrack_v fSecondaryLTs;
 };

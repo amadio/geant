@@ -425,11 +425,6 @@ protected:
   /** @brief INdexes of the base energies in the final vector. */
   std::vector<int> fIndexBaseEn[gMaxSizeData];
 
-  /** @brief dimension of fXsec vector, i.e. n. of elements in the volume . */
-  int fNsec;
-  /** @brief Buffer vector used to store cross-sections per atom . */
-  std::vector<double> fXsec;
-
   /** @brief Verbose level to control the printout. */
   int fVerboseLevel; // Verbose level to control the printout
   // bool fDeexcitationActive;                 //True if deexitation is active - not used at the moment
