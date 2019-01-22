@@ -768,14 +768,14 @@ double SauterGavrilaPhotoElectricModel::ComputeMacroscopicXSection(const Materia
 size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex(const MaterialCuts *matCut, double gammaekin0,
                                                                  geant::TaskData *td)
 {
-  size_t index = 0;
-  auto &xsec = td->fPhysicsData->GetXsecVector();
+  size_t index                            = 0;
+  auto &xsec                              = td->fPhysicsData->GetXsecVector();
   const Material *mat                     = matCut->GetMaterial();
   const double *theAtomicNumDensityVector = mat->GetMaterialProperties()->GetNumOfAtomsPerVolumeVect();
 
   const Vector_t<Element *> &theElements = mat->GetElementVector();
   size_t num                             = matCut->GetMaterial()->GetNumberOfElements();
-  
+
   if (num > xsec.size()) {
     xsec.resize(num);
   }

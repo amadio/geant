@@ -161,7 +161,7 @@ private:
   std::vector<LightTrack> fListOfSecondaries;
   std::vector<LightTrack> fPrimaryTracks;
   std::vector<int> fSecondaryFillVector;
-  std::vector<double> fXsecVector; //buffer to store atomic cross-sections values - pe effect
+  std::vector<double> fXsecVector; // buffer to store atomic cross-sections values - pe effect
   LightTrack_v fPrimaryLTs;
   LightTrack_v fSecondaryLTs;
 };
