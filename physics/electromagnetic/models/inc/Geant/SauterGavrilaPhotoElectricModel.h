@@ -175,20 +175,22 @@ protected:
    */
   void InitializeModel();
   int sampleShellAlias(double ekin, int zed, double r1, double r2);
+
   //---------------------------------------------
   // SampleTargetElementIndex
   /**
    * @brief Private method to Sample the target index of the element involved in the interaction.
    *
    *
-   * @param[in] matcut    MaterialCuts to retrieve the element composition of the material.
-   * @param[in] energy    Primary particle (gamma) kinetic energy.
-   * @param[in] td        TaskData needed to generate random numbers.
-   * @return              Index of the element sampled from the material composition to be the one involved in
+   * @param[in] matcut     MaterialCuts to retrieve the element composition of the material.
+   * @param[in] energy     Primary particle (gamma) kinetic energy.
+   * @param[in] prestepmfp Pre-step MFP (= currect MFP <= gamma kinetic energy do NOT change along the step)
+   * @param[in] td         TaskData needed to generate random numbers.
+   * @return               Index of the element sampled from the material composition to be the one involved in
    * photoelectric effect.
    */
 
-  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, geant::TaskData *td);
+  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, const double prestepmfp, geant::TaskData *td);
 
   //---------------------------------------------
   // TestSampleTargetElementIndex

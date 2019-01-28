@@ -54,6 +54,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
   primaryLT.SetDirX(track->Dx());
   primaryLT.SetDirY(track->Dy());
   primaryLT.SetDirZ(track->Dz());
+  primaryLT.SetTotalMFP(track->GetPhysicsInteractLength(track->GetPhysicsProcessIndex()));
 
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->ClearSecondaries();
@@ -156,6 +157,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     primaryLTs.SetDirY(track->Dy(), i);
     primaryLTs.SetDirZ(track->Dz(), i);
     primaryLTs.SetTrackIndex(i, i);
+    primaryLTs.SetTotalMFP(track->GetPhysicsInteractLength(track->GetPhysicsProcessIndex()), i);
   }
   primaryLTs.SetNtracks(N);
 

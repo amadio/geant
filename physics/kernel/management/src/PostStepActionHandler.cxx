@@ -55,6 +55,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
   //  fXdir         <==>  fXdir     // direction vector x comp. will be set to the new direction x comp.
   //  fYdir         <==>  fYdir     // direction vector y comp. will be set to the new direction y comp.
   //  fZdir         <==>  fZdir     // direction vector z comp. will be set to the new direction z comp.
+  //  pre-step mfp of the selected discrete process will also be set in pManagerPerParticle::PostStepAction!
   primaryLT.SetMaterialCutCoupleIndex(matCut->GetIndex());
   primaryLT.SetKinE(track->E() - track->Mass());
   primaryLT.SetLogKinE(track->LogEkin());
@@ -64,7 +65,9 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
   primaryLT.SetDirX(track->Dx());
   primaryLT.SetDirY(track->Dy());
   primaryLT.SetDirZ(track->Dz());
-  //  primaryLT.SetTotalMFP(track->GetIntLen());
+  // obtain and set the pre-step point mfp of the selected discrete process:
+  // global index of the selected physics process =  track->GetPhysicsProcessIndex();
+  primaryLT.SetTotalMFP(track->GetPhysicsInteractLength(track->GetPhysicsProcessIndex()));
   //
   // clean the number of secondary tracks used (in PhysicsData)
   td->fPhysicsData->ClearSecondaries();

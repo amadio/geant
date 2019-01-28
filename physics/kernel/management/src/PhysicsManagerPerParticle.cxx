@@ -216,7 +216,7 @@ int PhysicsManagerPerParticle::PostStepAction(LightTrack &track, geant::Track *g
   const MaterialCuts *matCut = MaterialCuts::GetMaterialCut(track.GetMaterialCutCoupleIndex());
   double ekin                = track.GetKinE();
   double mass                = track.GetMass();
-  double preStepLambda       = gtrack->GetPhysicsInteractLength(physicsProcessIndx); // pre-step mfp
+  double preStepLambda       = track.GetTotalMFP(); // pre-step mfp of the selected process
   PhysicsProcess *proc       = fProcessVec[physicsProcessIndx];
   if (HasEnergyLossProcess()) {
     // get the current i.e. for the post-step kinetic energy 1/lambda and compare to the pre-step i.e. overestimated
@@ -247,7 +247,7 @@ PhysicsProcess *PhysicsManagerPerParticle::PostStepSelectProcess(geant::Track *g
   gtrack->SetPhysicsNumOfInteractLengthLeft(physicsProcessIndx, -1.0);
   double ekin          = gtrack->Ekin();
   double mass          = gtrack->Mass();
-  double preStepLambda = gtrack->GetPhysicsInteractLength(physicsProcessIndx);
+  double preStepLambda = gtrack->GetPhysicsInteractLength(physicsProcessIndx); // pre-step mfp of the selected process
   PhysicsProcess *proc = fProcessVec[physicsProcessIndx];
   if (HasEnergyLossProcess()) {
     double curMacrXsec = proc->GetMacroscopicXSection(matCut, ekin, gtrack->LogEkin(), mass);
