@@ -15,8 +15,6 @@
 #include <Geant/Config.h>
 #include <Geant/VectorTypes.h>
 
-#include "Geant/GFldAuxFunctions.h"
-
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 /**
