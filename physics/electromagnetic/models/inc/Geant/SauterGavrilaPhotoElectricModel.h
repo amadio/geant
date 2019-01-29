@@ -190,7 +190,8 @@ protected:
    * photoelectric effect.
    */
 
-  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, const double prestepmfp, geant::TaskData *td);
+  size_t SampleTargetElementIndex(const MaterialCuts *matcut, double energy, const double prestepmfp,
+                                  geant::TaskData *td);
 
   //---------------------------------------------
   // TestSampleTargetElementIndex

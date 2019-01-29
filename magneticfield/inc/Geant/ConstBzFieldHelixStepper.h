@@ -15,10 +15,10 @@ namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 
 /**
-* A very simple stepper treating the propagation of particles in a constant Bz magnetic field
-* ( neglecting energy loss of particle )
-* This class is roughly equivalent to TGeoHelix in ROOT
-*/
+ * A very simple stepper treating the propagation of particles in a constant Bz magnetic field
+ * ( neglecting energy loss of particle )
+ * This class is roughly equivalent to TGeoHelix in ROOT
+ */
 class ConstBzFieldHelixStepper {
 private:
   double fBz;
@@ -181,7 +181,7 @@ void ConstBzFieldHelixStepper::DoStep_v(
 // TODO: above stepper is tailored/specialized to B=(0,0,Bz) in the global frame of reference
 // might need to provide more general class in which the constant field has arbitrary direction
 
-} // GEANT_IMPL_NAMESPACE
-} // end geant namespace
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif /* CONSTFIELDHELIXSTEPPER_H_ */

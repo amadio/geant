@@ -18,10 +18,10 @@
 namespace geant {
 inline namespace GEANT_IMPL_NAMESPACE {
 /**
-* A very simple stepper treating the propagation of particles in a constant Bz magnetic field
-* ( neglecting energy loss of particle )
-* This class is roughly equivalent to TGeoHelix in ROOT
-*/
+ * A very simple stepper treating the propagation of particles in a constant Bz magnetic field
+ * ( neglecting energy loss of particle )
+ * This class is roughly equivalent to TGeoHelix in ROOT
+ */
 class ConstFieldHelixStepper {
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
@@ -92,10 +92,10 @@ public:
   // in future will offer versions that take containers as input
 
   /**
-  * this function propagates the track along the helix solution by a step
-  * input: current position, current direction, some particle properties
-  * output: new position, new direction of particle
-  */
+   * this function propagates the track along the helix solution by a step
+   * input: current position, current direction, some particle properties
+   * output: new position, new direction of particle
+   */
   template <typename Real_v>
   GEANT_FORCE_INLINE void DoStep(Vector3D<Real_v> const &position, Vector3D<Real_v> const &direction,
                                  Real_v const &charge, Real_v const &momentum, Real_v const &step,
@@ -186,9 +186,9 @@ GEANT_FORCE_INLINE void ConstFieldHelixStepper::DoStep(vecgeom::Vector3D<Real_v>
 {
   const Real_v kB2C_local(-0.299792458e-3);
   const Real_v kSmall(1.E-30);
-  using vecgeom::Vector3D;
   using vecCore::math::Max;
   using vecCore::math::SinCos;
+  using vecgeom::Vector3D;
   // using vecCore::math::Sin;
   // using vecCore::math::Cos;
   using vecCore::math::Abs;
@@ -271,8 +271,8 @@ void ConstFieldHelixStepper::DoStepArr(double const *_R_ posx, double const *_R_
 {
   const size_t vectorSize = vecCore::VectorSize<Real_v>();
   using vecCore::Load;
-  using vecCore::Store;
   using vecCore::Set;
+  using vecCore::Store;
 
   // std::cout << " --- ConstFieldHelixStepper::DoStepArr called." << std::endl;
 
@@ -434,7 +434,7 @@ GEANT_FORCE_INLINE void ConstFieldHelixStepper::PrintStep(vecgeom::Vector3D<Real
   }
 }
 
-} // inline namespace GEANT_IMPL_NAMESPACE
-} // end geant namespace
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif /* CONSTVECFIELDHELIXSTEPPER_H_ */

@@ -778,7 +778,7 @@ size_t SauterGavrilaPhotoElectricModel::SampleTargetElementIndex(const MaterialC
   // the normalization factor i.e. the sum is known (the inevrse is the mfp)
   double cum = theAtomicNumDensityVector[index] * ComputeXSectionPerAtom(theElements[index]->GetZ(), gammaekin0);
   double rnd = td->fRndm->uniform();
-  while (index < num-1 && rnd > cum*prestepmfp) {
+  while (index < num - 1 && rnd > cum * prestepmfp) {
     ++index;
     cum += theAtomicNumDensityVector[index] * ComputeXSectionPerAtom(theElements[index]->GetZ(), gammaekin0);
   }
@@ -807,7 +807,7 @@ void SauterGavrilaPhotoElectricModel::TestSampleTargetElementIndex(const Materia
     sum += xsec[i];
   }
   for (int i = 0; i < 1000000000; i++) {
-    index = SampleTargetElementIndex(matcut, energy, 1./sum, td);
+    index = SampleTargetElementIndex(matcut, energy, 1. / sum, td);
     xsecSampled[index]++;
   }
   for (int i = 0; i < num; i++) {
@@ -848,7 +848,7 @@ int SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack &track, geant:
     // uncomment the following line to test SampleTargetElementIndex
     // testSampleTargetElementIndex(matCut, gammaekin0, td );
     const double preStepMFP = track.GetTotalMFP();
-    targetElemIndx = SampleTargetElementIndex(matCut, gammaekin0, preStepMFP, td);
+    targetElemIndx          = SampleTargetElementIndex(matCut, gammaekin0, preStepMFP, td);
   }
   double zeta = theElements[targetElemIndx]->GetZ();
   int Z       = std::lrint(zeta);
@@ -981,7 +981,7 @@ void SauterGavrilaPhotoElectricModel::SampleSecondaries(LightTrack_v &tracks, ge
     size_t targetElemIndx                  = 0;
     if (theElements.size() > 1) {
       const double preStepMFP = tracks.GetTotalMFP(i);
-      targetElemIndx = SampleTargetElementIndex(matCut, kin[i], preStepMFP, td);
+      targetElemIndx          = SampleTargetElementIndex(matCut, kin[i], preStepMFP, td);
     }
     zed[i]     = (int)theElements[targetElemIndx]->GetZ();
     nshells[i] = fNShellsUsed[zed[i]];
