@@ -246,10 +246,10 @@ void GSMSCTableSimplified::SampleTheta12(const double *lambdaval, const double *
   auto &rand0Th2 = td->fPhysicsData->fPhysicsScratchpad.rand0Th2;
   rand0Th2.resize(N);
   auto &masked = td->fPhysicsData->fPhysicsScratchpad.masked;
-  masked.resize(N, false);
+  masked.resize(N); // no need to init: it will be set
 
   auto &angDtrCache = td->fPhysicsData->fPhysicsScratchpad.angDtrCache;
-  angDtrCache.resize(N, nullptr);
+  angDtrCache.resize(N); // it will be set to nullptr first
   auto &transfParCache = td->fPhysicsData->fPhysicsScratchpad.transfParCache;
   transfParCache.resize(N);
 
@@ -291,6 +291,7 @@ void GSMSCTableSimplified::SampleTheta12(const double *lambdaval, const double *
   }
 
   for (int i = 0; i < N; ++i) {
+    angDtrCache[i] = nullptr;
     if (masked[i]) continue;
     bool noScat      = rand0Th1[i] < expn[i];
     bool oneScat     = rand0Th1[i] < (1. + 0.5 * lambdaval[i]) * expn[i];
