@@ -73,29 +73,26 @@ int main(int argc, char *argv[])
   // Create and configure run manager
   geant::RunManager *runMgr = RunManager();
   //
-  // Defining two different lists of active regions
-  std::vector<bool> activeregionlist1(22, 1);
-  activeregionlist1[2]  = 0;
-  activeregionlist1[3]  = 0;
-  activeregionlist1[7]  = 0;
-  activeregionlist1[11] = 0;
-  activeregionlist1[15] = 0;
-  activeregionlist1[21] = 0;
-
-  std::vector<bool> activeregionlist2(22, 0);
-  activeregionlist2[2]  = 1;
-  activeregionlist2[3]  = 1;
-  activeregionlist2[7]  = 1;
-  activeregionlist2[11] = 1;
-  activeregionlist2[15] = 1;
-  activeregionlist2[21] = 1; // it has to be controlled that they masks are mutually ex
+  // Defining two different physics lists:
+  // - ~ 85 - 90 % of the steps are done in region #15 (EcalRegion) out of the 22 regions
+  // - a physics list with models using rejection will be used everywhere but region #15
+  // - a physics list with models using sampling tables will be used only in region #15
+  std::vector<bool> physListActiveRegionList1(22, 1);
+  physListActiveRegionList1[15] = 0;
+  std::vector<bool> physListActiveRegionList2(22, 0);
+  physListActiveRegionList2[15] = 1;
   //
   // Register user defined physics lists for the full CMS application
-  // Activating them in different regions - Building alias tables only in the "most active" regions
+  // Activating them in different regions - using sampling-table based model only in the "most active" regions
+  bool useEMModelsWithSamplingTables = false;
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(
-      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "withoutAlias", false), activeregionlist1);
+      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-rejection"     , useEMModelsWithSamplingTables),
+      physListActiveRegionList1);
+  //
+  useEMModelsWithSamplingTables = true;
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(
-      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "withAlias", true), activeregionlist2);
+      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-sampling-tables", useEMModelsWithSamplingTables),
+      physListActiveRegionList2);
   //
   // Create detector construction
   cmsapp::CMSDetectorConstruction *det = new cmsapp::CMSDetectorConstruction(runMgr);

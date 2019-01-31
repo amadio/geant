@@ -12,16 +12,18 @@ namespace cmsapp {
 class CMSPhysicsList : public geantphysics::PhysicsList {
 public:
   // CTR
-  CMSPhysicsList(const geant::GeantConfig &config, const std::string &name = "CMS-PhysicsList", bool withAlias = false);
+  CMSPhysicsList(const geant::GeantConfig &config,
+                 const std::string &name = "CMS-PhysicsList",
+                 bool useSamplingTables = false);
   // DTR
   virtual ~CMSPhysicsList();
   // interface method to assigne physics-process to particles
   virtual void Initialize();
 
 private:
-  bool fWithAlias     = false;
-  bool fVectorized    = false;
-  bool fVectorizedMSC = false;
+  bool fUseSamplingTables = false;
+  bool fVectorized        = false;
+  bool fVectorizedMSC     = false;
 };
 
 } // namespace cmsapp
