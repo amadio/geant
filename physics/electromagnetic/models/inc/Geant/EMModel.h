@@ -201,6 +201,10 @@ public:
   const PhysicsParameters *GetPhysicsParameters() const { return fPhysicsParameters; }
 
   void AddToUserRequestedInActiveRegions(int regionindx) { fListOfUserRequestedInActiveRegions.push_back(regionindx); }
+  void AddToUserRequestedInActiveRegions(const std::vector<int> &regionindx) {
+    fListOfUserRequestedInActiveRegions.insert(std::end(fListOfUserRequestedInActiveRegions),
+                                               std::begin(regionindx), std::end(regionindx));
+  }
   const std::vector<int> &GetListOfUserRequestedInActiveRegions() { return fListOfUserRequestedInActiveRegions; }
 
   std::vector<bool> &GetListActiveRegions() { return fListActiveRegions; }

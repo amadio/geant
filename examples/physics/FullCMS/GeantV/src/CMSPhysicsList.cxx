@@ -35,6 +35,8 @@
 #include "Geant/MSCModel.h"
 #include "Geant/GSMSCModel.h"
 
+#include <numeric>
+
 namespace cmsapp {
 
 CMSPhysicsList::CMSPhysicsList(const geant::GeantConfig &config, const std::string &name, bool useSamplingTables)
@@ -101,21 +103,44 @@ void CMSPhysicsList::Initialize()
       // add the process to the e- particle
       AddProcessToParticle(particle, eBremProc);
       //
-      // create MSC process
+      // create MSC process with 2 models:
+      // = 1. with range-factor = 0.2  (EM-opt1) settings and active everywhere but in HcalRegion (#11)
+      // = 2. with range-factor = 0.06 (EM-opt0) settings and active only in HcalRegion (#11)
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e-msc");
       // create GS-msc model, set min/max usage limits
-      geantphysics::MSCModel *gsMSCModel = nullptr;
+      geantphysics::MSCModel *gsMSCModelOpt1 = nullptr;
+      geantphysics::MSCModel *gsMSCModelOpt0 = nullptr;
       if (fVectorizedMSC) {
-        gsMSCModel = new geantphysics::GSMSCModelSimplified();
+        gsMSCModelOpt1 = new geantphysics::GSMSCModelSimplified();
+        gsMSCModelOpt0 = new geantphysics::GSMSCModelSimplified();
       } else {
-        gsMSCModel = new geantphysics::GSMSCModel();
+        gsMSCModelOpt1 = new geantphysics::GSMSCModel();
+        gsMSCModelOpt0 = new geantphysics::GSMSCModel();
       }
-      gsMSCModel->SetBasketizable(fVectorizedMSC);
-      gsMSCModel->SetRangeFactor(0.06);
-      gsMSCModel->SetMSCSteppingAlgorithm(geantphysics::MSCSteppingAlgorithm::kUseSaftey);
-      gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);
-      gsMSCModel->SetHighEnergyUsageLimit(100. * geant::units::TeV);
-      eMSCProc->AddModel(gsMSCModel);
+      gsMSCModelOpt1->SetBasketizable(fVectorizedMSC);
+      gsMSCModelOpt0->SetBasketizable(fVectorizedMSC);
+      // one with opt1 and one with opt0 stepping i.e. RangeFactor = 0.2 and 0.06
+      gsMSCModelOpt1->SetRangeFactor(0.2);
+      gsMSCModelOpt0->SetRangeFactor(0.06);
+      //
+      gsMSCModelOpt1->SetMSCSteppingAlgorithm(geantphysics::MSCSteppingAlgorithm::kUseSaftey);
+      gsMSCModelOpt0->SetMSCSteppingAlgorithm(geantphysics::MSCSteppingAlgorithm::kUseSaftey);
+      //
+      gsMSCModelOpt1->SetLowEnergyUsageLimit(100. * geant::units::eV);
+      gsMSCModelOpt1->SetHighEnergyUsageLimit(100. * geant::units::TeV);
+      gsMSCModelOpt0->SetLowEnergyUsageLimit(100. * geant::units::eV);
+      gsMSCModelOpt0->SetHighEnergyUsageLimit(100. * geant::units::TeV);
+      // set opt1 to be inactivated in region #11 (HcalRegion)
+      gsMSCModelOpt1->AddToUserRequestedInActiveRegions(11);
+      // set opt0 to be inactivated in all the 0-21 regions but except in #11 (HcalRegion)
+      std::vector<int> inactiveRegionIndexVect(22);
+      std::iota(std::begin(inactiveRegionIndexVect), std::end(inactiveRegionIndexVect), 0);
+      inactiveRegionIndexVect.erase(inactiveRegionIndexVect.begin()+11);
+      gsMSCModelOpt0->AddToUserRequestedInActiveRegions(inactiveRegionIndexVect);
+      //
+      // add the 2 MSC model to the MSC process
+      eMSCProc->AddModel(gsMSCModelOpt1);
+      eMSCProc->AddModel(gsMSCModelOpt0);
       // add process to particle
       AddProcessToParticle(particle, eMSCProc);
     }
@@ -166,21 +191,44 @@ void CMSPhysicsList::Initialize()
       // add the process to the e+ particle
       AddProcessToParticle(particle, eBremProc);
       //
-      // create MSC process
+      // create MSC process with 2 models:
+      // = 1. with range-factor = 0.2  (EM-opt1) settings and active everywhere but in HcalRegion (#11)
+      // = 2. with range-factor = 0.06 (EM-opt0) settings and active only in HcalRegion (#11)
       geantphysics::EMPhysicsProcess *eMSCProc = new geantphysics::MSCProcess("e+msc");
       // create GS-msc model, set min/max usage limits
-      geantphysics::MSCModel *gsMSCModel = nullptr; // for e+
+      geantphysics::MSCModel *gsMSCModelOpt1 = nullptr;
+      geantphysics::MSCModel *gsMSCModelOpt0 = nullptr;
       if (fVectorizedMSC) {
-        gsMSCModel = new geantphysics::GSMSCModelSimplified(false);
+        gsMSCModelOpt1 = new geantphysics::GSMSCModelSimplified();
+        gsMSCModelOpt0 = new geantphysics::GSMSCModelSimplified();
       } else {
-        gsMSCModel = new geantphysics::GSMSCModel(false);
+        gsMSCModelOpt1 = new geantphysics::GSMSCModel();
+        gsMSCModelOpt0 = new geantphysics::GSMSCModel();
       }
-      gsMSCModel->SetBasketizable(fVectorizedMSC);
-      gsMSCModel->SetRangeFactor(0.06);
-      gsMSCModel->SetMSCSteppingAlgorithm(geantphysics::MSCSteppingAlgorithm::kUseSaftey);
-      gsMSCModel->SetLowEnergyUsageLimit(100. * geant::units::eV);
-      gsMSCModel->SetHighEnergyUsageLimit(100. * geant::units::TeV);
-      eMSCProc->AddModel(gsMSCModel);
+      gsMSCModelOpt1->SetBasketizable(fVectorizedMSC);
+      gsMSCModelOpt0->SetBasketizable(fVectorizedMSC);
+      // one with opt1 and one with opt0 stepping i.e. RangeFactor = 0.2 and 0.06
+      gsMSCModelOpt1->SetRangeFactor(0.2);
+      gsMSCModelOpt0->SetRangeFactor(0.06);
+      //
+      gsMSCModelOpt1->SetMSCSteppingAlgorithm(geantphysics::MSCSteppingAlgorithm::kUseSaftey);
+      gsMSCModelOpt0->SetMSCSteppingAlgorithm(geantphysics::MSCSteppingAlgorithm::kUseSaftey);
+      //
+      gsMSCModelOpt1->SetLowEnergyUsageLimit(100. * geant::units::eV);
+      gsMSCModelOpt1->SetHighEnergyUsageLimit(100. * geant::units::TeV);
+      gsMSCModelOpt0->SetLowEnergyUsageLimit(100. * geant::units::eV);
+      gsMSCModelOpt0->SetHighEnergyUsageLimit(100. * geant::units::TeV);
+      // set opt1 to be inactivated in region #11 (HcalRegion)
+      gsMSCModelOpt1->AddToUserRequestedInActiveRegions(11);
+      // set opt0 to be inactivated in all the 0-21 regions but except in #11 (HcalRegion)
+      std::vector<int> inactiveRegionIndexVect(22);
+      std::iota(std::begin(inactiveRegionIndexVect), std::end(inactiveRegionIndexVect), 0);
+      inactiveRegionIndexVect.erase(inactiveRegionIndexVect.begin()+11);
+      gsMSCModelOpt0->AddToUserRequestedInActiveRegions(inactiveRegionIndexVect);
+      //
+      // add the 2 MSC model to the MSC process
+      eMSCProc->AddModel(gsMSCModelOpt1);
+      eMSCProc->AddModel(gsMSCModelOpt0);
       // add process to particle
       AddProcessToParticle(particle, eMSCProc);
       //

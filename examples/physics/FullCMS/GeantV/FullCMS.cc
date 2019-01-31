@@ -89,9 +89,8 @@ int main(int argc, char *argv[])
       new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-rejection"     , useEMModelsWithSamplingTables),
       physListActiveRegionList1);
   //
-  useEMModelsWithSamplingTables = true;
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(
-      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-sampling-tables", useEMModelsWithSamplingTables),
+      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-sampling-tables", !useEMModelsWithSamplingTables),
       physListActiveRegionList2);
   //
   // Create detector construction

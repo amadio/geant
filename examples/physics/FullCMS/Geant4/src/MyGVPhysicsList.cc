@@ -28,6 +28,8 @@
 #include "G4EmParameters.hh"
 #include "G4MscStepLimitType.hh"
 
+#include "G4EmConfigurator.hh"
+#include "G4LossTableManager.hh"
 
 MyGVPhysicsList::MyGVPhysicsList() : G4VUserPhysicsList() {
   SetDefaultCutValue(1.0);
@@ -65,7 +67,7 @@ void MyGVPhysicsList::BuildEMPhysics() {
   // MSC options:
   param->SetMscStepLimitType(fUseSafety);
   param->SetMscSkin(3);
-  param->SetMscRangeFactor(0.06);
+  param->SetMscRangeFactor(0.2);  // default EM-opt1 value
   G4LossTableManager::Instance();
   //
   // Add standard EM physics processes to e-/e+ and gamma that GeantV has
@@ -89,20 +91,46 @@ void MyGVPhysicsList::BuildEMPhysics() {
       ph->RegisterProcess(thePhotoElectricEffect, particle);
     } else if (particleName =="e-") {
 //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
-      G4eMultipleScattering* msc         = new G4eMultipleScattering;
-      G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
-      msc->AddEmModel(0, msc1);
+      G4eMultipleScattering* msc = new G4eMultipleScattering;
+      // 2 msc models:
+      // = 1. with range-factor = 0.2  (EM-opt1) settings and active everywhere but in HcalRegion (#11)
+      // = 2. with range-factor = 0.06 (EM-opt0) settings and active only in HcalRegion (#11)
+      G4GoudsmitSaundersonMscModel* mscOpt1 = new G4GoudsmitSaundersonMscModel();
+      G4GoudsmitSaundersonMscModel* mscOpt0 = new G4GoudsmitSaundersonMscModel();
+      // set the 2. msc model to be opt0 and lock it to prevet update at init.
+      mscOpt0->SetRangeFactor(0.06); // all others are the default
+      mscOpt0->SetSkin(3);           // not important just for consistency
+      mscOpt0->SetLocked(true);
+      // add the default opt1 model to the process and register the process for the particle
+      msc->AddEmModel(0, mscOpt1);
       ph->RegisterProcess(msc,particle);
+      // Add the extra mscOpt0 model to e- and msc-process used in the "HcalRegion"
+      G4EmConfigurator* emConfig = G4LossTableManager::Instance()->EmConfigurator();
+      emConfig->SetExtraEmModel("e-", "msc", mscOpt0, "HcalRegion");
+      //
       //
       G4eIonisation* eIoni = new G4eIonisation();
       ph->RegisterProcess(eIoni, particle);
       ph->RegisterProcess(new G4eBremsstrahlung(), particle);
     } else if (particleName=="e+") {
 //      ph->RegisterProcess(new G4eMultipleScattering(), particle);
-      G4eMultipleScattering* msc         = new G4eMultipleScattering;
-      G4GoudsmitSaundersonMscModel* msc1 = new G4GoudsmitSaundersonMscModel();
-      msc->AddEmModel(0, msc1);
+      G4eMultipleScattering* msc = new G4eMultipleScattering;
+      // 2 msc models:
+      // = 1. with range-factor = 0.2  (EM-opt1) settings and active everywhere but in HcalRegion (#11)
+      // = 2. with range-factor = 0.06 (EM-opt0) settings and active only in HcalRegion (#11)
+      G4GoudsmitSaundersonMscModel* mscOpt1 = new G4GoudsmitSaundersonMscModel();
+      G4GoudsmitSaundersonMscModel* mscOpt0 = new G4GoudsmitSaundersonMscModel();
+      // set the 2. msc model to be opt0 and lock it to prevet update at init.
+      mscOpt0->SetRangeFactor(0.06); // all others are the default
+      mscOpt0->SetSkin(3);           // not important just for consistency
+      mscOpt0->SetLocked(true);
+      // add the default opt1 model to the process and register the process for the particle
+      msc->AddEmModel(0, mscOpt1);
       ph->RegisterProcess(msc,particle);
+      // Add the extra mscOpt0 model to e+ and msc-process used in the "HcalRegion"
+      G4EmConfigurator* emConfig = G4LossTableManager::Instance()->EmConfigurator();
+      emConfig->SetExtraEmModel("e+", "msc", mscOpt0, "HcalRegion");
+      //
       //
       G4eIonisation* eIoni = new G4eIonisation();
       ph->RegisterProcess(eIoni, particle);
