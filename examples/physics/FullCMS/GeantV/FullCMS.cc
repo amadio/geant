@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
   // Activating them in different regions - using sampling-table based model only in the "most active" regions
   bool useEMModelsWithSamplingTables = false;
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(
-      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-rejection"     , useEMModelsWithSamplingTables),
+      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-rejection", useEMModelsWithSamplingTables),
       physListActiveRegionList1);
   //
   geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(

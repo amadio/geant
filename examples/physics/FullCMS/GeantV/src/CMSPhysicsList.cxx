@@ -40,9 +40,7 @@
 namespace cmsapp {
 
 CMSPhysicsList::CMSPhysicsList(const geant::GeantConfig &config, const std::string &name, bool useSamplingTables)
-    : geantphysics::PhysicsList(name),
-      fUseSamplingTables(useSamplingTables),
-      fVectorized(config.fUseVectorizedPhysics),
+    : geantphysics::PhysicsList(name), fUseSamplingTables(useSamplingTables), fVectorized(config.fUseVectorizedPhysics),
       fVectorizedMSC(config.fUseVectorizedMSC)
 {
 }
@@ -135,7 +133,7 @@ void CMSPhysicsList::Initialize()
       // set opt0 to be inactivated in all the 0-21 regions but except in #11 (HcalRegion)
       std::vector<int> inactiveRegionIndexVect(22);
       std::iota(std::begin(inactiveRegionIndexVect), std::end(inactiveRegionIndexVect), 0);
-      inactiveRegionIndexVect.erase(inactiveRegionIndexVect.begin()+11);
+      inactiveRegionIndexVect.erase(inactiveRegionIndexVect.begin() + 11);
       gsMSCModelOpt0->AddToUserRequestedInActiveRegions(inactiveRegionIndexVect);
       //
       // add the 2 MSC model to the MSC process
@@ -223,7 +221,7 @@ void CMSPhysicsList::Initialize()
       // set opt0 to be inactivated in all the 0-21 regions but except in #11 (HcalRegion)
       std::vector<int> inactiveRegionIndexVect(22);
       std::iota(std::begin(inactiveRegionIndexVect), std::end(inactiveRegionIndexVect), 0);
-      inactiveRegionIndexVect.erase(inactiveRegionIndexVect.begin()+11);
+      inactiveRegionIndexVect.erase(inactiveRegionIndexVect.begin() + 11);
       gsMSCModelOpt0->AddToUserRequestedInActiveRegions(inactiveRegionIndexVect);
       //
       // add the 2 MSC model to the MSC process

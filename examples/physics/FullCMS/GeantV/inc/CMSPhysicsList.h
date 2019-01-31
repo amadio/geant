@@ -12,8 +12,7 @@ namespace cmsapp {
 class CMSPhysicsList : public geantphysics::PhysicsList {
 public:
   // CTR
-  CMSPhysicsList(const geant::GeantConfig &config,
-                 const std::string &name = "CMS-PhysicsList",
+  CMSPhysicsList(const geant::GeantConfig &config, const std::string &name = "CMS-PhysicsList",
                  bool useSamplingTables = false);
   // DTR
   virtual ~CMSPhysicsList();
