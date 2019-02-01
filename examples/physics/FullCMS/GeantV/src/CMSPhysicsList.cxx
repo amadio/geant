@@ -283,6 +283,7 @@ void CMSPhysicsList::Initialize()
       geantphysics::EMPhysicsProcess *photoelectricProc = new geantphysics::GammaPhotoElectricProcess();
       // create the Sauter-Gavrila model for photoelectric effect
       geantphysics::EMModel *sgModel = new geantphysics::SauterGavrilaPhotoElectricModel();
+      sgModel->SetBasketizable(fVectorized);
       // set min/max energies of the model
       sgModel->SetLowEnergyUsageLimit(1.0 * geant::units::eV);
       sgModel->SetHighEnergyUsageLimit(1.0 * geant::units::TeV);

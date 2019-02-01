@@ -18,6 +18,8 @@ public:
   virtual ~CMSPhysicsList();
   // interface method to assigne physics-process to particles
   virtual void Initialize();
+  // Setter for global basketized mode
+  void SetBasketizing(bool flag = true) { fVectorized = flag; }
 
 private:
   bool fUseSamplingTables = false;

@@ -84,14 +84,17 @@ int main(int argc, char *argv[])
   //
   // Register user defined physics lists for the full CMS application
   // Activating them in different regions - using sampling-table based model only in the "most active" regions
-  bool useEMModelsWithSamplingTables = false;
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(
-      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-rejection", useEMModelsWithSamplingTables),
-      physListActiveRegionList1);
-  //
-  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(
-      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-sampling-tables", !useEMModelsWithSamplingTables),
-      physListActiveRegionList2);
+  bool useEMModelsWithSamplingTables = true;
+  auto physListRejection =
+      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-rejection", !useEMModelsWithSamplingTables);
+  // Switch off physics basketizing (processes except MSC) for the list of models using rejection tables since
+  physListRejection->SetBasketizing(false);
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(physListRejection, physListActiveRegionList1);
+
+  auto physListTables =
+      new cmsapp::CMSPhysicsList(*runMgr->GetConfig(), "with-sampling-tables", useEMModelsWithSamplingTables);
+  // This list will use the global parConfigVectorizedPhysics value
+  geantphysics::PhysicsListManager::Instance().RegisterPhysicsList(physListTables, physListActiveRegionList2);
   //
   // Create detector construction
   cmsapp::CMSDetectorConstruction *det = new cmsapp::CMSDetectorConstruction(runMgr);
