@@ -451,10 +451,8 @@ bool RunManager::RunSimulationTask(EventSet *workload, TaskData *td)
   // Register the workload in the manager and insert events in the server
   AddEventSet(workload);
 
-  // LockEventSets();
-  // std::cerr<<"Task "<< td->fTid <<" started event set:\n";
-  // workload->Print();
-  // UnlockEventSets();
+  // Invoke user BeginRun method
+  fApplication->BeginRun();
 
   bool completed = WorkloadManager::TransportTracksTask(workload, td);
 
@@ -471,6 +469,8 @@ void RunManager::RunSimulation()
 {
   // Start simulation for all propagators
   Initialize();
+  // Invoke user BeginRun method
+  fApplication->BeginRun();
 
   Printf("==========================================================================");
   Printf("= GeantV run started with %d propagator(s) using %d worker threads each ====", fNpropagators, fNthreads);

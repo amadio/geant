@@ -60,7 +60,9 @@ public:
    */
   virtual void FinishEvent(Event * /*event*/) {}
 
-  /** @brief User FinishRun function */
+  /** @brief User BeginRun actions */
+  virtual void BeginRun() {}
+  /** @brief User FinishRun actions */
   virtual void FinishRun() {}
 
   /** @brief Begin new track(s). */
@@ -76,7 +78,7 @@ public:
   virtual void SteppingActions(TrackVec_t & /*tracks*/, TaskData * /*td*/);
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif
