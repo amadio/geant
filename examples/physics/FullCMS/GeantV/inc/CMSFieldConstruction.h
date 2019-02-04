@@ -12,10 +12,16 @@ class CMSmagField;
 class CMSFieldConstruction : public geant::cxx::UserFieldConstruction
 {
 public:
-  /** @brief Destructor */
+  /** @brief Default constructor - field with fixed name */
   CMSFieldConstruction() : fFieldFilename(std::string("cmsmagfield2015.txt")), fCMSfield(nullptr) {}
-  // CMSFieldConstruction(const char* fieldFilename);
-  // CMSFieldConstruction(std::string fieldFilename);
+
+  /** @brief Construct using field map in named file */
+  CMSFieldConstruction(const char *fieldFilename) : fFieldFilename(fieldFilename), fCMSfield(nullptr) {}
+  CMSFieldConstruction(std::string fieldFilename) : fFieldFilename(fieldFilename), fCMSfield(nullptr) {}
+
+  /** @brief Construct for uniform field */
+  CMSFieldConstruction(bool useUniform, double fieldValue=3.8*geant::units::tesla)
+   : fUseUniformField( useUniform), fMagFieldValue(fieldValue) {};
   ~CMSFieldConstruction();
 
   /** @brief Destructor */
@@ -30,16 +36,15 @@ public:
 
 private:
   std::string fFieldFilename;
-  CMSmagField *fCMSfield;
+  bool             fUseUniformField = false;  //  If true, use uniform field 
+  float            fMagFieldValue   = 3.8*geant::units::tesla;
+  CMSmagField*     fCMSfield        = nullptr;
+  UniformMagField* fUniformField    = nullptr;
+  
   // ScalarUniformMagField*  fUniformField; // Alternative - for debugging only
   /** Field is created and owned by this class */
 
 public:
-  // CMSFieldConstruction::
-  CMSFieldConstruction(const char *fieldFilename) : fFieldFilename(fieldFilename), fCMSfield(nullptr) {}
-
-  // CMSFieldConstruction::
-  CMSFieldConstruction(std::string fieldFilename) : fFieldFilename(fieldFilename), fCMSfield(nullptr) {}
 };
 
 #endif
