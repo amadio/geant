@@ -666,6 +666,7 @@ public:
   }
 
   /** @brief Getter for the curvature. To be changed when handling properly field*/
+/******   
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   double Curvature(double Bz) const
@@ -675,7 +676,8 @@ public:
     if (fabs(qB) < kTiny) return kTiny;
     return fabs(kB2C * qB / (Pt() + kTiny));
   }
-
+ *****/
+   
   /** @brief Getter for the gamma value*/
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -836,6 +838,7 @@ public:
   GEANT_FORCE_INLINE
   void SetDirection(double dx, double dy, double dz)
   {
+    assert ( dx != 0.0 || dz != 0.0 || dz != 0.0 );
     fXdir = dx;
     fYdir = dy;
     fZdir = dz;
@@ -846,6 +849,7 @@ public:
   GEANT_FORCE_INLINE
   void SetDirection(Vector3D<double> const &dir)
   {
+    assert ( dir.x() != 0.0 || dir.z() != 0.0 || dir.z() != 0.0 );
     fXdir = dir.x();
     fYdir = dir.y();
     fZdir = dir.z();
@@ -1053,14 +1057,20 @@ public:
   /** @brief Function that updates the current volume the particle is in */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdateVolume() { fVolume = fPath->Top()->GetLogicalVolume(); }
+  void UpdateVolume() {
+     auto top= fPath->Top();
+     // const vecgeom::LogicalVolume* vol = nullptr;
+     // if( top ) vol = top->GetLogicalVolume();
+     auto * vol = ( top ) ? top->GetLogicalVolume():  nullptr;     
+     fVolume = vol;
+  }
 
   /** @brief Function to normalize direction */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void Normalize()
   {
-    double norm = 1. / Math::Sqrt(fXdir * fXdir + fYdir * fYdir + fZdir * fZdir);
+    double norm = 1. / Math::Sqrt(fXdir * fXdir + fYdir * fYdir + fZdir * fZdir + kTiny);
     fXdir *= norm;
     fYdir *= norm;
     fZdir *= norm;

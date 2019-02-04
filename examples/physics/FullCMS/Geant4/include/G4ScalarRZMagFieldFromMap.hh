@@ -67,7 +67,7 @@ private:
   const double kRDiff = kRMax / (kNoRValues - 1);     //  Radius increment between lattice points
   const double kZDiff = 2 * kZMax / (kNoZValues - 1); //  Z increment
 
-  const double kZ0       = -kZMax;
+  // const double kZ0       = -kZMax;
   const double kRDiffInv = 1.0 / kRDiff;
   const double kZDiffInv = 1.0 / kZDiff;
   const double kAInverse = CLHEP::tesla / (kRDiff * kZDiff);  // Values in file assumed in tesla
