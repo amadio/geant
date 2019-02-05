@@ -23,7 +23,7 @@
 // set up the run manager and run the simulation.
 void GetArguments(int argc, char *argv[]);
 void SetupDetectorConstruction(cmsapp::CMSDetectorConstruction *det);
-void SetupUserFieldConfig(geant::RunManager *runMgr);
+void SetupFieldConfig(geant::RunManager *runMgr);
 void SetupPrimaryGenerator(cmsapp::CMSParticleGun *gun);
 void SetupApplication(cmsapp::CMSFullApp *app);
 geant::RunManager *RunManager();
@@ -63,12 +63,8 @@ int    parUseFieldMap     = 0;            // Activate magnetic field using field
 int    parUseUniformField    = 0;            // Activate uniform magnetic field
 double parFieldEpsRK      = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
 int    parFieldBasketized = 0;            // basketize magnetic field
-<<<<<<< HEAD
-float  parFieldVector[3] = {0., 0., 2.}; // Constant field value
-=======
 int    parUseRungeKutta   = 0;
-// float parFieldVector[3] = {0., 0., 2.}; // Constant field value
->>>>>>> Reintroduced uniform field in FullCMS as option.
+float parFieldVector[3] = {0., 0., 2.}; // Constant field value
 
 //
 //
@@ -114,10 +110,7 @@ int main(int argc, char *argv[])
   // Create field  construction  & Get field flags
   //  and activate integration of tracks in field
   SetupFieldConfig(runMgr);
-
-  //
-  // Create user field if requested
-  SetupField(runMgr);
+  
   //
   // Create primary generator
   cmsapp::CMSParticleGun *gun = new cmsapp::CMSParticleGun();
@@ -311,13 +304,13 @@ void GetArguments(int argc, char *argv[])
       while (*subopts != '\0' && !errfnd) {
         switch (getsubopt(&subopts, magfield_dir_token, &value)) {
         case MAGFIELD_DIR_OPTIONS::DIR_X_OPT:
-          parFieldVector[0] = strtod(value, NULL);
+          parFieldVector[0] = strtof(value, NULL);
           break;
         case MAGFIELD_DIR_OPTIONS::DIR_Y_OPT:
-          parFieldVector[1] = strtod(value, NULL);
+          parFieldVector[1] = strtof(value, NULL);
           break;
         case MAGFIELD_DIR_OPTIONS::DIR_Z_OPT:
-          parFieldVector[2] = strtod(value, NULL);
+          parFieldVector[2] = strtof(value, NULL);
           break;
         default:
           fprintf(stderr, "No match found for token: [%s] among MAGFIELD_DIR_OPTIONS", value);
@@ -327,9 +320,11 @@ void GetArguments(int argc, char *argv[])
         }
       }
       break;
+    /****
     case 'G':
       parFieldUseRK = (int)strtol(optarg, NULL, 10);
       break;
+     ****/
     case 'H':
       parFieldEpsRK = strtod(optarg, NULL);
       break;
