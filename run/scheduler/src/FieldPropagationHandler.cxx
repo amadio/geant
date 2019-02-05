@@ -89,6 +89,7 @@ FieldPropagationHandler::~FieldPropagationHandler()
   PrintStats();
 }
 
+/*******          
 //______________________________________________________________________________
 GUFieldPropagator *FieldPropagationHandler::Initialize(TaskData *td)
 {
@@ -117,6 +118,7 @@ GUFieldPropagator *FieldPropagationHandler::Initialize(TaskData *td)
   // Once this method is called by the framework, this can be obtained from td->fFieldPropagator
   return fieldPropagator;
 }
+******/
 
 //______________________________________________________________________________
 void FieldPropagationHandler::Cleanup(TaskData *td)
@@ -358,7 +360,6 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   using ThreeVector            = vecgeom::Vector3D<double>;
   constexpr double toKiloGauss = 1.0 / units::kilogauss; // Converts to kilogauss
 
-  auto fieldConfig = FieldLookup::GetFieldConfig();
   bool useRungeKutta = td->fPropagator->fConfig->fUseRungeKutta;
   auto fieldConfig   = FieldLookup::GetFieldConfig();
   double bmag        = -1.0;
@@ -367,13 +368,17 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   ThreeVector Position(track.X(), track.Y(), track.Z());
   FieldLookup::GetFieldValue(Position, BfieldInitial, bmag);
 
+  auto fieldPropagator = td->fFieldPropagator;
+
+/****  
 #ifndef VECCORE_CUDA_DEVICE_COMPILATION
   auto fieldPropagator = GetFieldPropagator(td);
   if (!fieldPropagator && !td->fSpace4FieldProp) {
     fieldPropagator = Initialize(td);
   }
 #endif
-
+*****/
+  
   // Reset relevant variables
   track.SetStatus(kInFlight);
   double pstep = track.GetPstep() - crtstep;
@@ -550,7 +555,6 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   constexpr double toKiloGauss = 1.0 / units::kilogauss; // Converts to kilogauss
   bool useRungeKutta           = td->fPropagator->fConfig->fUseRungeKutta;
   const int nTracks            = tracks.size();
-  bool useRungeKutta   = td->fPropagator->fConfig->fUseRungeKutta;
   
   auto fieldConfig = FieldLookup::GetFieldConfig();
   assert(fieldConfig != nullptr);

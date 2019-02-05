@@ -158,7 +158,9 @@ inline GUFieldPropagator *FieldPropagatorFactory::CreatePropagator(Field_t &gvFi
   return FieldPropagatorFactory::CreatePropagator(scalarDriver, relativeTolerance, flexibleDriver);
 }
 
-StepperTypeNum FieldPropagatorFactory::GetStepperTypeId( int stepperTypeNo )
+StepperTypeNum
+inline
+FieldPropagatorFactory::GetStepperTypeId( int stepperTypeNo )
 {
   StepperTypeNum stepperTypeId= kUndefinedStepperType;
   if( stepperTypeNo == 3 || stepperTypeNo == 4 ) stepperTypeId = kBogackiShampineStepper;
