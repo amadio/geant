@@ -59,8 +59,8 @@ int parConfigMonitoring         = 0;  // activate some monitoring
 int parConfigSingleTrackMode    = 0;  // activate single track mode
 //
 // field configuration parameters
-int    parUseFieldMap     = 0;            // Activate magnetic field using field map
-int    parUseUniformField    = 0;            // Activate uniform magnetic field
+int    parUseFieldMap     = 1;            // Activate magnetic field using field map
+int    parUseUniformField = 0;            // Activate uniform magnetic field
 double parFieldEpsRK      = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
 int    parFieldBasketized = 0;            // basketize magnetic field
 int    parUseRungeKutta   = 0;
@@ -403,9 +403,15 @@ void SetupFieldConfig(geant::RunManager *runMgr)
   geant::cxx::UserFieldConstruction *fieldCtion= nullptr;
   auto config = runMgr->GetConfig();
 
+  std::cout << " -SetupFieldConfig() called with parameters : "
+            << " : UseUniformField = " << parUseUniformField 
+            << "   UseFieldMap = "     << parUseFieldMap << std::endl;
+
   bool useUniformField = (parUseUniformField != 0);
   bool useFieldMap =     (parUseFieldMap != 0);  
 
+  std::cout << " -SetupFieldConfig()  Debug: useFieldMap = " << useFieldMap << std::endl;
+  
   bool fieldActive = useFieldMap || useUniformField;
   
   config->fUseRungeKutta = parUseFieldMap || ( parUseUniformField && parUseRungeKutta );
@@ -419,7 +425,9 @@ void SetupFieldConfig(geant::RunManager *runMgr)
      auto cmsFieldCtion = new /* cmsapp:: */ CMSFieldConstruction();
      if( parFieldFile!="") cmsFieldCtion->SetFileForField(parFieldFile);
      fieldCtion = cmsFieldCtion;
-  } if ( useUniformField ) {
+  }
+  else if ( useUniformField )
+  {
      std::cout << "Creating Unifom Field ... " << std::endl;     
      // fieldCtion = new CMSFieldConstruction(useUniformField);  // Default value
      auto uniformFldCtion= new geant::UserFieldConstruction();
