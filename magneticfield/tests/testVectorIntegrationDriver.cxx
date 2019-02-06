@@ -36,7 +36,7 @@ using geant::units::degree;
 
 // #define  NEW_SCALAR_FIELD 1
 
-// #define USECMSFIELD 1
+#define USECMSFIELD 1
 
 #ifdef USECMSFIELD
 #include "CMSmagField.h"
