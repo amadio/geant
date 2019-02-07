@@ -143,6 +143,9 @@ bool Handler::AddTrack(Track *track, Basket &collector, TaskData *)
 VECCORE_ATT_HOST_DEVICE
 bool Handler::Flush(Basket &collector, TaskData *)
 {
+  if (!fBasketizer->GetNstored() ) {
+     return false;
+  }
 // Flush if possible remaining tracks from the basketizer into the collector basket.
 // NOTE: The operation is not guaranteed to succeed, even if the basketizer
 //       contains tracks in case it is 'hot' (e.g. adding tracks or finishing
