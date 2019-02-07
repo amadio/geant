@@ -14,8 +14,12 @@ FIELD_ACTIVE=1
 FIELD_USE_RK=1
 
 ### Configuration
-CONFIG_THREADS=1
+CONFIG_THREADS=$6
+if [ x"$RUN_VALGRIND" != x ]; then
 CONFIG_EVENTS=10
+else
+CONFIG_EVENTS=100
+fi
 CONFIG_PRIMARIES=1
 CONFIG_PERFORMANCE=1
 CONFIG_BASKETIZED_FIELD=$2
@@ -38,6 +42,10 @@ M${CONFIG_BASKETIZED_MSC}.out"
 BENCH_OUTPUT="${GEANT_PERFTOOLS_FILE/prof/bench}"
 BENCH_CONFIG1="${GEANT_PERFTOOLS_FILE/prof_/}"
 BENCH_CONFIG2="${BENCH_CONFIG1/.out/}"
+GEANT_CALLGRIND_FILE="TestEm3_GV__E${CONFIG_EVENTS}_G${CONFIG_BASKETIZED_FIELD}_P${CONFIG_BASKETIZED_PHYSICS}_G${CONFIG_BASKETIZED_GEOM}_M${CONFIG_BASKETIZED_MSC}_T${CONFIG_THREADS}_pid%p.callgrind"
+if [ x"$RUN_VALGRIND" != x ]; then
+   GEANTV_EXEC="valgrind --tool=callgrind --dump-instr=yes --callgrind-out-file=${GEANT_CALLGRIND_FILE} ${GEANTV_EXEC}"
+fi
 
 echo "### Running TestEm3 for the configuration: ${BENCH_CONFIG2}"
 echo "    - primary type:        $GUN_PRIMARY_TYPE"
@@ -92,6 +100,10 @@ for i in $(seq 1 $TRIES);
 
   grep -o 'RealTime.*' gv.log | sed -r 's/.*RealTime=//g' | sed -r 's/s.CpuTime=[0-9]*\.[0-9]*s//g' >> extracted_realtimes
 done
+if [ x"$RUN_PPROF" != x ]; then
+   execname=`basename ${GEANTV_EXEC}`
+   pprof -callgrind ${GEANTV_EXEC} gperfprof.out > gperfprof.${execname}.e${CONFIG_EVENTS}.f${CONFIG_BASKETIZED_FIELD}.p${CONFIG_BASKETIZED_PHYSICS}.g${CONFIG_BASKETIZED_GEOM}.m${CONFIG_BASKETIZED_MSC}.t${CONFIG_THREADS}.callgrind
+fi
 # compute averages and standard deviations
 awk -f - extracted_realtimes <<-EOF >> ${BENCH_OUTPUT}
 {
