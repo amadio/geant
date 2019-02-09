@@ -48,6 +48,8 @@
 #include "Geant/GUFieldPropagatorPool.h"
 #include "Geant/WorkspaceForFieldPropagation.h"
 
+#include <cstdlib>
+#include <string>
 #ifdef GEANT_PERFTOOLS
 #include <gperftools/profiler.h>
 #endif
@@ -64,12 +66,13 @@ RunManager::RunManager(unsigned int npropagators, unsigned int nthreads, GeantCo
   fPriorityEvents.store(0);
   fTaskId.store(0);
   fEventSetsLock.clear();
-  fProfilingFile = "gperfprof.out";
-#ifdef USE_ROOT
-  if (gSystem->Getenv("GEANT_PERFTOOLS_FILE"))
-    fProfilingFile = gSystem->Getenv("GEANT_PERFTOOLS_FILE");
-  else
-    std::cout << "perftools_file not found\n";
+#ifdef GEANT_PERFTOOLS
+  if (std::getenv(std::string("GEANT_PERFTOOLS_FILE").c_str())) {
+    fProfilingFile = std::getenv(std::string("GEANT_PERFTOOLS_FILE").c_str());
+  } else {
+    fProfilingFile = "gperfprof.out";
+    std::cout << "Environment variable GEANT_PERFTOOLS_FILE not found -- using " << fProfilingFile << "\n";
+  }
 #endif
 }
 
