@@ -249,6 +249,10 @@ bool RunManager::Initialize()
 
   dataMgr->Print();
   fInitialized = true;
+
+  // Invoke user BeginRun method
+  fApplication->BeginRun();
+
   return fInitialized;
 }
 
@@ -469,8 +473,6 @@ void RunManager::RunSimulation()
 {
   // Start simulation for all propagators
   Initialize();
-  // Invoke user BeginRun method
-  fApplication->BeginRun();
 
   Printf("==========================================================================");
   Printf("= GeantV run started with %d propagator(s) using %d worker threads each ====", fNpropagators, fNthreads);
