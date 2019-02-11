@@ -152,5 +152,25 @@ void TaskData::InspectStages(int istage) const
   }
 }
 
+//______________________________________________________________________________
+void TaskData::ReportTracks() const
+{
+  printf("- task #%d:\n", fTid);
+  const size_t nstackbuff = fStackBuffer->GetNtracks();
+  if (nstackbuff > 0) printf("  stack buffer: %zu tracks\n", nstackbuff);
+  // Check shared tracks via the shared queue
+  const size_t nshared = fQshare->size();
+  if (nshared > 0) printf("  shared queue: %zu tracks\n", nshared);
+  // Loop simulation stages
+  for (size_t istage = 0; istage < kNstages; ++istage) {
+    SimulationStage *stage = fStages[istage];
+    const size_t nbuff     = fStageBuffers[istage]->size();
+    const size_t nstored   = stage->GetNstored();
+    if (nbuff + nstored > 0)
+      printf("  stage %20s: buffered = %zu  basketized(%d) = %zu\n", stage->GetName(), nbuff, stage->GetNhandlers(),
+             nstored);
+  }
+}
+
 } // namespace GEANT_IMPL_NAMESPACE
 } // namespace geant

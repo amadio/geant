@@ -160,6 +160,9 @@ public:
   GEANT_FORCE_INLINE
   size_t GetNbasketized() const { return fNbasketized; }
 
+  /** @brief Count number of tracks stored in baskets */
+  size_t GetNstored() const;
+
   /** @brief Process a basket of tracks marked for the stage
    *  @return Number of tracks processed
    */

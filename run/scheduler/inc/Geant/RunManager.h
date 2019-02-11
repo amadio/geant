@@ -224,6 +224,7 @@ public:
   size_t GetNscalar(size_t istage) const;
   size_t GetNvector(size_t istage) const;
   size_t GetNtracks(size_t istage) const;
+  void ReportTracks() const;
 };
 
 } // namespace GEANT_IMPL_NAMESPACE

@@ -199,6 +199,9 @@ public:
   /** @brief  Inspect simulation stages */
   void InspectStages(int istage) const;
 
+  /** @brief Print info about tracks in flight handled by the task */
+  void ReportTracks() const;
+
   /** @brief  Set user data */
   bool SetUserData(void *data, size_t index)
   {

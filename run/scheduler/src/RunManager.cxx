@@ -18,6 +18,7 @@
 #include "Geant/LocalityManager.h"
 #include "Geant/SimulationStage.h"
 #include "Geant/BasketCounters.h"
+#include "StackLikeBuffer.h"
 
 #ifdef USE_ROOT
 #include "TSystem.h"
@@ -635,6 +636,36 @@ size_t RunManager::GetNtracks(size_t istage) const
   for (size_t i = 0; i < fTDManager->GetNtaskData(); ++i)
     ntracks += fTDManager->GetTaskData(i)->fCounters[istage]->GetNtracks();
   return ntracks;
+}
+
+//______________________________________________________________________________
+void RunManager::ReportTracks() const
+{
+  // Print a detailed report about where the tracks alive actually are. This will
+  // need a frozen snapshot of the state of GeantV, so it should be invoked only in the debugger.
+
+  // 1. Check how many events are alive.
+  int nslots          = fConfig->fNbuff;
+  size_t ninflighttot = 0;
+  printf("=== Remaining events to simulate: %d\n", fEventServer->GetNactiveMax() - fEventServer->GetNactive());
+  printf("=== Remaining tracks from events in flight:\n");
+  for (int slot = 0; slot < nslots; ++slot) {
+    Event *event = fEventServer->GetEvent(slot);
+    if (event && !event->Transported()) {
+      const size_t ninflight = event->GetNinflight();
+      ninflighttot += ninflight;
+      printf("   slot %d has event %d: %zu tracks\n", slot, event->GetEvent(), ninflight);
+    }
+  }
+  printf("=== Total: %zu tracks in flight", ninflighttot);
+
+  // 2. Check number of tracks per task
+  int nthreads = GetNthreadsTotal();
+  printf("=== Statistics per task: %d threads running\n", nthreads);
+  for (int i = 0; i < nthreads; i++) {
+    TaskData *td = fTDManager->GetTaskData(i);
+    td->ReportTracks();
+  }
 }
 
 } // namespace GEANT_IMPL_NAMESPACE

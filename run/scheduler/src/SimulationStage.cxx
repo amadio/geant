@@ -115,7 +115,7 @@ void SimulationStage::DeleteLocalHandlers()
 //______________________________________________________________________________
 void SimulationStage::PrintStatistics() const
 {
-  //if (!fBasketized) return;
+  // if (!fBasketized) return;
   Printf("Stage %s statistics: %zu tracks", GetName(), fPropagator->fRunMgr->GetNtracks(fId));
   std::vector<size_t> ntracks(GetNhandlers(), 0);
   std::vector<size_t> idx(GetNhandlers());
@@ -135,6 +135,19 @@ void SimulationStage::PrintStatistics() const
                 << "  nfired = " << nfired << "  nflushed = " << nflushed << std::endl;
     }
   }
+}
+
+//______________________________________________________________________________
+size_t SimulationStage::GetNstored() const
+{
+  // Count number of tracks stored in baskets
+  if (!fBasketized) return 0;
+  size_t nstored = 0;
+  for (int i = 0; i < GetNhandlers(); ++i) {
+    if (!fHandlers[i]->IsActive()) continue;
+    nstored += fHandlers[i]->GetNstored();
+  }
+  return nstored;
 }
 
 //______________________________________________________________________________

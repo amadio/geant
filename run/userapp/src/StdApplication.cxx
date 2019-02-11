@@ -18,7 +18,7 @@ StdApplication::StdApplication(RunManager *runmgr)
 #endif
       fMHist(), fScore(kScore)
 {
-// Ctor.
+  // Ctor.
 
 #ifdef USE_ROOT
   double *array = 0;

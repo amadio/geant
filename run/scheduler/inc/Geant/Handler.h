@@ -168,6 +168,11 @@ public:
   GEANT_FORCE_INLINE
   virtual bool HasTracks() const { return fBasketizer->GetNstored() > 0; }
 
+  /** @brief GetNumber of basketized tracks */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  virtual size_t GetNstored() const { return fBasketizer->GetNstored(); }
+
   /** @brief Check if handler is active for basketizing */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -243,6 +248,11 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   virtual bool Flush(Basket &collector, TaskData *td);
+
+  /** @brief GetNumber of basketized tracks */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  virtual size_t GetNstored() const { return fLocalBasket.size(); }
 
   /** @brief Check if handler has basketized tracks */
   VECCORE_ATT_HOST_DEVICE

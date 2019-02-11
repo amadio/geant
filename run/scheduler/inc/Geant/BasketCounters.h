@@ -86,7 +86,7 @@ struct BasketCounters {
   size_t GetNtracks() const
   {
     size_t ntotal = 0;
-    for (size_t i = 0; i < fNhandlers; ++i) 
+    for (size_t i = 0; i < fNhandlers; ++i)
       ntotal += fNtracks[i];
     return ntotal;
   }
