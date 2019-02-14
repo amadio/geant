@@ -218,6 +218,9 @@ public:
   /** @brief  Get user data */
   void *GetUserData(size_t index) const { return fUserData[index]; }
 
+  //* @Brief Count the number of track in flight for this task [data] */
+  size_t GetNtracksInFlight() const;
+
 private:
   /**
    * @brief Constructor TaskData

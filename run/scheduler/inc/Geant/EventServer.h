@@ -95,6 +95,9 @@ public:
   int GetNevents() const { return fNevents; }
 
   GEANT_FORCE_INLINE
+  int GetNcompleted() const { return fNcompleted; }
+
+  GEANT_FORCE_INLINE
   int GetNprimaries() const { return fNprimaries; }
 
   GEANT_FORCE_INLINE

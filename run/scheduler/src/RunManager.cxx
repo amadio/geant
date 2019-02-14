@@ -649,7 +649,8 @@ void RunManager::ReportTracks() const
   // 1. Check how many events are alive.
   int nslots          = fConfig->fNbuff;
   size_t ninflighttot = 0;
-  printf("=== Remaining events to simulate: %d\n", fEventServer->GetNactiveMax() - fEventServer->GetNactive());
+  printf("=== Remaining events to simulate: %d (n=%d am=%d, a=%d c=%d)\n", fEventServer->GetNevents() - fEventServer->GetNcompleted(), 
+         fEventServer->GetNevents(), fEventServer->GetNactiveMax(), fEventServer->GetNactive(), fEventServer->GetNcompleted());
   printf("=== Remaining tracks from events in flight:\n");
   for (int slot = 0; slot < nslots; ++slot) {
     Event *event = fEventServer->GetEvent(slot);
@@ -659,7 +660,7 @@ void RunManager::ReportTracks() const
       printf("   slot %d has event %d: %zu tracks\n", slot, event->GetEvent(), ninflight);
     }
   }
-  printf("=== Total: %zu tracks in flight", ninflighttot);
+  printf("=== Total: %zu tracks in flight\n", ninflighttot);
 
   // 2. Check number of tracks per task
   int nthreads = GetNthreadsTotal();
@@ -668,6 +669,7 @@ void RunManager::ReportTracks() const
     TaskData *td = fTDManager->GetTaskData(i);
     td->ReportTracks();
   }
+  printf("=== End of ReportTracks\n");
 }
 
 } // namespace GEANT_IMPL_NAMESPACE
