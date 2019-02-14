@@ -272,22 +272,24 @@ int SimulationStage::FlushAndProcess(TaskData *td)
 
   // Loop active handlers and flush them into btodo basket
   int nflush = 0;
-  for (int i = 0; i < GetNhandlers(); ++i) {
+  const auto nhandlers = GetNhandlers();
+  for (int i = 0; i < nhandlers; ++i) {
     int nbasket = 0;
     const auto handler = fHandlers[i];
     if (handler->IsActive() && (nbasket = handler->Flush(bvector, td))) {
       // btodo has some content, invoke DoIt
-      td->fCounters[fId]->fFlushed[i]++;
-      td->fCounters[fId]->fNtracks[i] += bvector.size();
+      const auto counters = td->fCounters[fId];
+      counters->fFlushed[i]++;
+      counters->fNtracks[i] += bvector.size();
       if (bvector.size() >= (size_t)fPropagator->fConfig->fNvecThreshold) {
-        td->fCounters[fId]->fNvector += bvector.size();
-        if (fHandlers[i]->IsScalarDispatch())
-          fHandlers[i]->DoItScalar(bvector, output, td);
+        counters->fNvector += bvector.size();
+        if (handler->IsScalarDispatch())
+          handler->DoItScalar(bvector, output, td);
         else
-          fHandlers[i]->DoIt(bvector, output, td);
+          handler->DoIt(bvector, output, td);
       } else {
-        td->fCounters[fId]->fNscalar += bvector.size();
-        fHandlers[i]->DoItScalar(bvector, output, td);
+        counters->fNscalar += bvector.size();
+        handler->DoItScalar(bvector, output, td);
       }
       bvector.Clear();
     }
@@ -358,22 +360,23 @@ int SimulationStage::Process(TaskData *td)
       continue;
     }
 
+    const auto counters = td->fCounters[fId];
     if (!handler->IsActive() || track->GetGeneration() < kMinGen) {
       if (fBasketized) {
-        td->fCounters[fId]->Increment(handler->GetId(), handler->GetThreshold());
+        counters->Increment(handler->GetId(), handler->GetThreshold());
         // Account only scalar calls to basketizable handlers
-        if (handler->MayBasketize()) td->fCounters[fId]->fNscalar++;
+        if (handler->MayBasketize()) counters->fNscalar++;
       }
       // Scalar DoIt.
-      td->fCounters[fId]->fNtracks[handler->GetId()]++;
+      counters->fNtracks[handler->GetId()]++;
       handler->DoIt(track, output, td);
     } else {
       // Add the track to the handler, which may extract a full vector.
       if (handler->AddTrack(track, bvector, td)) {
         // Vector DoIt
-        td->fCounters[fId]->fNvector += bvector.size();
-        td->fCounters[fId]->fNtracks[handler->GetId()] += bvector.size();
-        td->fCounters[fId]->fFired[handler->GetId()]++;
+        counters->fNvector += bvector.size();
+        counters->fNtracks[handler->GetId()] += bvector.size();
+        counters->fFired[handler->GetId()]++;
         if (handler->IsScalarDispatch())
           handler->DoItScalar(bvector, output, td);
         else
