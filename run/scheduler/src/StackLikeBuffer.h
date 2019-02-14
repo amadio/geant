@@ -115,6 +115,7 @@ public:
   VECCORE_ATT_HOST_DEVICE
   int FlushLastLane()
   {
+    if (!fNtracks) return 0;
     int nflush = FlushLane(fLastLane);
     while (fLastLane > 0 && fLanes[--fLastLane]->size() == 0)
       ;
