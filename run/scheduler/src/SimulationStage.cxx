@@ -275,7 +275,7 @@ int SimulationStage::FlushAndProcess(TaskData *td)
   for (int i = 0; i < GetNhandlers(); ++i) {
     int nbasket = 0;
     const auto handler = fHandlers[i];
-    if (handler->IsActive() && handler->HasTracks() && (nbasket = handler->Flush(bvector, td))) {
+    if (handler->IsActive() && (nbasket = handler->Flush(bvector, td))) {
       // btodo has some content, invoke DoIt
       td->fCounters[fId]->fFlushed[i]++;
       td->fCounters[fId]->fNtracks[i] += bvector.size();
