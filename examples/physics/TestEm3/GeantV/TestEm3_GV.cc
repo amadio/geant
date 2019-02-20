@@ -436,6 +436,7 @@ geant::RunManager *RunManager()
   //
   // Activate standard scoring
   // runConfig->fUseStdScoring = !parConfigIsPerformance;
+  runConfig->fSingleTrackMode = true;
 
   return runManager;
 }

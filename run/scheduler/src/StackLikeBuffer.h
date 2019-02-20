@@ -134,6 +134,28 @@ public:
     return nflush;
   }
 
+  /** @brief Flush a single track into the stage buffer */
+  GEANT_FORCE_INLINE
+  VECCORE_ATT_HOST_DEVICE
+  int FlushOneTrack()
+  {
+    if (fPriorityLane->size()) {
+      fStageBuffer->AddTrack(fPriorityLane->Tracks().back());
+      fPriorityLane->Tracks().pop_back();
+      fNtracks -= 1;
+      return 1;
+    }
+    if (fLanes[fLastLane]->size()) {
+      fStageBuffer->AddTrack(fLanes[fLastLane]->Tracks().back());
+      fLanes[fLastLane]->Tracks().pop_back();
+      fNtracks -= 1;
+      while (fLastLane > 0 && fLanes[fLastLane] == 0)
+        fLastLane--;
+      return 1;
+    }
+    return 0;
+  }
+
   /** @brief Share a number of tracks from lowest generation lanes */
   GEANT_FORCE_INLINE
   VECCORE_ATT_HOST_DEVICE

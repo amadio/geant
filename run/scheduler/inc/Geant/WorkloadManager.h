@@ -134,11 +134,20 @@ public:
    */
   static bool TransportTracksTask(EventSet *workload, TaskData *td);
 
+  /** This transport entry point emulates single track transport throughout stages */
+  static void TransportTracksSingle(Propagator *prop);
+
   static FeederResult PreloadTracksForStep(TaskData *td);
 
+  /** This is the standard V3 stepping loop. */
   static int SteppingLoop(TaskData *td, bool flush);
 
+  /** This is the single track stepping loop */
+  static int SteppingLoopSingle(TaskData *td);
+
   static int FlushOneLane(TaskData *td, bool share);
+
+  static int GetOneTrack(TaskData *td);
 
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();

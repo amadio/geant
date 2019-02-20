@@ -79,8 +79,10 @@ bool WorkloadManager::StartTasks()
   }
 
   // Start CPU transport threads (static mode)
+  auto worker_thread = WorkloadManager::TransportTracksV3;
+  if (fPropagator->fConfig->fSingleTrackMode) worker_thread = WorkloadManager::TransportTracksSingle;
   for (; ith < fNthreads; ith++)
-    fListThreads.emplace_back(WorkloadManager::TransportTracksV3, prop);
+    fListThreads.emplace_back(worker_thread, prop);
 
   return true;
 }
@@ -268,6 +270,83 @@ void WorkloadManager::TransportTracksV3(Propagator *propagator)
 }
 
 //______________________________________________________________________________
+void WorkloadManager::TransportTracksSingle(Propagator *propagator)
+{
+
+  //  int nstacked = 0;
+  //  int nprioritized = 0;
+  //  int ninjected = 0;
+  bool useNuma = propagator->fConfig->fUseNuma;
+  // Enforce locality by pinning the thread to the next core according to the chosen policy.
+  int node                 = -1;
+  LocalityManager *loc_mgr = LocalityManager::Instance();
+  if (useNuma) node = loc_mgr->GetPolicy().AllocateNextThread(propagator->fNuma);
+  int cpu = useNuma ? NumaUtils::GetCpuBinding() : -1;
+  //  if (node < 0) node = 0;
+  RunManager *runmgr  = propagator->fRunMgr;
+  geant::TaskData *td = runmgr->GetTDManager()->GetTaskData();
+  td->AttachPropagator(propagator, node);
+  int tid = td->fTid;
+
+  if (useNuma) {
+    geant::Print("", "=== Worker thread %d created for propagator %p on NUMA node %d CPU %d ===", tid, propagator, node,
+                 cpu);
+    int membind = NumaUtils::NumaNodeAddr(td->fShuttleBasket->Tracks().data());
+    if (node != membind) geant::Print("", "=== Thread #d: Wrong memory binding");
+  } else {
+    geant::Print("", "=== Worker thread %d created for propagator %p ===", tid, propagator);
+  }
+
+  EventServer *evserv = runmgr->GetEventServer();
+  // td->fNinflight      = 0;
+  // td->fStealCounter.store(0);
+
+  /*** STEPPING LOOP ***/
+  while (1) {
+    // Check if simulation has finished
+    auto feedres = PreloadTracksForStep(td);
+    if (feedres == FeederResult::kStop) break;
+    bool notracks = feedres != FeederResult::kWork;
+    if (notracks) {
+      // assert(td->fNinflight == td->fStealCounter.load());
+      if (!evserv->EventsServed()) {
+        // There are still events in the server, we need to wait...
+        // geant::Warning("", "=== Task %d suspended due to missing workload", tid);
+        propagator->fWMgr->Wait();
+        // geant::Info("", "=== Task %d resuming...", tid);
+      }
+      // Try to get tracks again
+      continue;
+    }
+    // Do the stepping, if no tracks we need to flush
+    SteppingLoopSingle(td);
+  }
+
+  // td->fNinflight -= td->fStealCounter.load();
+  // assert(td->fNinflight == 0);
+  propagator->fWMgr->DoneQueue()->push_force(nullptr);
+  propagator->fWMgr->StartAll();
+  // Final reduction of counters
+  propagator->fNsteps += td->fNsteps;
+  propagator->fNsnext += td->fNsnext;
+  propagator->fNphys += td->fNphys;
+  propagator->fNmag += td->fNmag;
+  propagator->fNsmall += td->fNsmall;
+  propagator->fNcross += td->fNcross;
+  propagator->fNpushed += td->fNpushed;
+  propagator->fNkilled += td->fNkilled;
+
+  // If transport is completed, make send the signal to the run manager
+  if (runmgr->TransportCompleted()) runmgr->StopTransport();
+  if (useNuma) {
+    int cpuexit = NumaUtils::GetCpuBinding();
+    if (cpuexit != cpu) geant::Print("", "=== OS migrated worker %d from cpu #%d to cpu#%d", tid, cpu, cpuexit);
+  }
+  runmgr->GetTDManager()->ReleaseTaskData(td);
+  geant::Print("", "=== Thread %d: exiting ===", tid);
+}
+
+//______________________________________________________________________________
 WorkloadManager::FeederResult WorkloadManager::PreloadTracksForStep(TaskData *td)
 {
   // The method will apply a policy to inject tracks into the first stepping
@@ -327,10 +406,14 @@ int WorkloadManager::FlushOneLane(TaskData *td, bool share)
     nlane = td->fStackBuffer->FlushLastLane();
     ninjected += nlane;
   }
+  return ninjected;
+}
 
-  // If no tracks in the buffer, try to find some work
-  // if (ninjected == 0) ninjected = td->fPropagator->fRunMgr->GetTDManager()->StealTracks(td, td->fStageBuffers[0]);
-
+//______________________________________________________________________________
+int WorkloadManager::GetOneTrack(TaskData *td)
+{
+  // Get a single track from the stack-like buffer into the first stage.
+  int ninjected = td->fStackBuffer->FlushOneTrack();
   return (ninjected);
 }
 
@@ -382,6 +465,48 @@ int WorkloadManager::SteppingLoop(TaskData *td, bool flush)
         if (ninput == 0 && nproc == 0) {
           ninjected = FlushOneLane(td, !external_loop /*!flush*/);
           if (!ninjected) return nprocessed;
+          break;
+        }
+        // TO DO: In flush mode, check regularly the event server
+        ninput = 0;
+        nproc  = 0;
+      }
+    }
+  }
+  return nprocessed;
+}
+
+//______________________________________________________________________________
+int WorkloadManager::SteppingLoopSingle(TaskData *td)
+{
+  // The main stepping loop over simulation stages. This version transports a single track
+  // through all stages before getting a new one
+
+  int nprocessed = 0;
+  int nproc      = 0;
+  int ninput     = 0;
+  int istage     = 0;
+  int ninjected  = GetOneTrack(td);
+  // Flush the input buffer lane by lane, starting with higher generations.
+  // Exit loop when buffer is empty or when the stages are cosidered flushed
+  while (ninjected) {
+    while (1) {
+      // How many particles at input of current stage?
+      SimulationStage *stage = td->fStages[istage];
+      int nstart             = td->fStageBuffers[istage]->size();
+      ninput += nstart;
+      // If there is input just process normally
+      if (nstart) {
+        nproc += stage->Process(td);
+      }
+      nprocessed += nproc;
+      // Go to next stage
+      istage = (istage + 1) % kNstages;
+      if (istage == 0) {
+        // Checkpoint
+        // If no activity in the loop inject next lane from the buffer
+        if (ninput == 0 && nproc == 0) {
+          ninjected = GetOneTrack(td);
           break;
         }
         // TO DO: In flush mode, check regularly the event server
