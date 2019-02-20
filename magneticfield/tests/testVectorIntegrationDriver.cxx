@@ -29,6 +29,7 @@ using geant::units::degree;
 // #include "TemplateVScalarIntegrationStepper.h"
 
 #include "Geant/CashKarp.h"
+#include "Geant/OldIntegrationDriver.h"
 #include "Geant/SimpleIntegrationDriver.h"
 
 #include "Geant/FieldTrack.h"
@@ -111,24 +112,31 @@ int main(int argc, char *argv[])
 #ifdef USECMSFIELD
   std::string datafile(geant::GetDataFileLocation(argc, argv, "cmsmagfield2015.txt"));
 
+  cerr << "Using CMS field from file " << "cmsmagfield2015.txt" << endl;
   auto gvField = new Field_Type(datafile.c_str());
+
+  (void) x_field;
+  (void) y_field;
+  (void) z_field;
 #else
   (void)argc;
   (void)argv;
+  cerr << "Using Uniform Magnetic field with strength  ( " << x_field << " , " << y_field << " , "
+       << z_field << " )  Tesla. " << endl;
   auto gvField = new UniformMagField(geant::units::tesla * ThreeVector_d(x_field, y_field, z_field));
-#endif
 
   cout << "#  Initial  Field strength (GeantV) = " << x_field << " , " << y_field << " , " << z_field
        // << (1.0/geant::units::tesla) * gvField->GetValue()->X() << ",  "
        << " Tesla " << endl;
+#endif  
   // cout << "#  Initial  momentum * c = " << x_mom << " , " << y_mom << " , " << z_mom << " GeV " << endl;
 
   // Create an Equation :
   auto gvEquation = new MagFieldEquation<Field_Type>(gvField);
   // TemplateFieldEquationFactory<Double_v>::CreateMagEquation<Field_Type >(gvField);
 
-  cout << " Equation object created - address = " << gvEquation << endl;
-  cout << "# step_len_mm = " << step_len_mm << endl;
+  if( verbose ) { cout << " Equation object created - address = " << gvEquation << endl; } 
+  cout << "# step lenght (mm) = " << step_len_mm << endl;
 
   //=======================Test part for Integration driver====================
   double hminimum = 0.2;
@@ -136,20 +144,17 @@ int main(int argc, char *argv[])
   //==========  Vector Driver: start preparation ===============
   using StepperType = CashKarp<GvEquationType, Nposmom>;
   auto myStepper    = new StepperType(gvEquation);
-  // new CashKarp<GvEquationType,Nposmom>(gvEquation);
-  // new TemplateGUTCashKarpRKF45<Double_v,GvEquationType,Nposmom>(gvEquation);
 
-  // myStepper->InitializeCharge( particleCharge );
   int statsVerbose = 1;
 
-  using DriverType = SimpleIntegrationDriver<StepperType, Nposmom>;
+  // using DriverType = SimpleIntegrationDriver<StepperType, Nposmom>;
+  using DriverType = OldIntegrationDriver<StepperType, Nposmom>;  
   auto vectorDriver =
-      // new SimpleIntegrationDriver<StepperType,Nposmom>
       new DriverType(hminimum, myStepper, Nposmom, statsVerbose);
-  cout << " Vector Driver created." << endl;
-// ========== Vector Driver prepared ========================
+  if( verbose ) { cout << " Vector Driver created." << endl; } 
+  // ========== Vector Driver prepared ========================
 
-//========= Preparing scalar Integration Driver ============
+  //========= Preparing scalar Integration Driver ============
 
 #ifdef USECMSFIELD
   // auto gvFieldScalar         = new Field_Type_Scalar(datafile.c_str());
@@ -192,18 +197,18 @@ int main(int argc, char *argv[])
   int statisticsVerbosity = 1;
 
   auto refScalarDriver = new ScalarIntegrationDriver(hminimum, myStepperScalar, Nposmom, statisticsVerbosity);
-// refScalarDriver->InitializeCharge( particleCharge );
-//==========  Scalar Driver prepared =========================
+  cout << "Scalar Driver created." << endl;
+  //==========  Scalar Driver prepared =========================
 
-// -- Call internal Test code of Driver
-// int numTracks;
-#if 0        
+  // -- Call internal Test code of Driver
+  // int numTracks;
+  #if 0
     bool ok= vectorDriver->TestInitializeLanes<Double_v>();
     if( !ok ) {
        std::cerr << "WARNING> vectorDriver<Double_v>->TestInitializeLanes() returned " << ok << std::endl;
     }
-#endif
-  //
+  #endif
+
   // double total_step = 0.;
 
   Bool_v goodAdvance(true);
@@ -214,11 +219,12 @@ int main(int argc, char *argv[])
 
   constexpr int nTracks = 16;
   FieldTrack yInput[nTracks], yOutput[nTracks];
-  // double posMom[] ={0., 0., 0., 0., 1., 1.};
 
   // std::fill_n(hstep, nTracks, 20);
-  double hstep[nTracks] = {11.0,       20.0,  33.0,  44.44, 55.555, 66.6666, 77.77777, 88.888888,
-                           99.9999999, 101.0, 111.0, 122.0, 133.0,  144.0,   155.0,    166.0};
+  double hstep[nTracks] = {  0.001,  0.01,    0.1,    1.00,   2.0,    4.0,     8.0,     16.0,
+                            32.0,   64.0,   200.0,  600.,  2000.0, 10000.,  30000.0,  100000.0};
+  // double hstep[nTracks] = {11.0,       20.0,  33.0,  44.44, 55.555, 66.6666, 77.77777, 88.888888,
+  //                         99.9999999, 101.0, 111.0, 122.0, 133.0,  144.0,   155.0,    166.0};  
   // double hstep[] = { 11.0, 200.0, 330.0, 444.40, 555.55, 666.666, 777.7777, 888.88888, 999.999999, 100.0, 11.0, 12.0,
   // 13.0, 14.0, 15.3, 16.9 };
 
@@ -251,7 +257,8 @@ int main(int argc, char *argv[])
 
     vectorDriver->AccurateAdvance<Double_v>(yInput, hstep, charge, epsTol, yOutput, succeeded, nTracks);
     // ==========================
-    cout << "-- Vector Driver done (advanced)." << endl;
+    if( verbose )
+       cout << "-- Vector Driver done (advanced)." << endl;
 
     const ThreeVector_d startPosition(posMom[0], posMom[1], posMom[2]);
     const ThreeVector_d startMomentum(posMom[3], posMom[4], posMom[5]);
@@ -260,13 +267,16 @@ int main(int argc, char *argv[])
 
     bool scalarResult = refScalarDriver->AccurateAdvance(yTrackIn, hstep[0], epsTol, yTrackOut);
 
-    cout << "-- Scalar Driver done (advanced)." << endl;
-    cout << " yOutput is   : " << yOutput[0] << " for yInput: " << yInput[0] << endl;
-    cout << " yTrackOut is : " << yTrackOut << " for yTrackIn: " << yTrackIn << endl;
-    cout << " Success of Vector: " << succeeded[0] << endl;
-    cout << " Success of scalar: " << scalarResult << endl;
+    if( verbose )
+    {
+       cout << "-- Scalar Driver done (advanced)." << endl;
+       cout << " yOutput is   : " << yOutput[0] << " for yInput: " << yInput[0] << endl;
+       cout << " yTrackOut is : " << yTrackOut << " for yTrackIn: " << yTrackIn << endl;
+       cout << " Success of Vector: " << succeeded[0] << endl;
+       cout << " Success of scalar: " << scalarResult << endl;
+    }
 
-    constexpr double threshold = 1.0e-8;
+    constexpr double threshold = 1.0e-6;
     constexpr double kTiny=  1.0e-30;
     for (int i = 0; i < nTracks; ++i) {
       yTrackIn= ScalarFieldTrack (startPosition, startMomentum, charge[i]);
@@ -295,8 +305,11 @@ int main(int argc, char *argv[])
       }
         
       if( verbose || diffFound ) { 
-        cout << " Vector  yOutput[" << i << "] is : " << yOutput[i] << " for yInput: " << yInput[i] << endl;
-        cout << " Serial  yTrackOut  is : " << yTrackOut << " for yTrackIn: " << yTrackIn << " for hstep: " << hstep[i] <<endl;
+         cout << " Vector  len = " <<  yOutput[i].GetCurveLength() << " yOutput[" << i << "] is : " << yOutput[i] << " for yInput: " << yInput[i] << endl;
+        cout << " Serial  len = " <<   yTrackOut.GetCurveLength() << " yTrackOut  is : " << yTrackOut
+             << " for yTrackIn: " << yTrackIn
+             << " for hstep: " << hstep[i]
+             <<endl;
       }
     }
   }

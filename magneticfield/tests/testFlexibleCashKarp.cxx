@@ -17,10 +17,23 @@ using namespace vecCore::math;
 // #include "VIntegrationStepper.h"   // Supressed ?
 #include "Geant/CashKarp.h"
 
+#define BASELINESTEPPER  1
+
 // ---- Future 'general' steppers (i.e. scalar + vector )
 // #include "SimpleRunge.h"
 // #include "ExactHelixStepper.h"
 
+#ifdef BASELINESTEPPER
+#include "Geant/ScalarUniformMagField.h"   // Old type (scalar only) class
+
+#include "Geant/VScalarEquationOfMotion.h"
+#include "Geant/ScalarMagFieldEquation.h"
+
+#include "Geant/VScalarIntegrationStepper.h"
+// #include "Geant/TClassicalRK4.h"
+#include "Geant/GUTCashKarpRKF45.h"
+#endif
+  
 #include "Geant/SystemOfUnits.h"
 
 // using geant::meter;
@@ -47,23 +60,25 @@ int stepper_no     = 5;    // Choose stepper no., for refernce see above
 double step_len_mm = 200.; // meant as millimeter;  //Step length
 double z_field_in  = DBL_MAX;
 
-bool debug = true;
+bool debug = false; // true;
 
 /* ------------------ Parameters for PRINTING --------------------------- */
 // Choice of output coordinates
 int columns[] = {
-    1, 1, 1, // position  x, y, z
-    1, 1, 1, // momentum  x, y, z
-    0, 0, 0, // dydx pos  x, y, z
+    0, 0, 1, // position  x, y, z
+    1, 1, 0, // momentum  x, y, z
+    1, 1, 0, // dydx pos  x, y, z
     1, 1, 0  // dydx mom  x, y, z
 };           // Variables in yOut[] & dydx[] we want to display - 0 for No, 1 for yes
 
-bool printErr = 0, // Print the predicted Error
-    printRef  = 0, // Print the reference Solution
-    printDiff = 0; // Print the diffrence
-bool printSep = 0; // separator  '|'
+bool printErr    = 0, // Print the predicted Error
+     printDiff   = 1, // Print the diffrence
+     printRef    = 0, // Print the reference Solution
+     printDrvRef = 1  // Print the derivative of Reference ( ORed with above to give Derivative )
+       ;
+bool printSep = 1; // separator  '|'
 bool printInp = 0; // print the input values
-// bool printInpX= 0;  // print the input values for Ref
+bool printInpX= 0;  // print the input values for Ref
 
 const unsigned int nwdf = 12; // Width for float/double
 // -------   End of Parameters for PRINTING ------------------------------ */
@@ -81,6 +96,14 @@ void printBanner();
 
 constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
 
+using FieldType      = UniformMagField;
+using GvEquationType = MagFieldEquation<FieldType>;
+
+UniformMagField* gvUniformField = nullptr;
+
+vecgeom::Vector3D<float> fieldValInput(0.0, 0.0, 0.0);   // labelled ThreeVector_f below (within main)
+
+
 // ---------------  Main ------------------------------------------------ */
 
 int main(int argc, char *args[])
@@ -96,9 +119,6 @@ int main(int argc, char *args[])
   using ThreeVector_d = vecgeom::Vector3D<double>;
   // using ThreeVectorSimd = vecgeom::Vector3D<Double_v>;
 
-  using FieldType      = UniformMagField;
-  using GvEquationType = MagFieldEquation<FieldType>;
-
   if (debug) cout << "Running with debug (progress) messages." << endl;
 
   processArguments(argc, args);
@@ -108,13 +128,20 @@ int main(int argc, char *args[])
 
   if (debug) cout << "---- Creating UniformMagField object" << endl;
   // Vector3D<float>
-  ThreeVector_f fieldValInput(x_field, y_field, z_field); // ( 0.0, 0.0, -1.0);
+  // ThreeVector_f
+  fieldValInput= ThreeVector_f(x_field, y_field, z_field); // Default = ( 0.0, 0.0, -1.0);
   fieldValInput *= geant::units::tesla;
 
   // Field
-  auto gvUniformField = new UniformMagField(fieldValInput); // New class
+  gvUniformField = new UniformMagField(fieldValInput); // New class
   //  UniformMagField( geant::units::tesla * ThreeVector_f(x_field, y_field, z_field) );
 
+
+  std::cout << " Simulation parameters:  stepper_no= " << stepper_no 
+            << " step length (mm) = " << step_len_mm 
+            << " number of steps  = " << no_of_steps 
+            << " B_z value (Tesla) = " << z_field_in  << std::endl;
+  
   if (debug) {
     cout << "#  Initial  Field strength (GeantV) = " << x_field << " , " << y_field << " , " << z_field << " Tesla "
          << endl;
@@ -155,11 +182,24 @@ int main(int argc, char *args[])
 
   // Phase 1 - get it to work without cloning
 
-  cout << " Testing scalar.      " << endl;
+#ifdef CREATE_SCALAR_STEPPER    
+  cout << " 1. Testing scalar field, equation and stepper     " << endl;
+
+  using ScalarFieldType=    
+  using ScalarEquationType= ScalarMagFieldEquation<ScalarFieldType, Nposmom>;
+  using ScalarStepperType=   CashKarp<ScalarEquationType, Nposmom>;
+  bool okScalar = TestFlexibleStepper<double, ScalarStepperType>(myStepper);
+#endif
+  cout << " 2. Testing scalar version of 'flexible' field, equation and stepper." << endl;
+  
   bool okScalar = TestFlexibleStepper<double, StepperType>(myStepper);
-  // cout << " Testing Vec Float.   " << endl;
+  
+  // cout << " Testing Vector Float_v.   " << endl;
+  // cout << " 3. a) Testing Vector Float_v version of 'flexible' field, equation and stepper." << endl;  
   // bool okVecFloat  = TestFlexibleStepper<Float_v, StepperType >(myStepper); // , magEquation);
-  cout << " Testing Vec Double . " << endl;
+  
+  // cout << " Testing Vec Double . " << endl;
+  cout << " 3. Testing Vector Double_v version of 'flexible' field, equation and stepper." << endl;
   bool okVecDouble = TestFlexibleStepper<Double_v, StepperType>(myStepper);
 
   bool good = okScalar && // okVecFloat &&
@@ -168,10 +208,6 @@ int main(int argc, char *args[])
   // delete myStepper;  // Only if object was new'ed !!
 
   if (debug) cout << "----deletion of stepper done " << endl;
-
-#ifdef BASELINESTEPPER
-  delete exactStepper;
-#endif
 
   // delete gvEquation;  // The stepper now takes ownership of the equation
   // delete gvEquation2;
@@ -227,13 +263,12 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
   //                  x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};
   Real_v yInVec[] = {Real_v(x_pos * mmGVf), Real_v(y_pos * mmGVf), Real_v(z_pos * mmGVf),
                      Real_v(x_mom * ppGVf), Real_v(y_mom * ppGVf), Real_v(z_mom * ppGVf)};
+  double yInVecX[] = {x_pos * mmGVf, y_pos * mmGVf, z_pos * mmGVf,
+                     x_mom * ppGVf, y_mom * ppGVf, z_mom * ppGVf };  
   if (debug) cout << "Initialized yIn: values [0]= " << yInVec[0] << endl;
 
   // double yInX[] = {x_pos * mmGVf, y_pos * mmGVf ,z_pos * mmGVf,
   //                 x_mom * ppGVf ,y_mom * ppGVf ,z_mom * ppGVf};
-
-  // auto gvEquation2 = new GvEquationType(gvUniformField);
-  // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvUniformField);
 
   // Should be able to share the Equation -- eventually
   // For now, it checks that it was Done() -- and fails an assert
@@ -246,20 +281,31 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
   const double mmRef = mmGVf; // Unit for reference of lenght   - milli-meter
   const double ppRef = ppGVf; // Unit for reference of momentum - GeV / c^2
 
+  // auto gvEquation2 = new GvEquationType(gvUniformField);
+  // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvUniformField);  
+
+  using Field_Type_Scalar= ScalarUniformMagField;
+  auto gvScalarField = new ScalarUniformMagField(fieldValInput);
+  
+  using GvScalarEquationType = ScalarMagFieldEquation<Field_Type_Scalar, Nposmom>;
+  auto  gvScalarEquation2 = new GvScalarEquationType(gvScalarField);
+  
   // Creating the baseline stepper
-  auto exactStepperGV = new TClassicalRK4<GvEquationType, Nposmom>(gvEquation2);
-  cout << "#  Reference stepper is: TClassicalRK4<GvEquationType,Nposmom>(gvEquation2);" << endl;
+  //  auto exactStepperGV = new TClassicalRK4<GvEquationType, Nposmom>(gvEquation2);
+  auto exactStepperGV = new GUTCashKarpRKF45<GvScalarEquationType, Nposmom>(gvScalarEquation2);  
+  cout << "#  Reference stepper is: TClassicalRK4<GvEquationType,Nposmom>(gvScalarEquation2);" << endl;
 
   // new TSimpleRunge<GvEquationType,Nposmom>(gvEquation2);
   // new GUExactHelixStepper(gvEquation2);
 
   auto exactStepper = exactStepperGV;
 
-  Real_v dydxVecRef[8] = {0., 0., 0., 0., 0., 0., 0., 0.}, yOutVecX[8] = {0., 0., 0., 0., 0., 0., 0., 0.},
+  double dydxRef[8]  = {0., 0., 0., 0., 0., 0., 0., 0.},
+         yOutVecX[8] = {0., 0., 0., 0., 0., 0., 0., 0.},
          yErrVecX[8] = {0., 0., 0., 0., 0., 0., 0., 0.};
   cout << " mmRef= " << mmRef << "   ppRef= " << ppRef << endl;
 
-  Real_v yInX[] = {x_pos * mmRef, y_pos * mmRef, z_pos * mmRef, x_mom * ppRef, y_mom * ppRef, z_mom * ppRef};
+  // Real_v yInX[] = {x_pos * mmRef, y_pos * mmRef, z_pos * mmRef, x_mom * ppRef, y_mom * ppRef, z_mom * ppRef};
 
   // Simple arrays for outputing and/or checking values
   double yinX[Nposmom], youtX[Nposmom], yerrX[Nposmom];
@@ -269,6 +315,9 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
   // double stepLengthRef = step_len_mm * mmRef;
   /*-----------------------END PREPARING STEPPER---------------------------*/
 
+  int lane = 0; // Lane for printing
+  cout << "# Results of lane = " << lane << endl;
+  cout << "#-------------------------------------------------------------------#" << endl;  
   printBanner();
 
   // Units
@@ -276,7 +325,9 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
   const char *nameUnitMomentum = "GeV/c";
   cout << setw(6) << "#Numbr";
   for (int i = 0; i < 6; i++)
-    if (columns[i]) {
+  {
+    if (columns[i])
+    {
       if (printSep) cout << " | "; // Separator
       const char *nameUnit = (i < 3) ? nameUnitLength : nameUnitMomentum;
       cout << setw(nwdf) << nameUnit;
@@ -284,6 +335,7 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
       if (printErr) cout << setw(nwdf) << nameUnit; // Estim. error
       if (printDiff) cout << setw(15) << nameUnit;  // Diff  new - ref
     }
+  }    
   cout << "\n";
 
   //-> Then print the data
@@ -294,15 +346,16 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
 
   /*----------------NOW STEPPING-----------------*/
   no_of_steps = 25;
+
   for (int j = 0; j < no_of_steps; j++) {
     cout << setw(6) << j; // Printing Step number
     Real_v step_len(stepLengthValue);
-    stepper->RightHandSideInl(yInVec, chargeVec, dydxVec); // compute dydx - to supply the stepper
+    stepper->RightHandSideInl(   yInVec, chargeVec, dydxVec); // compute dydx - to supply the stepper
 #ifdef BASELINESTEPPER
-    exactStepper->RightHandSideVIS(yInVecX, dydxVecRef); // compute the value of dydx for the exact stepper
+    double charge= vecCore::Get( chargeVec, 0 );
+    exactStepper->RightHandSideInl( yInVecX, charge,   dydxRef);
+    // exactStepper->RightHandSideVIS( yInVecX, dydxRef); // compute the value of dydx for the exact stepper
 #endif
-
-    int lane = 0; // Lane for printing
 
     using scalar_t        = double;
     scalar_t yin[Nposmom] = {-999., -99.9, -9.99, 10.0, 1.0, 0.1};
@@ -310,11 +363,11 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
     if (j > 0) // Do nothing for j=0, so we can print the initial points!
     {
       stepper->StepWithErrorEstimate(yInVec, dydxVec, chargeVec, step_len, yOutVec, yErrVec /*, scratch */);
-//       *********************
+//             *********************
 #ifdef BASELINESTEPPER
-      exactStepperGV->StepWithErrorEstimate(yInVecX, dydxVecRef, chargeVec, stepLengthRef, yOutVecX,
+      exactStepperGV->StepWithErrorEstimate(yInVecX, dydxRef, charge, stepLengthValue, yOutVecX,
                                             yErrVecX /* ,scratchRef*/);
-// *********************
+//                    *********************
 #endif
     }
 
@@ -337,33 +390,55 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
     SelectOutput<Real_v, scalar_t, Nposmom>(dydxVec, dydx, lane);
 
 #ifdef BASELINESTEPPER
-    SelectOutput<Real_v, scalar_t, Nposmom>(yInVecX, yinX, lane);
+    using Real_vRef= double;
+    int   laneRef= 0;  //  This is scalar - there is no other lane !!
+    SelectOutput<Real_vRef, scalar_t, Nposmom>(yInVecX, yinX, laneRef);
     if (j > 0)
-      SelectOutput<Real_v, scalar_t, Nposmom>(yOutVecX, youtX, lane);
+      SelectOutput<Real_vRef, scalar_t, Nposmom>(yOutVecX, youtX, laneRef);
     else
-      SelectOutput<Real_v, scalar_t, Nposmom>(yInVecX, youtX, lane);
-    SelectOutput<Real_v, scalar_t, Nposmom>(yErrVecX, yerrX, lane);
-    SelectOutput<Real_v, scalar_t, Nposmom>(dydxVecRef, dydxX, lane);
+      SelectOutput<Real_vRef, scalar_t, Nposmom>(yInVecX, youtX, laneRef);
+    SelectOutput<Real_vRef, scalar_t, Nposmom>(yErrVecX, yerrX, laneRef);
+    SelectOutput<Real_vRef, scalar_t, Nposmom>(dydxRef, dydx, laneRef);
+
+    for (int i = 0; i < 6; i++)
+    {
+       youtX[i] = yOutVecX[i]; // ( j > 0 ) ? yOutVecX[i] : yInVecX[i] ;
+       yerrX[i] = yErrVecX[i];
+    }
 #endif
     // -->> End of Selecting 'lane' for printing
 
+    double magFactor = 1.0e+6;  // Magnification factor for difference(s)
+    
     //-> Then print the data
     cout.setf(std::ios_base::fixed);
-    cout.precision(4);
+    cout.precision(2);
     for (int i = 0; i < 3; i++)
-      if (columns[i]) {
-        if (printSep) cout << " | "; // Separator
-        if (printInp) cout << setw(nwdf - 2) << yin[i] / mmGVf;
+    {
+      if (columns[i])
+      {
+        if (printSep)  cout << " | "; // Separator
+        if (printInp)  cout << setw(nwdf - 2) << yin[i] / mmGVf;
 #ifdef BASELINESTEPPER
-        if (printInpX) cout << setw(nwdf - 2) << yinX[i] / mmRef;
-        if (printRef) cout << setw(nwdf) << youtX[i] / mmRef; // Reference Solution
-        if (printDiff) cout << setw(nwdf) << yout[i] / mmGVf - youtX[i] / mmRef;
-#endif
+        if (printInpX)   cout << setw(nwdf - 2) << yinX[i] / mmRef;
+#endif        
         cout << setw(nwdf) << yout[i] / mmGVf;
-
+#ifdef BASELINESTEPPER        
+        if (printRef)    cout << setw(nwdf) << youtX[i] / mmRef << " "; // Reference Solution
+        if (printDiff)   cout << /* "  Df= " << */ setw(nwdf) << magFactor * (yout[i] / mmGVf - youtX[i] / mmRef);
+        // if (printDrvRef) cout << setw(nwdf - 2) << dydxRef[i] / mmRef;
+#endif
         if (printErr) cout << setw(nwdf) << yerr[i] / mmGVf;
-        cout.precision(3);
+        
+#if 0        
+        bool printErrRef = true;
+        bool printErrDiff= false;
+        if (printErrRef)  cout << setw(nwdf) << yErrX[i] / mmGVf;
+        if (printErrDiff) cout << setw(nwdf) << magFactor * ( yerr[i] - yErrX[i] ) / mmGVf;
+#endif
       }
+    }      
+    cout.precision(3);
 
     cout.unsetf(std::ios_base::fixed);
     cout.setf(std::ios_base::scientific);
@@ -371,12 +446,24 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
       if (columns[i]) {
         if (printSep) cout << " | "; // Separator
         if (printInp) cout << setw(nwdf - 1) << yin[i] / ppGVf << " ";
+        cout << setw(nwdf) << yout[i] / ppGVf;
 #ifdef BASELINESTEPPER
         if (printInpX) cout << setw(nwdf - 1) << yinX[i] / ppRef << " ";
         if (printRef) cout << setw(nwdf) << youtX[i] / ppRef; // Reference Solution
-        if (printDiff) cout << setw(nwdf + 2) << (yout[i] / ppGVf) - (youtX[i] / ppRef);
+        double rawDiffGeVc = ((yout[i] / ppGVf) - (youtX[i] / ppRef));        
+        if (printDiff)
+        {
+           // cout << "  Df= " << setw(nwdf + 2) << magFactor * rawDiffGeVc;
+           double scaledDf = magFactor * std::fabs(rawDiffGeVc);
+           if ( scaledDf < 1.0e-4 || scaledDf > 1.0e+4  ) { 
+              cout << setw(nwdf + 2) << magFactor * rawDiffGeVc;
+           } else {
+              cout.unsetf(std::ios_base::fixed);
+              cout << setw(nwdf + 2) << magFactor * rawDiffGeVc;
+              cout.setf(std::ios_base::scientific);              
+           }
+        }
 #endif
-        cout << setw(nwdf) << yout[i] / ppGVf;
         if (printErr) cout << setw(nwdf) << yerr[i] / ppGVf;
       }
     cout.unsetf(std::ios_base::scientific);
@@ -384,12 +471,13 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
     for (int i = 0; i < 6; i++) // Print auxiliary components
     {
       double unitGVf = 1;
-      // double unitRef=1;
       // if( i < 3 )             // length / length
-
       if (i >= 3) {
         unitGVf = ppGVf / mmGVf; //  dp / ds
+      }
 #ifdef BASELINESTEPPER
+      double unitRef=1;
+      if (i >= 3) {        
         unitRef = ppRef / mmRef; //  dp / ds
 #endif
       }
@@ -407,9 +495,11 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
         if (printSep) cout << " | "; // Separator
         cout << setw(nwdf) << dydx[i] / unitGVf;
 #ifdef BASELINESTEPPER
-        if (printRef) cout << setw(nwdf) << dydxRef[i] / unitRef; // Reference Solution
+        if (printRef | printDrvRef ) cout << setw(nwdf) << dydxRef[i] / unitRef << " "; // Reference Solution
         if (printDiff)                                            // Deriv )
-          cout << setw(nwdf) << (dydx[i] / unitGVf) - (dydxRef[i] / unitRef);
+           cout /* << "  Df= " */
+                << setw(nwdf-3) <<  magFactor * ( (dydx[i] / unitGVf) - (dydxRef[i] / unitRef) );
+        // cout << setw(nwdf) << (dydx[i] / unitGVf) - (dydxRef[i] / unitRef);        
 #endif
         // bool printDiffDeriv = true;
       }
@@ -447,7 +537,8 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
 
 /*------ Clean up ------*/
 #ifdef BASELINESTEPPER
-  exactStepper->InformDone();
+  // exactStepper->InformDone(); // Old protocol ... 
+  delete exactStepper;
 #endif
 
   return true; // Should perform some checks -- for not just PASS
@@ -461,20 +552,28 @@ void printBanner()
   cout << setw(5) << "Step";
   for (int i = 0; i < 6; i++)
     if (columns[i]) {
-      if (printSep) cout << " | "; // Separator
-      if (printInp) cout << setw(nwdf - 2) << "yIn[" << i << "]";
-      if (printInp) cout << setw(nwdf - 2) << "yInX[" << i << "]";
+      if (printSep)  cout << " | "; // Separator
+      if (printInp)  cout << setw(nwdf - 2) << "yIn[" << i << "]";
+#ifdef BASELINESTEPPER            
+      if (printInpX) cout << setw(nwdf - 2) << "yInX[" << i << "]";
+#endif      
       cout << setw(nwdf - 2) << "yOut[" << i << "]";
+#ifdef BASELINESTEPPER      
       if (printRef) cout << setw(nwdf - 2) << "yOutX[" << i << "]";
+      if (printDiff) cout << setw(nwdf) << " yOut-Ref[" << i << "]";      
+#endif
+      // if (printDeriv)  cout << setw(nwdf - 2) << "dydx[" << i << "]";
       if (printErr) cout << setw(nwdf - 1) << "yErr[" << i << "]";
-      if (printDiff) cout << setw(nwdf) << " yOut-yOutX[" << i << "]";
     }
   for (int i = 0; i < 6; i++)
     if (columns[i + 6]) {
       if (printSep) cout << " | "; // Separator
       if (printInp) cout << setw(nwdf - 2) << "yIn[" << i << "]";
       cout << setw(nwdf - 2) << "dydx[" << i << "]";
-      if (printRef) cout << setw(nwdf - 2) << "dydxRef[" << i << "]";
+#ifdef BASELINESTEPPER      
+      if (printRef | printDrvRef ) 
+         cout << setw(nwdf - 2) << "dydxRef[" << i << "]";               
+#endif      
       // if( printErr ) cout << setw(nwdf-2) << "yErr[" << i << "]";
       if (printDiff) //  printDiffDeriv )
         cout << setw(nwdf - 2) << "dydx-Ref[" << i << "]";

@@ -14,7 +14,7 @@
   --gun-set-primary-per-event              16           "# number of primary particles per event"\
 "###  --gun-set-primary-direction  x=0.1,y=0.9,z=0.1"   "# primary particle direction(will be normalized)"\
 "### field configuration parameters:  (not activated)"\
-  --field-active                            1           "# activate field"\
+  --field-uniform                           1           "# choose uniform field"\
   --field-vector                x=0.,y=0,z=40           "# constant field vector [kilogauss]"\
   --field-use-RK                            1           "# use Runge-Kutta propagator"\
   --field-eps-RK                       0.0003           "# RK tolerance error"\
@@ -24,12 +24,12 @@
   --config-total-number-of-events         100           "# total number of events to be simulated"\
   --config-number-of-threads                4           "# number of working threads to be used"\
   --config-number-of-propagators            1           "# number of propagators"\
+  --config-tracks-per-basket               16           "# default number of tracks per basket"\
   --config-run-performance                  1           "# flag to activate performance mode i.e. no scoring"\
   --config-vectorized-geom                  0           "# flag to activate vectorized geometry"\
   --config-vectorized-physics               0           "# flag to activate vectorized physics"\
   --config-vectorized-MSC                   0           "# flag to activate vectorized MSC"\
   --config-external-loop                    0           "# flag to run the application in external loop mode"\
-<<<<<<< HEAD
   --config-monitoring                       0           "# flag to activate some monitoring"\
   --config-single-track                     0           "# flag to activate single track mode"\
 "### basket related parameters:"\
