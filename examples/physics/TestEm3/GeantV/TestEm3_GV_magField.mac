@@ -32,4 +32,5 @@
   --process-MSC-step-limit             UseSafety      "# MSC stepping algorithm (UseSafety, UseDistanceToBoundary, ErrorFree)"\
   --config-run-performance                  0         "# flag to activate performance mode i.e. no scoring"\
   --config-vectorized-geom                  0         "# flag to activate vectorized geometry"\
-  --config-external-loop                    0         "# flag to run the application in external loop mode"
+  --config-external-loop                    0         "# flag to run the application in external loop mode"\
+  --config-single-track                     0         "# flag to activate single track mode"

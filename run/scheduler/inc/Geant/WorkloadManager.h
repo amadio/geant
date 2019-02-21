@@ -147,8 +147,6 @@ public:
 
   static int FlushOneLane(TaskData *td, bool share);
 
-  static int GetOneTrack(TaskData *td);
-
   /** @brief Function that provides waiting of workers */
   void WaitWorkers();
 

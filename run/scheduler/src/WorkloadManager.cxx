@@ -311,9 +311,9 @@ void WorkloadManager::TransportTracksSingle(Propagator *propagator)
       // assert(td->fNinflight == td->fStealCounter.load());
       if (!evserv->EventsServed()) {
         // There are still events in the server, we need to wait...
-        // geant::Warning("", "=== Task %d suspended due to missing workload", tid);
+        geant::Warning("", "=== Task %d suspended due to missing workload", tid);
         propagator->fWMgr->Wait();
-        // geant::Info("", "=== Task %d resuming...", tid);
+        geant::Info("", "=== Task %d resuming...", tid);
       }
       // Try to get tracks again
       continue;
@@ -410,14 +410,6 @@ int WorkloadManager::FlushOneLane(TaskData *td, bool share)
 }
 
 //______________________________________________________________________________
-int WorkloadManager::GetOneTrack(TaskData *td)
-{
-  // Get a single track from the stack-like buffer into the first stage.
-  int ninjected = td->fStackBuffer->FlushOneTrack();
-  return (ninjected);
-}
-
-//______________________________________________________________________________
 int WorkloadManager::SteppingLoop(TaskData *td, bool flush)
 {
   // The main stepping loop over simulation stages. Called in flush mode when no tracks are
@@ -486,7 +478,7 @@ int WorkloadManager::SteppingLoopSingle(TaskData *td)
   int nproc      = 0;
   int ninput     = 0;
   int istage     = 0;
-  int ninjected  = GetOneTrack(td);
+  int ninjected  = td->fStackBuffer->FlushOneTrack();
   // Flush the input buffer lane by lane, starting with higher generations.
   // Exit loop when buffer is empty or when the stages are cosidered flushed
   while (ninjected) {
@@ -497,7 +489,7 @@ int WorkloadManager::SteppingLoopSingle(TaskData *td)
       ninput += nstart;
       // If there is input just process normally
       if (nstart) {
-        nproc += stage->Process(td);
+        nproc += stage->ProcessSingleTrack(td);
       }
       nprocessed += nproc;
       // Go to next stage
@@ -506,7 +498,7 @@ int WorkloadManager::SteppingLoopSingle(TaskData *td)
         // Checkpoint
         // If no activity in the loop inject next lane from the buffer
         if (ninput == 0 && nproc == 0) {
-          ninjected = GetOneTrack(td);
+          ninjected = td->fStackBuffer->FlushOneTrack();
           break;
         }
         // TO DO: In flush mode, check regularly the event server
@@ -515,6 +507,7 @@ int WorkloadManager::SteppingLoopSingle(TaskData *td)
       }
     }
   }
+  assert(td->fStackBuffer->GetNtracks() == 0);
   return nprocessed;
 }
 

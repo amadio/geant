@@ -149,7 +149,7 @@ public:
       fStageBuffer->AddTrack(fLanes[fLastLane]->Tracks().back());
       fLanes[fLastLane]->Tracks().pop_back();
       fNtracks -= 1;
-      while (fLastLane > 0 && fLanes[fLastLane] == 0)
+      while (fLastLane > 0 && fLanes[fLastLane]->size() == 0)
         fLastLane--;
       return 1;
     }

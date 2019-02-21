@@ -74,6 +74,7 @@ int parConfigVectorizedMSC      = 0;  // activate MSC basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 int parFastSimActive            = 0;  // activated fast sim stage
 int parConfigMonitoring         = 0;  // activate some monitoring
+int parConfigSingleTrackMode    = 0;  // activate single track mode
 
 //
 // physics process configuration parameters:
@@ -189,6 +190,7 @@ static struct option options[] = {{"det-number-of-absorbers", required_argument,
                                   {"config-vectorized-MSC", required_argument, 0, 'V'},
                                   {"fastsim-active", required_argument, 0, 'w'},
                                   {"config-monitoring", required_argument, 0, 'x'},
+                                  {"config-single-track", required_argument, 0, 'y'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -342,6 +344,9 @@ void GetArguments(int argc, char *argv[])
     case 'x':
       parConfigMonitoring = (int)strtol(optarg, NULL, 10);
       break;
+    case 'y':
+      parConfigSingleTrackMode = (int)strtol(optarg, NULL, 10);
+      break;
 
     //---- MCTruth handling
     case 'B':
@@ -436,7 +441,7 @@ geant::RunManager *RunManager()
   //
   // Activate standard scoring
   // runConfig->fUseStdScoring = !parConfigIsPerformance;
-  runConfig->fSingleTrackMode = true;
+  runConfig->fSingleTrackMode = parConfigSingleTrackMode;
 
   return runManager;
 }

@@ -30,5 +30,6 @@
   --config-vectorized-physics               0           "# flag to activate vectorized physics"\
   --config-vectorized-MSC                   0           "# flag to activate vectorized MSC"\
   --config-external-loop                    0           "# flag to run the application in external loop mode"\
-  --config-monitoring                       0           "# flag to activate some monitoring"
+  --config-monitoring                       0           "# flag to activate some monitoring"\
+  --config-single-track                     0           "# flag to activate single track mode"
   

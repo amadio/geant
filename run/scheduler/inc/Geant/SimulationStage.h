@@ -169,6 +169,12 @@ public:
   VECCORE_ATT_HOST_DEVICE
   int Process(TaskData *td);
 
+  /** @brief Process a single track for the stage
+   *  @return Number of tracks processed
+   */
+  VECCORE_ATT_HOST_DEVICE
+  int ProcessSingleTrack(TaskData *td);
+
   /** @brief Flush all tracks from the simulation stage basketizers and execute stage
    *  @return Number of tracks flushed
    */

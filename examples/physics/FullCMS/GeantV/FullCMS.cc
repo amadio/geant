@@ -52,6 +52,7 @@ int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
 int parConfigVectorizedMSC      = 0;  // activate MSC basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 int parConfigMonitoring         = 0;  // activate some monitoring
+int parConfigSingleTrackMode    = 0;  // activate single track mode
 //
 // field configuration parameters
 int parFieldActive      = 0;         // activate magnetic field
@@ -152,6 +153,7 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"config-vectorized-physics", required_argument, 0, 'v'},
                                   {"config-vectorized-MSC", required_argument, 0, 'V'},
                                   {"config-monitoring", required_argument, 0, 'x'},
+                                  {"config-single-track", required_argument, 0, 'y'},
 
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
@@ -261,6 +263,9 @@ void GetArguments(int argc, char *argv[])
     case 'x':
       parConfigMonitoring = (int)strtol(optarg, NULL, 10);
       break;
+    case 'y':
+      parConfigSingleTrackMode = (int)strtol(optarg, NULL, 10);
+      break;
     case 'V':
       parConfigVectorizedMSC = (int)strtol(optarg, NULL, 10);
       break;
@@ -347,7 +352,8 @@ geant::RunManager *RunManager()
   // create the real physics main manager/interface object and set it in the RunManager
   runManager->SetPhysicsInterface(new geantphysics::PhysicsProcessHandler(*runConfig));
 
-  runConfig->fUseStdScoring = false;
+  runConfig->fUseStdScoring   = false;
+  runConfig->fSingleTrackMode = parConfigSingleTrackMode;
 
   return runManager;
 }

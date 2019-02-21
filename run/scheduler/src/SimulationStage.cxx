@@ -327,6 +327,7 @@ int SimulationStage::Process(TaskData *td)
   assert(fFollowUpStage >= 0);
   Basket &input = *td->fStageBuffers[fId];
   int ninput    = input.Tracks().size();
+  if (!ninput) return 0;
   if (fBasketized) {
     int check_countdown = fCheckCountdown.fetch_sub(ninput) - ninput;
     if (check_countdown <= 0) CheckBasketizers(td, fFireFlushRatio);
@@ -382,6 +383,39 @@ int SimulationStage::Process(TaskData *td)
   }
   // The stage buffer needs to be cleared
   input.Clear();
+  // The track and its eventual progenies should be now copied to the output
+  return CopyToFollowUps(output, td);
+}
+
+//______________________________________________________________________________
+VECCORE_ATT_HOST_DEVICE
+int SimulationStage::ProcessSingleTrack(TaskData *td)
+{
+  // This version processes a single track at a time
+  constexpr int kMinGen = 0; // minimum generation
+  assert(fFollowUpStage >= 0);
+  Basket &input = *td->fStageBuffers[fId];
+  int ninput    = input.Tracks().size();
+  if (!ninput) return 0;
+  Basket &output = *td->fShuttleBasket;
+  output.Clear();
+
+  auto track = input.Tracks().back();
+  input.Tracks().pop_back();
+
+  track->SetStage(fFollowUpStage);
+  Handler *handler = Select(track, td);
+  // If no handler is selected the track does not perform this stage
+  if (!handler) {
+    output.AddTrack(track);
+    return CopyToFollowUps(output, td);
+  }
+
+  if (!handler->IsActive() || track->GetGeneration() < kMinGen) {
+    // Scalar DoIt.
+    td->fCounters[fId]->fNtracks[handler->GetId()]++;
+    handler->DoIt(track, output, td);
+  }
   // The track and its eventual progenies should be now copied to the output
   return CopyToFollowUps(output, td);
 }
