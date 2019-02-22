@@ -41,8 +41,8 @@ using geant::units::degree;
 
 #ifdef USECMSFIELD
 #include "CMSmagField.h"
-#include "ScalarRZMagFieldFromMap.h"
-using ScalarCMSmagField = ScalarRZMagFieldFromMap;
+#include "RZMagFieldFromMap.h"
+using ScalarCMSmagField = RZMagFieldFromMap;
 #include "Geant/Utils.h"
 // #else
 #endif
@@ -76,8 +76,9 @@ int main(int argc, char *argv[])
   
 #ifdef USECMSFIELD
   using Field_Type        = CMSmagField;
-  using Field_Type_Scalar = ScalarRZMagFieldFromMap; // ScalarCMSmagField;
-// using Field_Type_Scalar = TemplateCMSmagField<vecgeom::kScalar>;
+  using Field_Type_Scalar = ScalarCMSmagField;
+  // using Field_Type_Scalar = RZMagFieldFromMap; // Use same class for 'scalar' - i.e. one track at a time
+  // using Field_Type_Scalar = TemplateCMSmagField<vecgeom::kScalar>;
 #else
   using Field_Type = UniformMagField; // TemplateScalarUniformMagField<Backend>;
 #ifdef NEW_SCALAR_FIELD

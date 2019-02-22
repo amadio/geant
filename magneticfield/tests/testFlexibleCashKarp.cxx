@@ -96,10 +96,25 @@ void printBanner();
 
 constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
 
-using FieldType      = UniformMagField;
-using GvEquationType = MagFieldEquation<FieldType>;
+#define UNIFORM_FIELD   1
 
-UniformMagField* gvUniformField = nullptr;
+#ifdef UNIFORM_FIELD
+#include "Geant/UniformMagField.h" // New type (universal) class
+#include "Geant/ScalarUniformMagField.h" // Old type - for single track, i.e. one position, one B-value
+
+using FieldType      = UniformMagField;
+using Field_Type_Scalar= ScalarUniformMagField;
+#else
+#include "RZMagFieldFromMap.h"
+#include "ScalarCMSMagField.h"
+
+using FieldType      = RZMagFieldFromMap;
+using Field_Type_Scalar= ScalarCMSMagField;
+#endif
+
+FieldType      * gvUniformField = nullptr;
+using GvEquationType = MagFieldEquation<FieldType>;
+using StepperType = CashKarp<GvEquationType, Nposmom>;
 
 vecgeom::Vector3D<float> fieldValInput(0.0, 0.0, 0.0);   // labelled ThreeVector_f below (within main)
 
@@ -124,7 +139,7 @@ int main(int argc, char *args[])
   processArguments(argc, args);
 
   double x_field = 0., y_field = 0., z_field = 0.;      // Uniform Magnetic Field (x,y,z)
-  z_field = (z_field_in < DBL_MAX) ? z_field_in : -1.0; //  Tesla // *tesla ;
+  z_field = (z_field_in < DBL_MAX) ? z_field_in : -4.0; //  Tesla // *tesla ;
 
   if (debug) cout << "---- Creating UniformMagField object" << endl;
   // Vector3D<float>
@@ -140,10 +155,10 @@ int main(int argc, char *args[])
   std::cout << " Simulation parameters:  stepper_no= " << stepper_no 
             << " step length (mm) = " << step_len_mm 
             << " number of steps  = " << no_of_steps 
-            << " B_z value (Tesla) = " << z_field_in  << std::endl;
+            << " B_z value (Tesla) = " << z_field  << std::endl;
   
   if (debug) {
-    cout << "#  Initial  Field strength (GeantV) = " << x_field << " , " << y_field << " , " << z_field << " Tesla "
+    cout << "#  Initial  Field strength (GeantV) = " << x_field << " , " << y_field << " , " << z_field << " T (tesla) "
          << endl;
 
     ThreeVector_d origin(0.0, 0.0, 0.0), fieldValue;
@@ -167,13 +182,12 @@ int main(int argc, char *args[])
   if (debug) cout << "---- Preparing to create (Vector) CashKarpRKF45 Stepper " << endl;
 
   // 2. Create stepper
-  // using StepperType = VectorCashKarp< GvEquationType, Nposmom>;
-  using StepperType = CashKarp<GvEquationType, Nposmom>;
 
+  // auto myStepper= new StepperType(magEquation);
   StepperType myStepper2(magEquation);
   auto myStepper = &myStepper2;
   // myStepper = new VectorCashKarp<GvEquationType,Nposmom>(gvEquation);
-
+  
   if (debug) {
     cout << "---- constructed (flexible) CashKarp" << endl;
     cout << " Stepper  information: ptr= " << myStepper << endl;
@@ -182,15 +196,22 @@ int main(int argc, char *args[])
 
   // Phase 1 - get it to work without cloning
 
-#ifdef CREATE_SCALAR_STEPPER    
+#ifdef CREATE_SCALAR_STEPPER
+  cout << endl;
+  // cout << " =============================================================================" << endl;  
   cout << " 1. Testing scalar field, equation and stepper     " << endl;
-
+  cout << " =============================================================================" << endl;
+  
   using ScalarFieldType=    
   using ScalarEquationType= ScalarMagFieldEquation<ScalarFieldType, Nposmom>;
   using ScalarStepperType=   CashKarp<ScalarEquationType, Nposmom>;
   bool okScalar = TestFlexibleStepper<double, ScalarStepperType>(myStepper);
 #endif
+  
+  cout << endl;
+  cout << " =============================================================================" << endl;
   cout << " 2. Testing scalar version of 'flexible' field, equation and stepper." << endl;
+  cout << " =============================================================================" << endl;
   
   bool okScalar = TestFlexibleStepper<double, StepperType>(myStepper);
   
@@ -199,7 +220,10 @@ int main(int argc, char *args[])
   // bool okVecFloat  = TestFlexibleStepper<Float_v, StepperType >(myStepper); // , magEquation);
   
   // cout << " Testing Vec Double . " << endl;
+  cout << endl;
+  cout << " =============================================================================" << endl;
   cout << " 3. Testing Vector Double_v version of 'flexible' field, equation and stepper." << endl;
+  cout << " =============================================================================" << endl;  
   bool okVecDouble = TestFlexibleStepper<Double_v, StepperType>(myStepper);
 
   bool good = okScalar && // okVecFloat &&
@@ -284,16 +308,21 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
   // auto gvEquation2 = new GvEquationType(gvUniformField);
   // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvUniformField);  
 
-  using Field_Type_Scalar= ScalarUniformMagField;
+#ifdef UNIFORM_FIELD
+  // using Field_Type_Scalar= ScalarUniformMagField;
   auto gvScalarField = new ScalarUniformMagField(fieldValInput);
-  
+#else
+  auto gvScalarField = new ScalarCMSMagField();
+#endif
+
   using GvScalarEquationType = ScalarMagFieldEquation<Field_Type_Scalar, Nposmom>;
   auto  gvScalarEquation2 = new GvScalarEquationType(gvScalarField);
   
   // Creating the baseline stepper
   //  auto exactStepperGV = new TClassicalRK4<GvEquationType, Nposmom>(gvEquation2);
+  // cout << "#  Reference stepper is: TClassicalRK4<GvEquationType,Nposmom>(gvScalarEquation2);" << endl;  
   auto exactStepperGV = new GUTCashKarpRKF45<GvScalarEquationType, Nposmom>(gvScalarEquation2);  
-  cout << "#  Reference stepper is: TClassicalRK4<GvEquationType,Nposmom>(gvScalarEquation2);" << endl;
+  cout << "#  Reference stepper is Cash Karp, i.e. GUTCashKarpRKF45 <GvEquationType,Nposmom> (gvScalarEquation2)" << endl;
 
   // new TSimpleRunge<GvEquationType,Nposmom>(gvEquation2);
   // new GUExactHelixStepper(gvEquation2);
@@ -381,28 +410,36 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
     // Select one lane for printing.
 
     // General code - for vecCore types or built-in types
+
+    // yin[i] = vecCore::Get(yInVec[i], lane);    
     SelectOutput<Real_v, scalar_t, Nposmom>(yInVec, yin, lane);
-    if (j > 0)
-      SelectOutput<Real_v, scalar_t, Nposmom>(yOutVec, yout, lane);
+
+      
+    if (j > 0)  //  yOut is not yet set for j=0    
+      SelectOutput<Real_v, scalar_t, Nposmom>(yOutVec, yout, lane); // yout[i] = vecCore::Get(yOutVec[i], lane) : 
     else
-      SelectOutput<Real_v, scalar_t, Nposmom>(yInVec, yout, lane);
-    SelectOutput<Real_v, scalar_t, Nposmom>(yErrVec, yerr, lane);
-    SelectOutput<Real_v, scalar_t, Nposmom>(dydxVec, dydx, lane);
+      SelectOutput<Real_v, scalar_t, Nposmom>(yInVec, yout, lane);  // yout[i] = vecCore::Get(yInVec[i], lane); 
+    SelectOutput<Real_v, scalar_t, Nposmom>(yErrVec, yerr, lane);   // yerr[i] = vecCore::Get(yErrVec[i], lane);
+    SelectOutput<Real_v, scalar_t, Nposmom>(dydxVec, dydx, lane);   // dydx[i] = vecCore::Get(dydxVec[i], lane);
 
 #ifdef BASELINESTEPPER
-    using Real_vRef= double;
-    int   laneRef= 0;  //  This is scalar - there is no other lane !!
-    SelectOutput<Real_vRef, scalar_t, Nposmom>(yInVecX, yinX, laneRef);
-    if (j > 0)
+    // using Real_vRef= double;
+    // int   laneRef= 0;  //  This is scalar - there is no other lane !!
+    // SelectOutput<Real_vRef, scalar_t, Nposmom>(yInVecX, yinX, laneRef);
+    /* if (j > 0)
       SelectOutput<Real_vRef, scalar_t, Nposmom>(yOutVecX, youtX, laneRef);
     else
-      SelectOutput<Real_vRef, scalar_t, Nposmom>(yInVecX, youtX, laneRef);
-    SelectOutput<Real_vRef, scalar_t, Nposmom>(yErrVecX, yerrX, laneRef);
-    SelectOutput<Real_vRef, scalar_t, Nposmom>(dydxRef, dydx, laneRef);
+      SelectOutput<Real_vRef, scalar_t, Nposmom>(yInVecX, youtX, laneRef);  **/
+    // SelectOutput<Real_vRef, scalar_t, Nposmom>(yErrVecX, yerrX, laneRef);
+    // SelectOutput<Real_vRef, scalar_t, Nposmom>(dydxRef, dydx, laneRef);
 
     for (int i = 0; i < 6; i++)
     {
-       youtX[i] = yOutVecX[i]; // ( j > 0 ) ? yOutVecX[i] : yInVecX[i] ;
+       yinX[i]= yInVecX[i];
+       if (j > 0)       
+          youtX[i] = yOutVecX[i]; // ( j > 0 ) ? yOutVecX[i] : yInVecX[i] ;
+       else
+          youtX[i] = yInVecX[i]; // ( j > 0 ) ? yOutVecX[i] : yInVecX[i] ;       
        yerrX[i] = yErrVecX[i];
     }
 #endif

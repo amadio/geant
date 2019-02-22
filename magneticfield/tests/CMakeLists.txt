@@ -8,7 +8,7 @@ file(GLOB sources )  # Common source  files
 file(GLOB headers )  # Common include files
 
 include_directories(${CMAKE_SOURCE_DIR}/magneticfield/inc 
-                    ${CMAKE_SOURCE_DIR}/magneticfield/tests/ScalarCMSMagField/include
+                    ${CMAKE_SOURCE_DIR}/magneticfield/tests/SimpleCMSMagField/include
                     ${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/inc
                     ${CMAKE_SOURCE_DIR}/examples/magneticfield/tests/simplifiedCMS/include
                    )
@@ -48,11 +48,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin/tests/${RelativeCurrentSourcePa
 #target_link_libraries(testScalarCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 #message(STATUS "Created target for testScalarCashKarp")
 
-## Test for 'vector' Stepper class  ( renamed from testNewStepperFixedCashKarp )
-add_executable(testVectorCashKarp testVectorCashKarp.cxx)
-target_link_libraries(testVectorCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-message(STATUS "Created target for testVectorCashKarp")
-
 ## New test for 'vector' Stepper class  ( mid-version towards flexible test below )
 #add_executable(templatedTestVectorCashKarp templatedTestVectorCashKarp.cxx)
 #target_link_libraries(templatedTestVectorCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
@@ -71,7 +66,7 @@ target_link_libraries(testScalarIntegrationDriver Vmagfield Geant_v ${VECGEOM_LI
 message(STATUS "Created target for testScalarIntegrationDriver")
 
 add_executable(testVectorIntegrationDriver testVectorIntegrationDriver.cxx 
-                                           ${CMAKE_SOURCE_DIR}/magneticfield/tests/ScalarCMSMagField/src/ScalarRZMagFieldFromMap.cxx )
+                                           ${CMAKE_SOURCE_DIR}/magneticfield/tests/SimpleCMSMagField/src/RZMagFieldFromMap.cxx )
 target_link_libraries(testVectorIntegrationDriver Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testVectorIntegrationDriver")
 ## --------  End   of Integration Driver Tests -------------

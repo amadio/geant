@@ -1,5 +1,5 @@
-#ifndef  SCALARRZMAGFIELDFROMMAP_H_
-#define  SCALARRZMAGFIELDFROMMAP_H_
+#ifndef  RZMAGFIELDFROMMAP_H_
+#define  RZMAGFIELDFROMMAP_H_
 
 #include <vector>
 #include "base/Vector3D.h"
@@ -13,11 +13,11 @@
 // typedef vecgeom::Vector3D<double> Vector3D;
 // typedef vecgeom::SOA3D<double> SOA3D;
 
-class ScalarRZMagFieldFromMap : public VVectorField {
+class RZMagFieldFromMap : public VVectorField {
 public:
-  ScalarRZMagFieldFromMap();
-  ScalarRZMagFieldFromMap(std::string inputMap);
-  ScalarRZMagFieldFromMap(const ScalarRZMagFieldFromMap &right);
+  RZMagFieldFromMap();
+  RZMagFieldFromMap(std::string inputMap);
+  RZMagFieldFromMap(const RZMagFieldFromMap &right);
 
   // New stuff
   // Takes as input x,y,z; Gives output Bx,By,Bz
@@ -40,14 +40,14 @@ public:
   // changes
   void ReadVectorData(std::string inputMap);
 
-  ~ScalarRZMagFieldFromMap();
+  ~RZMagFieldFromMap();
 
   /** @brief For old interface - when cloning was needed for each thread */
-  ScalarRZMagFieldFromMap* Copy() const { return new ScalarRZMagFieldFromMap(*this); }  
+  RZMagFieldFromMap* Copy() const { return new RZMagFieldFromMap(*this); }  
    
   virtual VVectorField* Clone() const override final { return Copy(); }
 
-  ScalarRZMagFieldFromMap* CloneOrSafeSelf(bool *isSafe) {
+  RZMagFieldFromMap* CloneOrSafeSelf(bool *isSafe) {
      if( isSafe ) *isSafe = false;
      return Copy();
   }
@@ -89,14 +89,14 @@ private:
   std::vector<double> fRadius, fPhi, fZ, fBr, fBz, fBphi;
 };
 
-inline void ScalarRZMagFieldFromMap::CartesianToCylindrical(const vecgeom::Vector3D<double> &cart, double cyl[2])
+inline void RZMagFieldFromMap::CartesianToCylindrical(const vecgeom::Vector3D<double> &cart, double cyl[2])
 {
   // cyl[3] =[r,z,phi]
   cyl[0] = sqrt(cart[0] * cart[0] + cart[1] * cart[1]); // r = sqrt(x^2 + y^2)
   cyl[1] = cart[2];                                     // z = z
 }
 
-inline void ScalarRZMagFieldFromMap::CylindricalToCartesian(const vecgeom::Vector3D<double> &rzField, const double sinTheta, const double cosTheta,
+inline void RZMagFieldFromMap::CylindricalToCartesian(const vecgeom::Vector3D<double> &rzField, const double sinTheta, const double cosTheta,
                                              vecgeom::Vector3D<double> &xyzField)
 {
   // B_cyl[] has r, phi and z
