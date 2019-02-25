@@ -1,8 +1,14 @@
 //
 //  Compare the output of a selected steppers (scalar and vector.)
 //
-//  Based on testStepperFixed.cc
-//    which was part of the work of Somnath Banerjee in GSoC 2015
+//   - adapted for the 'flexible' version of Cash Karp stepper (and similar)
+//     which can work as either vector or scalar (using VecCore).
+//
+//  Configurable output - currently compilation time configuration to choose
+//    * variables to output ( position x, y, z ; momentum x, y, z; dX/ds x/y/z dP/ds (x/y/z)
+//    * 
+//
+//  Initially based on testStepperFixed.cc created by Somnath Banerjee in GSoC 2015
 //
 #include <iomanip>
 
@@ -55,30 +61,39 @@ bool TestFlexibleStepper(Stepper_t *stepper);  // , Equation_t *equation);
 /* -----------------------------SETTINGS-------------------------------- */
 
 // Parameters of test - values can be modified here (or in arguments to main)
-int no_of_steps    = 250;  // No. of Steps for the stepper
+int no_of_steps    = 100;  // No. of Steps for the stepper
 int stepper_no     = 5;    // Choose stepper no., for refernce see above
 double step_len_mm = 200.; // meant as millimeter;  //Step length
 double z_field_in  = DBL_MAX;
 
-bool debug = false; // true;
+bool debug = false;       // true;
+
+int    magExp10 = 6;      // Differences are magnified by 10^this (magExp10)
+
+double facStepLen= 1.05;  // Factor for progressive lengthening of step size
+double magFactor = 1.0 * pow(10,magExp10);  // Magnification factor for difference(s)
 
 /* ------------------ Parameters for PRINTING --------------------------- */
 // Choice of output coordinates
 int columns[] = {
-    0, 0, 1, // position  x, y, z
-    1, 1, 0, // momentum  x, y, z
-    1, 1, 0, // dydx pos  x, y, z
-    1, 1, 0  // dydx mom  x, y, z
+    1, 1, 1, // position  x, y, z
+    0, 0, 0, // momentum  x, y, z
+    1, 1, 1, // dydx pos  x, y, z
+    0, 0, 0  // dydx mom  x, y, z
 };           // Variables in yOut[] & dydx[] we want to display - 0 for No, 1 for yes
 
-bool printErr    = 0, // Print the predicted Error
-     printDiff   = 1, // Print the diffrence
+bool printDiff   = 1, // Print the diffrence
      printRef    = 0, // Print the reference Solution
      printDrvRef = 1  // Print the derivative of Reference ( ORed with above to give Derivative )
        ;
 bool printSep = 1; // separator  '|'
 bool printInp = 0; // print the input values
 bool printInpX= 0;  // print the input values for Ref
+
+// #if PRINT_ERR_VALS
+bool printErr    = true,    // Print the predicted Error ? 
+     printErrRef = false,
+     printErrDiff= true;
 
 const unsigned int nwdf = 12; // Width for float/double
 // -------   End of Parameters for PRINTING ------------------------------ */
@@ -352,7 +367,8 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
   // Units
   const char *nameUnitLength   = "mm";
   const char *nameUnitMomentum = "GeV/c";
-  cout << setw(6) << "#Numbr";
+  cout << setw(6) << "#Numbr" << " ";
+  cout << setw(6) << "(mm) ";
   for (int i = 0; i < 6; i++)
   {
     if (columns[i])
@@ -374,11 +390,14 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
   cout.precision(3);
 
   /*----------------NOW STEPPING-----------------*/
-  no_of_steps = 25;
-
+  // no_of_steps = 25;
+    
   for (int j = 0; j < no_of_steps; j++) {
-    cout << setw(6) << j; // Printing Step number
+    cout << setw(6) << j << " " ; // Printing Step number
+    cout << setw(8) << stepLengthValue << " ";
+    
     Real_v step_len(stepLengthValue);
+
     stepper->RightHandSideInl(   yInVec, chargeVec, dydxVec); // compute dydx - to supply the stepper
 #ifdef BASELINESTEPPER
     double charge= vecCore::Get( chargeVec, 0 );
@@ -414,7 +433,6 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
     // yin[i] = vecCore::Get(yInVec[i], lane);    
     SelectOutput<Real_v, scalar_t, Nposmom>(yInVec, yin, lane);
 
-      
     if (j > 0)  //  yOut is not yet set for j=0    
       SelectOutput<Real_v, scalar_t, Nposmom>(yOutVec, yout, lane); // yout[i] = vecCore::Get(yOutVec[i], lane) : 
     else
@@ -445,34 +463,47 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
 #endif
     // -->> End of Selecting 'lane' for printing
 
-    double magFactor = 1.0e+6;  // Magnification factor for difference(s)
-    
     //-> Then print the data
     cout.setf(std::ios_base::fixed);
     cout.precision(2);
     for (int i = 0; i < 3; i++)
     {
+      // Check the difference first
+      double magDiff = yout[i] / mmGVf - youtX[i] / mmRef;
+      if( magFactor * fabs( magDiff ) * mmRef > 0.01 * fabs( youtX[i] ) ) {
+        cerr << " Non-zero difference in step # " << j << " len= " << stepLengthValue
+             << "column[ " << i << " ] "
+             << " Diff = " << magDiff << " vs Reference " << youtX[i] / mmRef << endl;
+      }
+       
       if (columns[i])
       {
+        cout << std::defaultfloat;         
         if (printSep)  cout << " | "; // Separator
-        if (printInp)  cout << setw(nwdf - 2) << yin[i] / mmGVf;
+        if (printInp)  cout << setw(nwdf - 2) << yin[i] / mmGVf << " ";
 #ifdef BASELINESTEPPER
-        if (printInpX)   cout << setw(nwdf - 2) << yinX[i] / mmRef;
+        if (printInpX)   cout << setw(nwdf - 2) << yinX[i] / mmRef << " ";
 #endif        
         cout << setw(nwdf) << yout[i] / mmGVf;
 #ifdef BASELINESTEPPER        
         if (printRef)    cout << setw(nwdf) << youtX[i] / mmRef << " "; // Reference Solution
-        if (printDiff)   cout << /* "  Df= " << */ setw(nwdf) << magFactor * (yout[i] / mmGVf - youtX[i] / mmRef);
+        if (printDiff)   cout << /* "  Df= " << */ setw(nwdf) << magFactor * (yout[i] / mmGVf - youtX[i] / mmRef) << " ";
         // if (printDrvRef) cout << setw(nwdf - 2) << dydxRef[i] / mmRef;
 #endif
-        if (printErr) cout << setw(nwdf) << yerr[i] / mmGVf;
-        
-#if 0        
-        bool printErrRef = true;
-        bool printErrDiff= false;
-        if (printErrRef)  cout << setw(nwdf) << yErrX[i] / mmGVf;
-        if (printErrDiff) cout << setw(nwdf) << magFactor * ( yerr[i] - yErrX[i] ) / mmGVf;
-#endif
+        if (printErr)    cout << std::scientific << setw(nwdf) << yerr[i] / ppGVf;
+           
+// #if PRINT_ERR_VALS
+        // cout.unsetf(std::ios_base::fixed);
+        // cout.setf(std::ios_base::scientific);
+        if (printErrRef)  cout << setw(nwdf) << yerrX[i] / mmGVf << " ";
+        cout << std::defaultfloat;
+        double errDiff= ( yerr[i] / mmGVf - yerrX[i] / mmRef );
+        if( errDiff != 0.0 && ( errDiff < 1.e-4 || errDiff > 1.e+5 ) )
+           cout << std::scientific;        
+        if (printErrDiff) cout // << "mag*ErrDif= " 
+                               << setw(nwdf-4) << magFactor * errDiff << " ";
+// #endif
+        cout << std::defaultfloat;
       }
     }      
     cout.precision(3);
@@ -483,25 +514,59 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
       if (columns[i]) {
         if (printSep) cout << " | "; // Separator
         if (printInp) cout << setw(nwdf - 1) << yin[i] / ppGVf << " ";
-        cout << setw(nwdf) << yout[i] / ppGVf;
+
+        double outVal=  yout[i] / ppGVf;
+        if ( outVal == 0.0 || ( fabs(outVal) > 1.0e-4 && fabs(outVal) < 1.0e+4) )
+        {
+           cout.unsetf(std::ios_base::scientific);           
+           cout.setf(std::ios_base::fixed);
+           cout << setw(nwdf) << outVal; // yout[i] / ppGVf;
+           cout.unsetf(std::ios_base::fixed);           
+           cout.setf(std::ios_base::scientific);                   
+        } else {
+           // cout.unsetf(std::ios_base::fixed);           
+           // cout.setf(std::ios_base::scientific);
+           cout << setw(nwdf) << outVal; // yout[i] / ppGVf;
+        }
+        // cout << setw(nwdf) << outVal; // yout[i] / ppGVf;
+
 #ifdef BASELINESTEPPER
         if (printInpX) cout << setw(nwdf - 1) << yinX[i] / ppRef << " ";
-        if (printRef) cout << setw(nwdf) << youtX[i] / ppRef; // Reference Solution
+        if (printRef)  cout << setw(nwdf) << youtX[i] / ppRef; // Reference Solution
         double rawDiffGeVc = ((yout[i] / ppGVf) - (youtX[i] / ppRef));        
         if (printDiff)
         {
            // cout << "  Df= " << setw(nwdf + 2) << magFactor * rawDiffGeVc;
            double scaledDf = magFactor * std::fabs(rawDiffGeVc);
-           if ( scaledDf < 1.0e-4 || scaledDf > 1.0e+4  ) { 
-              cout << setw(nwdf + 2) << magFactor * rawDiffGeVc;
+           if ( scaledDf == 0.0 ) { // || ( scaledDf > 1.0e-4 && scaledDf < 1.0e+4) ) {
+              // cout.setf(std::ios_base::fixed);
+              // cout << setw(nwdf + 2) << magFactor * rawDiffGeVc;
+              cout << setw(nwdf + 2) << "0.00";
+              // cout.setf(std::ios_base::scientific);
            } else {
-              cout.unsetf(std::ios_base::fixed);
               cout << setw(nwdf + 2) << magFactor * rawDiffGeVc;
-              cout.setf(std::ios_base::scientific);              
            }
         }
 #endif
-        if (printErr) cout << setw(nwdf) << yerr[i] / ppGVf;
+        if (printErr) {
+           cout << std::scientific;           
+           cout << setw(nwdf) << yerr[i] / ppGVf;
+        }
+// #if PRINT_ERR_VALS
+        // cout.unsetf(std::ios_base::fixed);
+        // cout.setf(std::ios_base::scientific);
+        if (printErrRef)  cout << setw(nwdf) << yerrX[i] / ppGVf << " ";
+
+        double errDiff= ( yerr[i] / ppGVf - yerrX[i] / ppRef );
+
+        cout << std::defaultfloat;            
+        if( errDiff != 0.0 && ( errDiff < 1.e-4 || errDiff > 1.e+5 ) )
+           cout << std::scientific;
+        if (printErrDiff) cout // << "mag*ErrDif= " 
+                               << setw(nwdf-4) << magFactor * errDiff << " ";
+// #endif
+        cout << std::defaultfloat;    
+        
       }
     cout.unsetf(std::ios_base::scientific);
 
@@ -565,6 +630,8 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
       }
     }
 
+    stepLengthValue *= facStepLen;
+    
     cout << "\n";
   }
 
@@ -587,6 +654,7 @@ void printBanner()
   //        -> First Print the (commented) title header
   cout << "\n#";
   cout << setw(5) << "Step";
+  cout << setw(9) << "Size";
   for (int i = 0; i < 6; i++)
     if (columns[i]) {
       if (printSep)  cout << " | "; // Separator
@@ -597,10 +665,14 @@ void printBanner()
       cout << setw(nwdf - 2) << "yOut[" << i << "]";
 #ifdef BASELINESTEPPER      
       if (printRef) cout << setw(nwdf - 2) << "yOutX[" << i << "]";
-      if (printDiff) cout << setw(nwdf) << " yOut-Ref[" << i << "]";      
+      if (printDiff) cout << " 10^" << setw(1) << magExp10
+                          << setw(nwdf-9) <<  "*(yO-Ref)"; // [" << i << "]";
 #endif
       // if (printDeriv)  cout << setw(nwdf - 2) << "dydx[" << i << "]";
       if (printErr) cout << setw(nwdf - 1) << "yErr[" << i << "]";
+      if (printErrRef)  cout << setw(nwdf) << "ErrRef" << " ";
+      if (printErrDiff) cout << setw(nwdf) << "m*(yE-Ref)" << " ";
+                               
     }
   for (int i = 0; i < 6; i++)
     if (columns[i + 6]) {

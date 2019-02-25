@@ -48,11 +48,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin/tests/${RelativeCurrentSourcePa
 #target_link_libraries(testScalarCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 #message(STATUS "Created target for testScalarCashKarp")
 
-## New test for 'vector' Stepper class  ( mid-version towards flexible test below )
-#add_executable(templatedTestVectorCashKarp templatedTestVectorCashKarp.cxx)
-#target_link_libraries(templatedTestVectorCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-#message(STATUS "Created target for templatedTestVectorCashKarp")
-
 ## Test newest Cash Karp, that can integrate scalar or Double_v
 add_executable(testFlexibleCashKarp testFlexibleCashKarp.cxx)
 target_link_libraries(testFlexibleCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
