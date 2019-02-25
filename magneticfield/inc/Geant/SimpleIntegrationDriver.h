@@ -713,8 +713,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
     errpos_sq *= invEpsPositionSq; // Scale relative to required tolerance
 
     // Accuracy for momentum
-    Real_v magmom_sq = ytemp[3] * ytemp[3] + ytemp[4] * ytemp[4] + ytemp[5] * ytemp[5];
-    Real_v sumerr_sq = yerr[3] * yerr[3] + yerr[4] * yerr[4] + yerr[5] * yerr[5];
+    const Real_v magmom_sq = ytemp[3] * ytemp[3] + ytemp[4] * ytemp[4] + ytemp[5] * ytemp[5];
+    const Real_v sumerr_sq = yerr[3] * yerr[3] + yerr[4] * yerr[4] + yerr[5] * yerr[5];
 
     // vecCore::CondAssign(magmom_sq > 0.0, sumerr_sq/magmom_sq, sumerr_sq, &errmom_sq);
     constexpr double tinyValue = 1.0e-80; // Just to ensure there is no division by zero
@@ -835,7 +835,12 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   // The old way (improved) - to cross check
   constexpr double minErr2 = 1e-100;
   Real_v emax2pos          = Max(errmax_sqFinal, Real_v(minErr2));
-  Real_v errStretchOld     = fSafetyFactor * Exp((0.5 * fPowerGrow) * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
+  // fSafetyFactor and fPowerGrow are 'const', cache them here to avoid memory contention
+  // (which leads to a lack of scalability)
+  thread_local const Real_v tSafetyFactor_v = fSafetyFactor;
+  thread_local const Real_v tPowerGrow_v = .5 * fPowerGrow;
+  Real_v errStretchOld     = tSafetyFactor_v * Exp(tPowerGrow_v * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
+
   // ReportRowOfDoubles( "-raw-errStretch", errStretch);
   errStretchOld  = Min(errStretchOld, Real_v(fMaxSteppingIncrease));
   Bool_v zeroErr = errmax_sq <= minErr2;
@@ -846,8 +851,11 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   // #endif
 
   // Check against fErrcon to avoid calling power ... saves work if any are 'over' max
-  Bool_v underThresh = errmax_sq <= fErrcon * fErrcon;
-  Real_v errStretch  = fSafetyFactor * PowerIf(errmax_sq, 0.5 * fPowerGrow, !underThresh);
+  // fErrcon is 'const', cache them here to avoid memory contention (which leads to a lack of scalability)
+  thread_local const Real_v tErrCon2_v = fErrcon * fErrcon;
+  thread_local const auto tPowerGrow_s = .5 * fPowerGrow;
+  Bool_v underThresh = errmax_sq <= tErrCon2_v;
+  Real_v errStretch  = tSafetyFactor_v * PowerIf(errmax_sq, tPowerGrow_s, !underThresh);
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
   // Overwriting them!
   vecCore::MaskedAssign(errStretch, underThresh, Real_v(fMaxSteppingIncrease));
