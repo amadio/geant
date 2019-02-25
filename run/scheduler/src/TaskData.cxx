@@ -165,20 +165,22 @@ void TaskData::ReportTracks() const
   for (size_t istage = 0; istage < kNstages; ++istage) {
     SimulationStage *stage = fStages[istage];
     if (stage == nullptr || fStageBuffers[istage] == nullptr) {
-      printf(" stage #%ld is at %p and buffer %p name: %s\n", istage, stage, fStageBuffers[istage], stage ? stage->GetName() : "n/a");
-      continue; 
+      printf(" stage #%ld is at %p and buffer %p name: %s\n", istage, stage, fStageBuffers[istage],
+             stage ? stage->GetName() : "n/a");
+      continue;
     }
-    const size_t nbuff     = fStageBuffers[istage]->size();
-    const size_t nstored   = stage->GetNstored();
+    const size_t nbuff   = fStageBuffers[istage]->size();
+    const size_t nstored = stage->GetNstored();
     if (nbuff + nstored > 0)
-      printf("  stage #%ld %20s: buffered = %zu  basketized(%d) = %zu\n", istage, stage->GetName(), nbuff, stage->GetNhandlers(),
-             nstored);
+      printf("  stage #%ld %20s: buffered = %zu  basketized(%d) = %zu\n", istage, stage->GetName(), nbuff,
+             stage->GetNhandlers(), nstored);
   }
   printf("- end task #%d:\n", fTid);
 }
 
 //______________________________________________________________________________
-size_t TaskData::GetNtracksInFlight() const {
+size_t TaskData::GetNtracksInFlight() const
+{
   size_t n = fStackBuffer->GetNtracks();
   n += fQshare->size();
   for (size_t istage = 0; istage < kNstages; ++istage) {

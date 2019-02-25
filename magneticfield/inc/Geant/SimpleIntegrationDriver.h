@@ -620,21 +620,21 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 //
 
 {
-  using std::cout;
   using std::cerr;
+  using std::cout;
   using std::endl;
   using Bool_v = vecCore::Mask_v<Real_v>;
 
-  using vecCore::math::Min;
-  using vecCore::math::Max;
+  using vecCore::Get;
   using vecCore::math::Exp;
   using vecCore::math::Log;
-  using vecCore::Get;
+  using vecCore::math::Max;
+  using vecCore::math::Min;
 
-  using FormattedReporter::ReportRowOfDoubles;
-  using FormattedReporter::ReportRowOfSquareRoots;
   using FormattedReporter::ReportManyRowsOfDoubles;
   using FormattedReporter::ReportRowOfBools;
+  using FormattedReporter::ReportRowOfDoubles;
+  using FormattedReporter::ReportRowOfSquareRoots;
 
   if (partDebug) {
     cout << "\n" << endl;
@@ -806,7 +806,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
     }
 
   } while (itersLeft > 0 && (!vecCore::MaskFull(finished)) //  was MaskFull( stepSizeUnderflow || goodStep ) )
-           );
+  );
 
   tot_no_trials += iter;
 
@@ -838,8 +838,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   // fSafetyFactor and fPowerGrow are 'const', cache them here to avoid memory contention
   // (which leads to a lack of scalability)
   thread_local const Real_v tSafetyFactor_v = fSafetyFactor;
-  thread_local const Real_v tPowerGrow_v = .5 * fPowerGrow;
-  Real_v errStretchOld     = tSafetyFactor_v * Exp(tPowerGrow_v * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
+  thread_local const Real_v tPowerGrow_v    = .5 * fPowerGrow;
+  Real_v errStretchOld = tSafetyFactor_v * Exp(tPowerGrow_v * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
 
   // ReportRowOfDoubles( "-raw-errStretch", errStretch);
   errStretchOld  = Min(errStretchOld, Real_v(fMaxSteppingIncrease));
@@ -854,8 +854,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   // fErrcon is 'const', cache them here to avoid memory contention (which leads to a lack of scalability)
   thread_local const Real_v tErrCon2_v = fErrcon * fErrcon;
   thread_local const auto tPowerGrow_s = .5 * fPowerGrow;
-  Bool_v underThresh = errmax_sq <= tErrCon2_v;
-  Real_v errStretch  = tSafetyFactor_v * PowerIf(errmax_sq, tPowerGrow_s, !underThresh);
+  Bool_v underThresh                   = errmax_sq <= tErrCon2_v;
+  Real_v errStretch                    = tSafetyFactor_v * PowerIf(errmax_sq, tPowerGrow_s, !underThresh);
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
   // Overwriting them!
   vecCore::MaskedAssign(errStretch, underThresh, Real_v(fMaxSteppingIncrease));
@@ -907,15 +907,15 @@ inline void SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::StoreGoodValue
 {
   using std::cout;
   using std::endl;
-  using vecCore::MaskedAssign;
   using vecCore::Get;
+  using vecCore::MaskedAssign;
   using vecCore::Set;
 
   if (vecCore::MaskFull(storeFlag)) {
     // std::cout << "StoreGoodValues: Unconditional assignment to output - all together." << std::endl;
 
     for (unsigned int j = 0; j < Nvar; ++j)
-      yFinal[j]         = yWork[j];
+      yFinal[j] = yWork[j];
 
     hFinalStore   = hValue;
     errMaxSqStore = errMaxSqValue;
@@ -931,9 +931,9 @@ inline void SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::StoreGoodValue
   // Print the input & output
   bool verboseStore = false;
   if (verboseStore && partDebug) {
+    using FormattedReporter::ReportManyRowsOfDoubles;
     using FormattedReporter::ReportRowOfBools;
     using FormattedReporter::ReportRowOfDoubles;
-    using FormattedReporter::ReportManyRowsOfDoubles;
     cout << "==============================================" << endl;
     cout << "Called Store-Final-Values.  Input is " << endl;
     ReportRowOfDoubles("h", hValue);
@@ -1054,8 +1054,8 @@ int SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::InitializeLanes(
 // Converts input scalar stream to acceptable form of Vc vectors
 // for vector processing in OneStep
 {
-  using vecCore::Set;
   using FormattedReporter::ReportArray;
+  using vecCore::Set;
   // void ReportArray( const std::string& context, const std::string& varName,
   //                  const double Arr[],         int numTracks,             bool banner= false );
 
@@ -1210,7 +1210,8 @@ void SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::StoreOutput(const Rea
 //
 {
   if (partDebug)
-    std::cout << "----Storage position (out-arr): " << indOut
+    std::cout << "----Storage position (out-arr): "
+              << indOut
               // << " (ntracks= " << nTracks << ")"
               << std::endl;
 
@@ -1262,18 +1263,18 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   //    and 'false' otherwise.
 
   const std::string methodName = "SID::AccurateAdvance";
+  using FormattedReporter::GetMomentumMag;
+  using FormattedReporter::ReportArray;
+  using FormattedReporter::ReportManyRowsOfDoubles;
   using FormattedReporter::ReportRowOfBools;
   using FormattedReporter::ReportRowOfDoubles;
   using FormattedReporter::ReportRowOfSquareRoots;
-  using FormattedReporter::ReportManyRowsOfDoubles;
   using FormattedReporter::ReportRowsOfPositionsMomenta;
-  using FormattedReporter::GetMomentumMag;
-  using FormattedReporter::ReportArray;
   using Bool_v = vecCore::Mask_v<Real_v>;
-  using vecCore::math::Min;
-  using vecCore::math::Max;
   using std::cout;
   using std::endl;
+  using vecCore::math::Max;
+  using vecCore::math::Min;
 
   constexpr unsigned int VecSize = vecCore::VectorSize<Real_v>();
   int indexArr[VecSize]; // vecCore::VectorSize<Real_v>()];
@@ -1298,7 +1299,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   // ThreadLocal int  noGoodSteps =0 ;  // Bad = chord > curve-len
 
   for (unsigned int i = 0; i < VecSize; ++i)
-    indexArr[i]       = -1;
+    indexArr[i] = -1;
 
   int idNext = InitializeLanes(yInput, hstep, charge, /* xStart, */ nTracks, /* badStepSize,*/ indexArr, y, hStepLane,
                                chargeLane, xStartLane, numFilled, numBadSize);
@@ -1863,8 +1864,8 @@ template <class T_Stepper, unsigned int Nvar>
 template <class Real_v>
 bool SimpleIntegrationDriver<T_Stepper, Nvar>::TestInitializeLanes() // int numTracks)
 {
-  using std::cout;
   using std::cerr;
+  using std::cout;
   using std::endl;
   using vecCore::Get;
 
@@ -1984,9 +1985,9 @@ bool SimpleIntegrationDriver<T_Stepper, Nvar>::TestInitializeLanes() // int numT
 
   int slot = -1;
   bool ok1, ok2, ok3;
-  ok1 = CheckOutput(yWorkLanes2, lane = 0, slot = 2, testName, varNameOutput);
-  ok2 = CheckOutput(yWorkLanes2, lane = 1, slot = 4, testName, varNameOutput);
-  ok3 = CheckOutput(yWorkLanes2, lane = 2, slot = 6, testName, varNameOutput);
+  ok1   = CheckOutput(yWorkLanes2, lane = 0, slot = 2, testName, varNameOutput);
+  ok2   = CheckOutput(yWorkLanes2, lane = 1, slot = 4, testName, varNameOutput);
+  ok3   = CheckOutput(yWorkLanes2, lane = 2, slot = 6, testName, varNameOutput);
   allOk = allOk && ok1 && ok2 && ok3;
 
   return allOk;

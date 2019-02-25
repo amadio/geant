@@ -271,10 +271,10 @@ int SimulationStage::FlushAndProcess(TaskData *td)
   input.Clear();
 
   // Loop active handlers and flush them into btodo basket
-  int nflush = 0;
+  int nflush           = 0;
   const auto nhandlers = GetNhandlers();
   for (int i = 0; i < nhandlers; ++i) {
-    int nbasket = 0;
+    int nbasket        = 0;
     const auto handler = fHandlers[i];
     if (handler->IsActive() && (nbasket = handler->Flush(bvector, td))) {
       // btodo has some content, invoke DoIt

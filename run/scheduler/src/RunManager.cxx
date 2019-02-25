@@ -649,8 +649,9 @@ void RunManager::ReportTracks() const
   // 1. Check how many events are alive.
   int nslots          = fConfig->fNbuff;
   size_t ninflighttot = 0;
-  printf("=== Remaining events to simulate: %d (n=%d am=%d, a=%d c=%d)\n", fEventServer->GetNevents() - fEventServer->GetNcompleted(), 
-         fEventServer->GetNevents(), fEventServer->GetNactiveMax(), fEventServer->GetNactive(), fEventServer->GetNcompleted());
+  printf("=== Remaining events to simulate: %d (n=%d am=%d, a=%d c=%d)\n",
+         fEventServer->GetNevents() - fEventServer->GetNcompleted(), fEventServer->GetNevents(),
+         fEventServer->GetNactiveMax(), fEventServer->GetNactive(), fEventServer->GetNcompleted());
   printf("=== Remaining tracks from events in flight:\n");
   for (int slot = 0; slot < nslots; ++slot) {
     Event *event = fEventServer->GetEvent(slot);
