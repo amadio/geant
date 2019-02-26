@@ -170,7 +170,7 @@ inline void ReportRowOfDoublesIf(std::string varName, const Real_v var, vecCore:
 }
 
 // ----------------------------------------------------------------------------------
-inline void ReportArray(const std::string &methodName, const std::string &variableName, const double Arr[],
+inline void ReportArray(const char *methodName, const std::string &variableName, const double Arr[],
                         int numTracks, bool banner = false)
 {
   using std::cout;

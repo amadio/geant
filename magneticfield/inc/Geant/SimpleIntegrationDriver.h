@@ -1262,7 +1262,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   //  - the return value is 'true' if integration succeeded to the end of the interval,
   //    and 'false' otherwise.
 
-  const std::string methodName = "SID::AccurateAdvance";
+  static constexpr const char* methodName = "SID::AccurateAdvance";
   using FormattedReporter::GetMomentumMag;
   using FormattedReporter::ReportArray;
   using FormattedReporter::ReportManyRowsOfDoubles;
