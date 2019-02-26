@@ -689,7 +689,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
     // if ( !vecCore::IsFull(stepSizeUnderflow || goodStep) )
     // {
     fpStepper->StepWithErrorEstimate(yStart, dydx, charge, h, ytemp, yerr); // CAREFUL -> changes for others ?
-    fStepperCalls++;
+    // fStepperCalls++;
 
     bool DebugEachIteration = false;
     if (partDebug && DebugEachIteration) {
