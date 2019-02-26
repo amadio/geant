@@ -66,6 +66,8 @@ int stepper_no     = 5;    // Choose stepper no., for refernce see above
 double step_len_mm = 200.; // meant as millimeter;  //Step length
 double z_field_in  = DBL_MAX;
 
+std::string datafile("cmsmagfield2015.txt");
+
 bool debug = false;       // true;
 
 int    magExp10 = 6;      // Differences are magnified by 10^this (magExp10)
@@ -76,10 +78,17 @@ double magFactor = 1.0 * pow(10,magExp10);  // Magnification factor for differen
 /* ------------------ Parameters for PRINTING --------------------------- */
 // Choice of output coordinates
 int columns[] = {
+#ifdef CHECK_POSITION
     1, 1, 1, // position  x, y, z
     0, 0, 0, // momentum  x, y, z
     1, 1, 1, // dydx pos  x, y, z
     0, 0, 0  // dydx mom  x, y, z
+#else   
+    0, 0, 0, // position  x, y, z
+    1, 1, 1, // momentum  x, y, z
+    0, 0, 0, // dydx pos  x, y, z
+    1, 1, 1  // dydx mom  x, y, z
+#endif    
 };           // Variables in yOut[] & dydx[] we want to display - 0 for No, 1 for yes
 
 bool printDiff   = 1, // Print the diffrence
@@ -111,7 +120,7 @@ void printBanner();
 
 constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
 
-#define UNIFORM_FIELD   1
+// #define UNIFORM_FIELD   1
 
 #ifdef UNIFORM_FIELD
 #include "Geant/UniformMagField.h" // New type (universal) class
@@ -120,14 +129,15 @@ constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
 using FieldType      = UniformMagField;
 using Field_Type_Scalar= ScalarUniformMagField;
 #else
-#include "RZMagFieldFromMap.h"
-#include "ScalarCMSMagField.h"
+#include "CMSmagField.h"          
+#include "RZMagFieldFromMap.h"   // Scalar field in sub-directory (for testing)
+// #include "ScalarCMSMagField.h"
 
-using FieldType      = RZMagFieldFromMap;
-using Field_Type_Scalar= ScalarCMSMagField;
+using FieldType      =   CMSmagField;
+using Field_Type_Scalar= RZMagFieldFromMap; // ScalarCMSMagField;
 #endif
 
-FieldType      * gvUniformField = nullptr;
+FieldType      * gvField = nullptr;
 using GvEquationType = MagFieldEquation<FieldType>;
 using StepperType = CashKarp<GvEquationType, Nposmom>;
 
@@ -163,9 +173,13 @@ int main(int argc, char *args[])
   fieldValInput *= geant::units::tesla;
 
   // Field
-  gvUniformField = new UniformMagField(fieldValInput); // New class
+#ifdef UNIFORM_FIELD  
+  gvField = new UniformMagField(fieldValInput); // New class
   //  UniformMagField( geant::units::tesla * ThreeVector_f(x_field, y_field, z_field) );
-
+#else
+  cerr << "Using CMS field from file " << "cmsmagfield2015.txt" << endl;
+  gvField = new FieldType(datafile.c_str());
+#endif  
 
   std::cout << " Simulation parameters:  stepper_no= " << stepper_no 
             << " step length (mm) = " << step_len_mm 
@@ -177,7 +191,7 @@ int main(int argc, char *args[])
          << endl;
 
     ThreeVector_d origin(0.0, 0.0, 0.0), fieldValue;
-    gvUniformField->GetFieldValue(origin, fieldValue);
+    gvField->GetFieldValue(origin, fieldValue);
     cout << "#    Values in object created       = " << (1.0 / geant::units::tesla) * fieldValue.x() << ",  "
          << (1.0 / geant::units::tesla) * fieldValue.y() << ",  " << (1.0 / geant::units::tesla) * fieldValue.z()
          << endl;
@@ -188,8 +202,8 @@ int main(int argc, char *args[])
   if (debug) cout << "Create Equation" << endl;
 
   // 1. Original way of creating an equation
-  auto magEquation = new GvEquationType(gvUniformField);
-  // new MagFieldEquation<UniformMagField>(gvUniformField);
+  auto magEquation = new GvEquationType(gvField);
+  // new MagFieldEquation<UniformMagField>(gvField);
 
   if (debug) cout << "----Equation instantiated. " << endl;
 
@@ -211,17 +225,17 @@ int main(int argc, char *args[])
 
   // Phase 1 - get it to work without cloning
 
-#ifdef CREATE_SCALAR_STEPPER
-  cout << endl;
-  // cout << " =============================================================================" << endl;  
-  cout << " 1. Testing scalar field, equation and stepper     " << endl;
-  cout << " =============================================================================" << endl;
+// #ifdef CREATE_SCALAR_STEPPER
+//   cout << endl;
+//   // cout << " =============================================================================" << endl;  
+//   cout << " 1. Testing scalar field, equation and stepper     " << endl;
+//   cout << " =============================================================================" << endl;
   
-  using ScalarFieldType=    
-  using ScalarEquationType= ScalarMagFieldEquation<ScalarFieldType, Nposmom>;
-  using ScalarStepperType=   CashKarp<ScalarEquationType, Nposmom>;
-  bool okScalar = TestFlexibleStepper<double, ScalarStepperType>(myStepper);
-#endif
+//   using ScalarFieldType=    
+//   using ScalarEquationType= ScalarMagFieldEquation<ScalarFieldType, Nposmom>;
+//   using ScalarStepperType=   CashKarp<ScalarEquationType, Nposmom>;
+//   bool okScalar = TestFlexibleStepper<double, ScalarStepperType>(myStepper);
+// #endif
   
   cout << endl;
   cout << " =============================================================================" << endl;
@@ -250,7 +264,7 @@ int main(int argc, char *args[])
 
   // delete gvEquation;  // The stepper now takes ownership of the equation
   // delete gvEquation2;
-  delete gvUniformField;
+  delete gvField;
 
   if (debug) cout << "\n\n#-------------End of all tests -----------------\n";
 
@@ -320,14 +334,14 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
   const double mmRef = mmGVf; // Unit for reference of lenght   - milli-meter
   const double ppRef = ppGVf; // Unit for reference of momentum - GeV / c^2
 
-  // auto gvEquation2 = new GvEquationType(gvUniformField);
-  // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvUniformField);  
+  // auto gvEquation2 = new GvEquationType(gvField);
+  // new TMagFieldEquation<ScalarUniformMagField, Nposmom>(gvField);  
 
 #ifdef UNIFORM_FIELD
   // using Field_Type_Scalar= ScalarUniformMagField;
   auto gvScalarField = new ScalarUniformMagField(fieldValInput);
 #else
-  auto gvScalarField = new ScalarCMSMagField();
+  auto gvScalarField = new RZMagFieldFromMap(datafile);
 #endif
 
   using GvScalarEquationType = ScalarMagFieldEquation<Field_Type_Scalar, Nposmom>;
@@ -595,7 +609,10 @@ bool TestFlexibleStepper(Stepper_t *stepper)   // , Equation_t *equation)
       if (columns[i + 6]) {
         // cout << " dy/dx["<<i<<"] = ";
         if (printSep) cout << " | "; // Separator
+        // cout << std::defaultfloat;
+        cout << std::scientific;
         cout << setw(nwdf) << dydx[i] / unitGVf;
+        cout << std::defaultfloat;        
 #ifdef BASELINESTEPPER
         if (printRef | printDrvRef ) cout << setw(nwdf) << dydxRef[i] / unitRef << " "; // Reference Solution
         if (printDiff)                                            // Deriv )
