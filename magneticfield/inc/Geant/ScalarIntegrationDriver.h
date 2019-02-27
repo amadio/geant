@@ -129,6 +129,13 @@ public: // without description
   inline double GetSmallestFraction() const { return fSmallestFraction; }
   void SetSmallestFraction(double val);
 
+  inline void   SetPrintDerived(bool val) { fPrintDerived= val; }
+  inline bool   GetPrintDerived()         { return fPrintDerived; }
+
+  inline void   SetTrackNumber(bool val) { fNumberOfTrack= val; }
+  inline bool   GetTrackNumber()         { return fNumberOfTrack; }  
+  // Information value - only for printing (debugging or just info.)
+  
 protected: // without description
   void WarnSmallStepSize(double hnext, double hstep, double h, double xDone, int noSteps);
   void WarnTooManySteps(double x1start, double x2end, double xCurrent);
@@ -193,9 +200,12 @@ private:
   static constexpr double fMaxSteppingDecrease = 0.1;
   // Maximum stepsize increase/decrease factors.
 
-  int fStatisticsVerboseLevel;
-
-  // ---------------------------------------------------------------
+  int   fStatisticsVerboseLevel;
+  
+  bool  fPrintDerived;    // Print quantities if true && CHECK_ONE_LANE flag set
+  bool  fNumberOfTrack;   // Value of track number - just for debugging
+  
+  // --------------------------------------------------------------------------
   //  STATE
 public:
   int fNoTotalSteps, fNoBadSteps, fNoSmallSteps, fNoInitialSmallSteps;

@@ -91,6 +91,10 @@ int columns[] = {
 #endif    
 };           // Variables in yOut[] & dydx[] we want to display - 0 for No, 1 for yes
 
+// Methods to select Position or Momentum columns for printing
+void selectPosition();
+void selectMomentum();
+
 bool printDiff   = 1, // Print the diffrence
      printRef    = 0, // Print the reference Solution
      printDrvRef = 1  // Print the derivative of Reference ( ORed with above to give Derivative )
@@ -706,4 +710,29 @@ void printBanner()
     }
   cout << setw(nwdf) << "tan-1(y/x)";
   cout << "\n";
+}
+
+void selectPosition()
+{
+  const int columnsPos[] = {
+     1, 1, 1, // position  x, y, z
+     0, 0, 0, // momentum  x, y, z
+     1, 1, 1, // dydx pos  x, y, z
+     0, 0, 0  // dydx mom  x, y, z
+  };
+  for ( int i=0; i< 12; i++ )
+     columns[i] = columnsPos[i];
+}
+
+
+void selectMomentum()
+{
+  const int columnsMom[] = {   
+     0, 0, 0, // position  x, y, z
+     1, 1, 1, // momentum  x, y, z
+     0, 0, 0, // dydx pos  x, y, z
+     1, 1, 1  // dydx mom  x, y, z
+  };
+  for ( int i=0; i< 12; i++ )
+     columns[i] = columnsMom[i];  
 }

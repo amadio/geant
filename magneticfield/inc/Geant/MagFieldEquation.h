@@ -17,7 +17,8 @@
 // #define OUTSIDE_MagFieldEquation 1
 
 template <class Field>
-class MagFieldEquation {
+class MagFieldEquation
+{
 public:
   //  static const unsigned int  N   = Size;
   using Double_v = geant::Double_v;

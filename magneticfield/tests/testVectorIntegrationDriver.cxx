@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 
   bool verbose= true;
   
+  
 #ifdef USECMSFIELD
   using Field_Type        = CMSmagField;
   using Field_Type_Scalar = ScalarCMSmagField;
@@ -94,7 +95,8 @@ int main(int argc, char *argv[])
   int stepper_no     = 5;    // Choose stepper no., for refernce see above
   double step_len_mm = 200.; // meant as millimeter;  //Step length
   double z_field_in  = DBL_MAX;
-
+  int    trackToPrint = 7;   // If # < vecLength, print that track in vector mode
+  
   double x_field = 0., // Uniform Magnetic Field (x,y,z)
       y_field    = 0., //  Tesla // *tesla ;
       z_field;
@@ -104,6 +106,20 @@ int main(int argc, char *argv[])
   else
     z_field = -1.0; //  * Tesla
 
+  if (argc > 2) {
+     int candTrack2pr = atoi(argv[2]);
+     if( candTrack2pr >= 0 ) {
+       std::cout << "- Chosen track= " << candTrack2pr << " for printing. " << std::endl;
+       trackToPrint = candTrack2pr;
+     } else {
+        std::cout << "- Details of no track will be printed. ";
+        if( trackToPrint != -1 ) 
+           std::cout << "Candidate # = " << candTrack2pr << " (expected = -1) .";
+        std::cout << std::endl;
+       trackToPrint = -1; // None printed
+     }
+  }
+  
 // Field
 #ifdef USECMSFIELD
   std::string datafile(geant::GetDataFileLocation(argc, argv, "cmsmagfield2015.txt"));
@@ -187,13 +203,13 @@ int main(int argc, char *argv[])
 #else
   VScalarIntegrationStepper *myStepperScalar;
   myStepperScalar = StepperFactory::CreateStepper<GvScalarEquationType>(gvEquationScalar, stepper_no);
-  cout << "Using old Scalar Stepper types - i.e. Scalar stepper from factory. " << endl;
+  cout << "Scalar> Using old Scalar Stepper types - i.e. Scalar stepper from factory.  Stepper type #= " << stepper_no << endl;
 #endif
   
   int statisticsVerbosity = 1;
 
   auto refScalarDriver = new ScalarIntegrationDriver(hminimum, myStepperScalar, Nposmom, statisticsVerbosity);
-  cout << "Scalar Driver created." << endl;
+  cout << "Scalar> Driver created:  Type= ScalarIntegrationDriver.  hminimum= " << hminimum << " , Nvar = " << Nposmom << " , statsVerb= " << statisticsVerbosity << endl;
   //==========  Scalar Driver prepared =========================
 
   // -- Call internal Test code of Driver
@@ -251,16 +267,25 @@ int main(int argc, char *argv[])
       yOutput[j].LoadFromArray(posMom); // Not strictly needed
     }
 
+#ifdef CHECK_ONE_LANE
+// If compiled with     
+    int trackToCheck = ( trackToPrint < nTracks ) ? trackToPrint : -1; 
+    // vectorDriver->CheckTrack( trackToCheck );
+    IntegrationDriverConstants::GetInstance()->SetTrackToCheck(trackToCheck);
+#endif
+  
     vectorDriver->AccurateAdvance<Double_v>(yInput, hstep, charge, epsTol, yOutput, succeeded, nTracks);
     // ==========================
-    if( verbose )
-       cout << "-- Vector Driver done (advanced)." << endl;
+
+    // if( verbose ) cout << "-- Vector Driver done (advanced)." << endl;
 
     const ThreeVector_d startPosition(posMom[0], posMom[1], posMom[2]);
     const ThreeVector_d startMomentum(posMom[3], posMom[4], posMom[5]);
     ScalarFieldTrack yTrackIn(startPosition, startMomentum, charge[0]);  // yStart
     ScalarFieldTrack yTrackOut(startPosition, startMomentum, charge[0]); // yStart
 
+#if 0    
+    refScalarDriver->SetPrintDerived(false);
     bool scalarResult = refScalarDriver->AccurateAdvance(yTrackIn, hstep[0], epsTol, yTrackOut);
 
     if( verbose )
@@ -271,41 +296,57 @@ int main(int argc, char *argv[])
        cout << " Success of Vector: " << succeeded[0] << endl;
        cout << " Success of scalar: " << scalarResult << endl;
     }
+#endif
 
     constexpr double threshold = 1.0e-6;
     constexpr double kTiny=  1.0e-30;
-    for (int i = 0; i < nTracks; ++i) {
-      yTrackIn= ScalarFieldTrack (startPosition, startMomentum, charge[i]);
-       
-      refScalarDriver->AccurateAdvance(yTrackIn, hstep[i], epsTol, yTrackOut);
 
+    int  hiPrec= 8;  // High precision output
+    int lowPrec= 5;  
+    int oldPrec= -1;
+
+    for (int i = 0; i < nTracks; ++i)
+    {
+      yTrackIn= ScalarFieldTrack (startPosition, startMomentum, charge[i]);
+
+      refScalarDriver->SetPrintDerived(i==trackToCheck);
+      refScalarDriver->AccurateAdvance(yTrackIn, hstep[i], epsTol, yTrackOut);
+      // ************  ***************
+      
       FieldTrack       & outVec = yOutput[i];
       double outSer[8];
       yTrackOut.DumpToArray(outSer);
 
       bool diffFound = false;
-      for (unsigned int j = 0; j < Nposmom; ++j) {
+      for (unsigned int j = 0; j < Nposmom; ++j)
+      {
          double  dif   = outVec[j] - outSer[j];
          double midAbs = 0.5 * ( std::fabs(outVec[j]) + std::fabs(outSer[j]) ) + kTiny ;
-         if( std::fabs(dif) > threshold * midAbs ){
-            if( ! diffFound ) { 
+         if( std::fabs(dif) > threshold * midAbs )
+         {
+            if( ! diffFound ) {
+               oldPrec= cerr.precision(hiPrec);               
                cerr << " Difference found in vector i= " << i << " ( h = " << hstep[i] << " ) " << endl;
                diffFound = true;
             }
+            cerr.precision(hiPrec);
             cerr << "   [" << j << " ]:  vec = " << std::setw(12) << outVec[j]
-                 << "  ser = " << std::setw(12) << outSer[j]
-                 << " diff = " << std::setw(12) << dif
-                 << " rel dif = " << std::setw(12) << dif / midAbs
+                 << "  ser = " << std::setw(6+hiPrec) << outSer[j]
+                 << " diff = " << std::setw(6+hiPrec) << dif
+                 << std::setprecision(lowPrec)
+                 << " rel dif = " << std::setw(6+hiPrec) << dif / midAbs
                  << endl;
          }
       }
+      if( diffFound ) cerr.precision(oldPrec);
         
-      if( verbose || diffFound ) { 
-         cout << " Vector  len = " <<  yOutput[i].GetCurveLength() << " yOutput[" << i << "] is : " << yOutput[i] << " for yInput: " << yInput[i] << endl;
-        cout << " Serial  len = " <<   yTrackOut.GetCurveLength() << " yTrackOut  is : " << yTrackOut
+      if( verbose || diffFound ) {
+        int oldPrec2 = cout.precision(hiPrec);
+        cout << " Vector  len = " <<  yOutput[i].GetCurveLength() << " yOutput[" << i << "] is : " << yOutput[i] << " for yInput: " << yInput[i] << endl;
+        cout << " Serial  len = " <<   yTrackOut.GetCurveLength() << " yTrackOut  is : " << yTrackOut << endl
              << " for yTrackIn: " << yTrackIn
-             << " for hstep: " << hstep[i]
-             <<endl;
+             << " for hstep: " << hstep[i] << endl << endl;
+        cout.precision(oldPrec2);
       }
     }
   }

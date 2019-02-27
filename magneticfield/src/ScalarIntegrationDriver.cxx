@@ -17,10 +17,15 @@
 #include "Geant/ScalarFieldTrack.h"
 #include "Geant/ScalarIntegrationDriver.h"
 
+#include "Geant/FormattedReporter.h"
+
 //  The (default) maximum number of steps is Base
 //  divided by the order of Stepper
 //
 const int ScalarIntegrationDriver::fMaxStepBase = 250; // Was 5000
+
+#define CHECK_ONE_LANE   1
+//  Allow / enable checking of derived quantities by conditional printing 
 
 // #ifndef G4NO_FIELD_STATISTICS
 // #define GVFLD_STATS  1
@@ -254,7 +259,9 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
 
     // Perform the Integration
     //
-    if (h > fMinimumStep) {
+    if ( true )
+    // if ( h > fMinimumStep) //  Changed 2019.03.04 => emulate Vector mode
+    {
       // std::cout << "Calling       OneGoodStep " << std::endl;
       OneGoodStep(y, charge, dydx, x, h, epsilon, hdid, hnext);
       // std::cout << "Returned from OneGoodStep" << std::endl;
@@ -561,6 +568,8 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
 // 16.2 Adaptive StepSize Control for Runge-Kutta, p. 719
 
 {
+  using FormattedReporter::ReportOneLane; // For debugging
+   
   double errmax_sq;
   double h, htemp, xnew;
 
@@ -586,7 +595,8 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
   // double   spin_mag2 =Spin.Mag2() ;
   // bool     hasSpin= (spin_mag2 > 0.0);
 
-  for (iter = 0; iter < max_trials; iter++) {
+  for (iter = 0; iter < max_trials; iter++)
+  {
     tot_no_trials++;
     fpStepper->StepWithErrorEstimate(y, dydx, charge, h, ytemp, yerr);
     // fStepperCalls++;
@@ -602,27 +612,46 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     // Accuracy for momentum
     double magmom_sq = y[3] * y[3] + y[4] * y[4] + y[5] * y[5];
     double sumerr_sq = yerr[3] * yerr[3] + yerr[4] * yerr[4] + yerr[5] * yerr[5];
-    if (magmom_sq > 0.0) {
-      // double inv_magmom_sq = 1.0 / magmom_sq;
-      // errmom_sq = sumerr_sq * inv_magmom_sq;
-      errmom_sq = sumerr_sq / magmom_sq;
-    } else {
-      std::cerr << "** ScalarIntegrationDriver: found case of zero momentum."
-                << " iteration=  " << iter << " h= " << h << std::endl;
-      errmom_sq = sumerr_sq;
-    }
+
+    constexpr double tinyValue = 1.0e-80; // Just to ensure there is no division by zero
+    errmom_sq = sumerr_sq / (magmom_sq + tinyValue);
+    // Exactly the same operation as the vector method (to avoid divergences)
+
     errmom_sq *= inv_eps_vel_sq;
     errmax_sq = std::max(errpos_sq, errmom_sq); // Square of maximum error
 
-#ifdef GUDEBUG_FIELD
-    // if(fVerboseLevel>2)
-    // {
-    std::cout << "GUIntDrv: 1-good-step - iter = " << iter << " "
-              << "Errors: pos = " << std::sqrt(errpos_sq) << " mom = " << std::sqrt(errmom_sq) << std::endl;
-    PrintStatus(y, x, ytemp, x + h, h, iter);
-// }
-#endif
+// #ifdef GUDEBUG_FIELD
+    if( fPrintDerived 
+       || fVerboseLevel>2)
+    // if(fVerboseLevel>2)       
+    {
+       int op= std::cout.precision(8); 
+       std::cout << "ScalarIntDrv: 1-good-step - track-num=" << this->GetTrackNumber() << " iter = " << iter << " " << std::endl
+            //   << "Errors: pos = " << std::sqrt(errpos_sq) << " mom = " << std::sqrt(errmom_sq) << std::endl;
+                 << " - Values : pos x/y/z = " << ytemp[0] << " / " << ytemp[1] << " / " << ytemp[2] << " " 
+                 << " mom x/y/z = " << ytemp[3] << " / " << ytemp[4] << " / " << ytemp[5] << " " << std::endl
+                 << " - Errors: pos x/y/z = " << yerr[0] << " / " << yerr[1] << " / " << yerr[2] << " " 
+                 << " mom x/y/z = " << yerr[3] << " / " << yerr[4] << " / " << yerr[5] << " " << std::endl;
+       std::cout << " - Shifts : pos x/y/z = " << ytemp[0] - y[0] << " / " << ytemp[1] - y[1] << " / " << ytemp[2] - y[2] << " " 
+                 << " mom x/y/z = " << ytemp[3] - y[3] << " / " << ytemp[4] - y[4] << " / " << ytemp[5] - y[5] << " " << std::endl;
+       std::cout << " - Derivs:  pos x/y/z = " << dydx[0] << " / " << dydx[1] << " / " << dydx[2] << " " 
+                 << " mom x/y/z = " << dydx[3] << " / " << dydx[4] << " / " << dydx[5] << " " << std::endl;
+       
+       std::cout.precision(op);
+       PrintStatus(y, x, ytemp, x + h, h, iter);
+    }
+// #endif
 
+#ifdef CHECK_ONE_LANE
+    // std::cout << "ScalarIntDrv> print 'Derived' quantities = " << fPrintDerived << std::endl;
+    
+    // Debugging output
+    bool stepOk = (errmax_sq <= 1.0);
+    if( fPrintDerived )
+       ReportOneLane ( h, eps_pos, errpos_sq, errmom_sq, errmax_sq, stepOk, stepOk, 
+                       iter, tot_no_trials, 0, "ScalarIntDrv" );
+#endif
+    
     // if( hasSpin )
     // {
     //    // Accuracy for spin
