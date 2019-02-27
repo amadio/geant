@@ -24,16 +24,11 @@ using geant::units::degree;
 
 // #include "IntegrationStepper.h"
 
-// #include "TemplateTMagFieldEquation.h"
-// #include "TemplateFieldEquationFactory.h"
-// #include "TemplateVScalarIntegrationStepper.h"
-
 #include "Geant/CashKarp.h"
 #include "Geant/OldIntegrationDriver.h"
 #include "Geant/SimpleIntegrationDriver.h"
 
 #include "Geant/FieldTrack.h"
-// #include "Geant/TemplateFieldTrack.h"
 
 // #define  NEW_SCALAR_FIELD 1
 
@@ -148,8 +143,8 @@ int main(int argc, char *argv[])
 
   int statsVerbose = 1;
 
-  // using DriverType = SimpleIntegrationDriver<StepperType, Nposmom>;
-  using DriverType = OldIntegrationDriver<StepperType, Nposmom>;  
+  using DriverType = SimpleIntegrationDriver<StepperType, Nposmom>;
+  // using DriverType = OldIntegrationDriver<StepperType, Nposmom>;  
   auto vectorDriver =
       new DriverType(hminimum, myStepper, Nposmom, statsVerbose);
   if( verbose ) { cout << " Vector Driver created." << endl; } 
