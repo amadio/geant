@@ -74,7 +74,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(int ntracks, const double
     // onboundary with respect to new point
     isonbdr[itr] = outstate[itr]->IsOnBoundary();
 
-//#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
+    //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
 #if defined(CROSSCHECK) && !defined(VECCORE_CUDA)
     //************
@@ -147,7 +147,7 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryAndStep(Track &track)
   // onboundary with respect to new point
   track.SetBoundary(track.NextPath()->IsOnBoundary());
 
-//#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
+  //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
 #ifdef CROSSCHECK
   //************
@@ -240,7 +240,12 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(int ntracks, const double *x, cons
 
     // TODO: not using the direction yet here !!
     bool samepath = nav.HasSamePath(Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
-    if (!samepath) tmpstate->CopyTo(end[itr]);
+    if (!samepath) {
+      tmpstate->CopyTo(end[itr]);
+#ifdef VECGEOM_CACHED_TRANS
+      end[itr]->UpdateTopMatrix();
+#endif
+    }
 
 #if defined(CROSSCHECK) && !defined(VECCORE_CUDA)
     TGeoBranchArray *sb = start[itr]->ToTGeoBranchArray();
@@ -295,7 +300,12 @@ void ScalarNavInterfaceVGM::NavIsSameLocation(Track &track, bool &same, VolumePa
 
   // TODO: not using the direction yet here !!
   bool samepath = nav.HasSamePath(Vector3D_t(track.X(), track.Y(), track.Z()), *track.Path(), *tmpstate);
-  if (!samepath) tmpstate->CopyTo(track.NextPath());
+  if (!samepath) {
+    tmpstate->CopyTo(track.NextPath());
+#ifdef VECGEOM_CACHED_TRANS
+    track.NextPath()->UpdateTopMatrix();
+#endif
+  }
 
 #ifdef CROSSCHECK
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -386,5 +396,5 @@ void ScalarNavInterfaceVGM::NavFindNextBoundaryMSC(Track &track, double dist) {
 //  if (track.fSafety==0.) track.fBoundary=true;
 }
 */
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

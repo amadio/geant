@@ -67,7 +67,7 @@ void VectorNavInterface::NavFindNextBoundaryAndStep(int ntracks, const double *p
     // onboundary with respect to new point
     isonbdr[itr] = outstate[itr]->IsOnBoundary();
 
-//#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
+    //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
 #ifdef CROSSCHECK
     //************
@@ -141,7 +141,7 @@ void VectorNavInterface::NavFindNextBoundary(int ntracks, const double *pstep, c
     if (!compsafety[itr])
       safe[itr] = 0.;
     else
-      safe[itr]     = vecCore::math::Max<double>(safe[itr], 0.);
+      safe[itr] = vecCore::math::Max<double>(safe[itr], 0.);
     compsafety[itr] = snext[itr] >= pstep[itr];
     snext[itr]      = vecCore::math::Max<double>(2. * gTolerance, snext[itr] + 2. * gTolerance);
   }
@@ -179,7 +179,12 @@ void VectorNavInterface::NavIsSameLocation(int ntracks, const double *x, const d
 
     // TODO: not using the direction yet here !!
     bool samepath = nav.HasSamePath(Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
-    if (!samepath) tmpstate->CopyTo(end[itr]);
+    if (!samepath) {
+      tmpstate->CopyTo(end[itr]);
+#ifdef VECGEOM_CACHED_TRANS
+      end[itr]->UpdateTopMatrix();
+#endif
+    }
 
 #ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
@@ -217,5 +222,5 @@ void VectorNavInterface::NavIsSameLocation(int ntracks, const double *x, const d
   }
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

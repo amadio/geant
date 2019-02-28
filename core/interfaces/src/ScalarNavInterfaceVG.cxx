@@ -73,7 +73,7 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(int ntracks, const double 
     // onboundary with respect to new point
     isonbdr[itr] = outstate[itr]->IsOnBoundary();
 
-//#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
+    //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
 #ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
@@ -146,7 +146,7 @@ void ScalarNavInterfaceVG::NavFindNextBoundaryAndStep(Track &track)
   // onboundary with respect to new point
   track.SetBoundary(track.NextPath()->IsOnBoundary());
 
-//#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
+  //#### To add small step detection and correction - see ScalarNavInterfaceTGeo ####//
 
 #ifdef CROSSCHECK
   //************
@@ -217,7 +217,12 @@ void ScalarNavInterfaceVG::NavIsSameLocation(int ntracks, const double *x, const
 
     // TODO: not using the direction yet here !!
     bool samepath = nav.HasSamePath(Vector3D_t(x[itr], y[itr], z[itr]), *start[itr], *tmpstate);
-    if (!samepath) tmpstate->CopyTo(end[itr]);
+    if (!samepath) {
+      tmpstate->CopyTo(end[itr]);
+#ifdef VECGEOM_CACHED_TRANS
+      end[itr]->UpdateTopMatrix();
+#endif
+    }
 #ifndef VECCORE_CUDA
 #ifdef CROSSCHECK
     TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -270,7 +275,12 @@ void ScalarNavInterfaceVG::NavIsSameLocation(Track &track, bool &same, VolumePat
 
   // TODO: not using the direction yet here !!
   bool samepath = nav.HasSamePath(Vector3D_t(track.X(), track.Y(), track.Z()), *track.Path(), *tmpstate);
-  if (!samepath) tmpstate->CopyTo(track.NextPath());
+  if (!samepath) {
+    tmpstate->CopyTo(track.NextPath());
+#ifdef VECGEOM_CACHED_TRANS
+    track.NextPath()->UpdateTopMatrix();
+#endif
+  }
 
 #ifdef CROSSCHECK
   TGeoNavigator *nav = gGeoManager->GetCurrentNavigator();
@@ -305,5 +315,5 @@ void ScalarNavInterfaceVG::NavIsSameLocation(Track &track, bool &same, VolumePat
   same = samepath;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
