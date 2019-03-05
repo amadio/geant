@@ -1379,7 +1379,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
     }
 
     // lastStepOK = (hdid == h);
-    fNoTotalSteps++;
+    // ++fNoTotalSteps;
 
     static constexpr bool reportMove = true;
     if (partDebug && reportMove) {
