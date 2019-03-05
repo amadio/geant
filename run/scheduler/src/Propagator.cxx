@@ -108,7 +108,7 @@ int Propagator::AddTrack(Track &track)
   // call MCTruth manager if it has been instantiated
   if (fTruthMgr) fTruthMgr->AddTrack(track);
 
-  fNtransported++;
+  //++fNtransported;
   return track.Particle();
 #endif
 }
