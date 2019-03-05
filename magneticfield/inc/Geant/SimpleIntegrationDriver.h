@@ -841,8 +841,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   Real_v emax2pos          = Max(errmax_sqFinal, Real_v(minErr2));
 
   // cache the Real_v version.
-  static constexpr Real_v kSafetyFactor_v = kSafetyFactor;
-  static constexpr Real_v kPowerGrow_v    = .5 * kPowerGrow;
+  static const Real_v kSafetyFactor_v = kSafetyFactor;
+  static const Real_v kPowerGrow_v    = .5 * kPowerGrow;
   Real_v errStretchOld = kSafetyFactor_v * Exp(kPowerGrow_v * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
 
   // ReportRowOfDoubles( "-raw-errStretch", errStretch);
