@@ -226,9 +226,9 @@ private:
 
   // ---------------------------------------------------------------
   // Compilation constants
-  static constexpr bool partDebug  = false;      // Enforce debugging output
-  static constexpr int ncompSVEC   = FieldTrack::NumCompFT; // expect 6, later 8, eventually up to 12
-  const bool useOneStep = true;                  //  Algorithm selection - false for KeepStepping
+  static constexpr bool partDebug = false;                 // Enforce debugging output
+  static constexpr int ncompSVEC  = FieldTrack::NumCompFT; // expect 6, later 8, eventually up to 12
+  const bool useOneStep           = true;                  //  Algorithm selection - false for KeepStepping
 
   // ---------------------------------------------------------------
   //  INVARIANTS
@@ -246,9 +246,9 @@ private:
   unsigned long fMaxNoSteps;
   static constexpr int fMaxStepBase = 250;
 
-  static constexpr double kSafetyFactor = 0.9; //     OK ...
-  static constexpr double kPowerShrink = -1.0 / T_Stepper::GetIntegratorOrder();        //  exponent for shrinking
-  static constexpr double kPowerGrow = -1.0 / (1.0 + T_Stepper::GetIntegratorOrder());          //  exponent for growth
+  static constexpr double kSafetyFactor = 0.9;                                            //     OK ...
+  static constexpr double kPowerShrink  = -1.0 / T_Stepper::GetIntegratorOrder();         //  exponent for shrinking
+  static constexpr double kPowerGrow    = -1.0 / (1.0 + T_Stepper::GetIntegratorOrder()); //  exponent for growth
   /*const*/ double fErrcon;
   // Parameters used to grow and shrink trial stepsize.
 
@@ -483,8 +483,8 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double hminimu
       // fSmallestFraction( 1.0e-12 ),
       // fNoIntegrationVariables(numComponents),  // ==> Nvar
       fMinNoVars(12), fNoVars(std::max((int)Nvar, std::max((int)fMinNoVars, (int)numComponents))),
-//      fPowerShrink(-1.0 / T_Stepper::GetIntegratorOrder()),       //  exponent for shrinking
-//      fPowerGrow(-1.0 / (1.0 + T_Stepper::GetIntegratorOrder())), //  exponent for growth
+      //      fPowerShrink(-1.0 / T_Stepper::GetIntegratorOrder()),       //  exponent for shrinking
+      //      fPowerGrow(-1.0 / (1.0 + T_Stepper::GetIntegratorOrder())), //  exponent for growth
       // fErrcon(0.0),
       fStatisticsVerboseLevel(statisticsVerbose), fNoInitialSmallSteps(0),
       /* fDyerr_max(0.0), fDyerr_mx2(0.0),
@@ -544,8 +544,8 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(
       // fSmallestFraction(right.fSmallestFraction),
       // fNoIntegrationVariables( right.fNoIntegrationVariables ),
       fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)),
-//      fPowerShrink(right.fPowerShrink),
-//      fPowerGrow(right.fPowerGrow),
+      //      fPowerShrink(right.fPowerShrink),
+      //      fPowerGrow(right.fPowerGrow),
       fErrcon(right.fErrcon),
       // fSurfaceTolerance( right.fSurfaceTolerance ),
       fStatisticsVerboseLevel(right.fStatisticsVerboseLevel),
@@ -654,8 +654,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   // Real_v  //  Epsilon was variable per track (ToCheck)
   double invEpsilonRelSq = 1.0 / (eps_rel_max * eps_rel_max);
 
-  //static int tot_no_trials = 0; // Should be thread_local - or suppressed. Just statistics
-  const int max_trials     = 100;
+  // static int tot_no_trials = 0; // Should be thread_local - or suppressed. Just statistics
+  const int max_trials = 100;
 
   // int finishedArr[vecCore::VectorSize<Real_v>()] = {0,0,0,0};
   Bool_v finished = (htry <= 0.); //  Allows h <=0 as signal lane is empty. // Was = false;
@@ -812,7 +812,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
   // CPU time for this next line grows much more than linearly with the number
   // of threads (eg from 0.0118% of total with 1 threads to 1.15% with 4 threads)
-  //tot_no_trials += iter;
+  // tot_no_trials += iter;
 
 #ifdef STORE_ONCE
   //  'Idea 3' - Store exactly one time ( here - except on loop exit)
@@ -856,10 +856,10 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
   // Check against fErrcon to avoid calling power ... saves work if any are 'over' max
   // fErrcon is 'const', cache them here to avoid memory contention (which leads to a lack of scalability)
-  static const Real_v kErrCon2_v = fErrcon * fErrcon;
+  static const Real_v kErrCon2_v     = fErrcon * fErrcon;
   static constexpr auto tPowerGrow_s = .5 * kPowerGrow;
-  Bool_v underThresh                   = errmax_sq <= kErrCon2_v;
-  Real_v errStretch                    = kSafetyFactor_v * PowerIf(errmax_sq, tPowerGrow_s, !underThresh);
+  Bool_v underThresh                 = errmax_sq <= kErrCon2_v;
+  Real_v errStretch                  = kSafetyFactor_v * PowerIf(errmax_sq, tPowerGrow_s, !underThresh);
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
   // Overwriting them!
   vecCore::MaskedAssign(errStretch, underThresh, Real_v(fMaxSteppingIncrease));
@@ -1266,7 +1266,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   //  - the return value is 'true' if integration succeeded to the end of the interval,
   //    and 'false' otherwise.
 
-  static constexpr const char* methodName = "SID::AccurateAdvance";
+  static constexpr const char *methodName = "SID::AccurateAdvance";
   using FormattedReporter::GetMomentumMag;
   using FormattedReporter::ReportArray;
   using FormattedReporter::ReportManyRowsOfDoubles;

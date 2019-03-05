@@ -92,9 +92,9 @@ void ReportRowsOfPositionsMomenta(std::string varName, const Real_v varPositions
                                   const Real_v &momentumMagStart, //
                                   int widthNm = -1, int widthVal = -1)
 {
-  using vecCore::math::Sqrt;
   using vecCore::MaskEmpty;
   using vecCore::MaskFull;
+  using vecCore::math::Sqrt;
   if (widthVal < 0) {
     widthVal = sDefaultVarSize;
   }
@@ -170,8 +170,8 @@ inline void ReportRowOfDoublesIf(std::string varName, const Real_v var, vecCore:
 }
 
 // ----------------------------------------------------------------------------------
-inline void ReportArray(const char *methodName, const std::string &variableName, const double Arr[],
-                        int numTracks, bool banner = false)
+inline void ReportArray(const char *methodName, const std::string &variableName, const double Arr[], int numTracks,
+                        bool banner = false)
 {
   using std::cout;
   using std::endl;
@@ -200,6 +200,6 @@ inline void ReportArray(const char *methodName, const std::string &variableName,
   cout.precision(oldPrec);
 }
 
-}; // End of namespace
+}; // namespace FormattedReporter
 
 #endif // FORMATTED_REPORTER_H

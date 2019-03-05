@@ -60,7 +60,7 @@ public:
                              const Real_v dydx[], const Real_v &charge, const Real_v &hStep, Real_v yOut[],
                              Real_v yErr[]
                              //, ScratchSpaceCashKarp<Real_v>* sp
-                             );
+  );
 #endif
 
   //  ------Start of mandatory methods ( for transitional period. ) ------------
@@ -74,7 +74,7 @@ public:
   }
 
   Double_v DistChord() const { return Double_v(0.0); };
-//  -------- End of mandatory methods ( for transitional period. ) ------------
+    //  -------- End of mandatory methods ( for transitional period. ) ------------
 
 #if ENABLE_CHORD_DIST
   template <typename Real_v>
@@ -112,7 +112,7 @@ public:
     Real_v yTemp6[sNstore];
 
     Real_v yIn[sNstore];
-// scratch space
+    // scratch space
 
 #if ENABLE_CHORD_DIST
     // State -- values used ONLY for subsequent call to DistChord
@@ -170,7 +170,7 @@ public:
 
         const Real_v dydx[], const Real_v &charge, const Real_v &Step, Real_v yOut[], Real_v yErr[]
         //, CashKarp<T_Equation,Nvar>::template ScratchSpaceCashKarp<Real_v>& sp
-        )
+    )
 {
   // const double a2 = 0.2 , a3 = 0.3 , a4 = 0.6 , a5 = 1.0 , a6 = 0.875;
   typename CashKarp<T_Equation, Nvar>::template ScratchSpaceCashKarp<Real_v> sp;
