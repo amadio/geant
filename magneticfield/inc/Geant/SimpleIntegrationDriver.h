@@ -81,8 +81,8 @@ public:
   // Auxiliary methods
   inline double GetHmin() const { return fMinimumStep; }
   // inline double GetSafetyFactor() const { return kSafetyFactor; }
-  inline double GetPowerShrink() const { return fPowerShrink; }
-  inline double GetPowerGrow() const { return fPowerGrow; }
+  inline constexpr double GetPowerShrink() const { return kPowerShrink; }
+  inline constexpr double GetPowerGrow() const { return kPowerGrow; }
   inline double GetErrcon() const { return fErrcon; }
 
   inline int GetMaxNoSteps() const { return fMaxNoSteps; }
@@ -247,8 +247,8 @@ private:
   static constexpr int fMaxStepBase = 250;
 
   static constexpr double kSafetyFactor = 0.9; //     OK ...
-  const double fPowerShrink;        //  exponent for shrinking
-  const double fPowerGrow;          //  exponent for growth
+  static constexpr double kPowerShrink = -1.0 / T_Stepper::GetIntegratorOrder();        //  exponent for shrinking
+  static constexpr double kPowerGrow = -1.0 / (1.0 + T_Stepper::GetIntegratorOrder());          //  exponent for growth
   /*const*/ double fErrcon;
   // Parameters used to grow and shrink trial stepsize.
 
@@ -410,7 +410,7 @@ inline void SimpleIntegrationDriver<T_Stepper, Nvar>
     // void SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>
     ::ComputeAndSetErrcon()
 {
-  fErrcon = Math::Pow(fMaxSteppingIncrease / kSafetyFactor, 1.0 / fPowerGrow);
+  fErrcon = Math::Pow(fMaxSteppingIncrease / kSafetyFactor, 1.0 / kPowerGrow);
   // return fErrcon;
 }
 
@@ -425,28 +425,28 @@ inline void SimpleIntegrationDriver<T_Stepper, Nvar>::CheckParameters()
 
   double checkPowerShrink = -1.0 / fpStepper->GetIntegratorOrder();
 
-  double diffShrink = fPowerShrink - checkPowerShrink;
-  if (std::fabs(diffShrink) // checkPowerShrink - fPowerShrink)
-      >= perMillion * std::fabs(fPowerShrink)) {
-    cerr << "SimpleIntegrationDriver: ERROR in fPowerShrink" << std::endl;
-    cerr << "    calculated = " << checkPowerShrink << "    pre-computed = " << fPowerShrink << "  diff= " << diffShrink
-         << "  tolerance = " << perMillion * std::fabs(fPowerShrink) << endl;
+  double diffShrink = kPowerShrink - checkPowerShrink;
+  if (std::fabs(diffShrink) // checkPowerShrink - kPowerShrink)
+      >= perMillion * std::fabs(kPowerShrink)) {
+    cerr << "SimpleIntegrationDriver: ERROR in kPowerShrink" << std::endl;
+    cerr << "    calculated = " << checkPowerShrink << "    pre-computed = " << kPowerShrink << "  diff= " << diffShrink
+         << "  tolerance = " << perMillion * std::fabs(kPowerShrink) << endl;
     cerr << "  Order of integrator = " << fpStepper->GetIntegratorOrder() << endl;
     exit(1);
   }
-  assert(std::fabs(checkPowerShrink - fPowerShrink) < perMillion * std::fabs(fPowerShrink));
+  assert(std::fabs(checkPowerShrink - kPowerShrink) < perMillion * std::fabs(kPowerShrink));
 
   double checkPowerGrow = -1.0 / (1.0 + fpStepper->GetIntegratorOrder());
-  assert(std::fabs(checkPowerGrow - fPowerGrow) < perMillion * std::fabs(fPowerGrow));
+  assert(std::fabs(checkPowerGrow - kPowerGrow) < perMillion * std::fabs(kPowerGrow));
 
-  if (std::fabs(checkPowerGrow - fPowerGrow) >= perMillion * std::fabs(fPowerGrow)) {
-    std::cerr << "SimpleIntegrationDriver: ERROR in fPowerGrow" << std::endl;
+  if (std::fabs(checkPowerGrow - kPowerGrow) >= perMillion * std::fabs(kPowerGrow)) {
+    std::cerr << "SimpleIntegrationDriver: ERROR in kPowerGrow" << std::endl;
     exit(1);
   }
 
   if (fVerboseLevel)
     std::cout << "SimpleIntegrationDriver::CheckParameters > Powers used: " << std::endl
-              << "  shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
+              << "  shrink = " << kPowerShrink << "  grow = " << kPowerGrow << std::endl;
 }
 
 /*********
@@ -483,8 +483,8 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double hminimu
       // fSmallestFraction( 1.0e-12 ),
       // fNoIntegrationVariables(numComponents),  // ==> Nvar
       fMinNoVars(12), fNoVars(std::max((int)Nvar, std::max((int)fMinNoVars, (int)numComponents))),
-      fPowerShrink(-1.0 / pStepper->GetIntegratorOrder()),       //  exponent for shrinking
-      fPowerGrow(-1.0 / (1.0 + pStepper->GetIntegratorOrder())), //  exponent for growth
+//      fPowerShrink(-1.0 / T_Stepper::GetIntegratorOrder()),       //  exponent for shrinking
+//      fPowerGrow(-1.0 / (1.0 + T_Stepper::GetIntegratorOrder())), //  exponent for growth
       // fErrcon(0.0),
       fStatisticsVerboseLevel(statisticsVerbose), fNoInitialSmallSteps(0),
       /* fDyerr_max(0.0), fDyerr_mx2(0.0),
@@ -512,7 +512,7 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double hminimu
 
   if (fVerboseLevel) {
     std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
-              << " shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
+              << " shrink = " << kPowerShrink << "  grow = " << kPowerGrow << std::endl;
   }
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {
     std::cout << "MagIntDriver version: Accur-Adv: "
@@ -542,8 +542,10 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(
     const SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar> &right)
     : fMinimumStep(right.fMinimumStep), fSmallestFraction(right.fSmallestFraction),
       // fNoIntegrationVariables( right.fNoIntegrationVariables ),
-      fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)), fPowerShrink(right.fPowerShrink),
-      fPowerGrow(right.fPowerGrow), fErrcon(right.fErrcon),
+      fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)),
+//      fPowerShrink(right.fPowerShrink),
+//      fPowerGrow(right.fPowerGrow),
+      fErrcon(right.fErrcon),
       // fSurfaceTolerance( right.fSurfaceTolerance ),
       fStatisticsVerboseLevel(right.fStatisticsVerboseLevel),
       /* fDyerr_max(0.0), fDyerr_mx2(0.0),
@@ -760,7 +762,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
       break;
     }
 
-    Real_v errPower = PowerIf<Real_v>(errmax_sq, 0.5 * fPowerShrink, !laneDone);
+    Real_v errPower = PowerIf<Real_v>(errmax_sq, 0.5 * kPowerShrink, !laneDone);
     Real_v hReduced = h * Max(Real_v(0.1), kSafetyFactor * errPower);
 
     Real_v hnew = vecCore::Blend(finished, Real_v(0.0), hReduced);
@@ -834,11 +836,11 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   // The old way (improved) - to cross check
   constexpr double minErr2 = 1e-100;
   Real_v emax2pos          = Max(errmax_sqFinal, Real_v(minErr2));
-  // kSafetyFactor and fPowerGrow are 'const', cache them here to avoid memory contention
-  // (which leads to a lack of scalability)
-  thread_local const Real_v tSafetyFactor_v = kSafetyFactor;
-  thread_local const Real_v tPowerGrow_v    = .5 * fPowerGrow;
-  Real_v errStretchOld = tSafetyFactor_v * Exp(tPowerGrow_v * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
+
+  // cache the Real_v version.
+  static constexpr Real_v kSafetyFactor_v = kSafetyFactor;
+  static constexpr Real_v kPowerGrow_v    = .5 * kPowerGrow;
+  Real_v errStretchOld = kSafetyFactor_v * Exp(kPowerGrow_v * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
 
   // ReportRowOfDoubles( "-raw-errStretch", errStretch);
   errStretchOld  = Min(errStretchOld, Real_v(fMaxSteppingIncrease));
@@ -851,10 +853,10 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
   // Check against fErrcon to avoid calling power ... saves work if any are 'over' max
   // fErrcon is 'const', cache them here to avoid memory contention (which leads to a lack of scalability)
-  thread_local const Real_v tErrCon2_v = fErrcon * fErrcon;
-  thread_local const auto tPowerGrow_s = .5 * fPowerGrow;
-  Bool_v underThresh                   = errmax_sq <= tErrCon2_v;
-  Real_v errStretch                    = tSafetyFactor_v * PowerIf(errmax_sq, tPowerGrow_s, !underThresh);
+  static const Real_v kErrCon2_v = fErrcon * fErrcon;
+  static constexpr auto tPowerGrow_s = .5 * kPowerGrow;
+  Bool_v underThresh                   = errmax_sq <= kErrCon2_v;
+  Real_v errStretch                    = kSafetyFactor_v * PowerIf(errmax_sq, tPowerGrow_s, !underThresh);
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
   // Overwriting them!
   vecCore::MaskedAssign(errStretch, underThresh, Real_v(fMaxSteppingIncrease));
@@ -1735,7 +1737,7 @@ Real_v SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::ComputeNewStepSize(
   using Bool_v = vecCore::Mask_v<Real_v>;
 
   Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
+  Real_v powerUse = vecCore::Blend(goodStep, kPowerShrink, kPowerGrow);
   Real_v stretch  = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
   Real_v hNew     = stretch * hStepCurrent;
   return hNew;
@@ -1757,7 +1759,7 @@ Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits
   using Bool_v = vecCore::Mask_v<Real_v>;
 
   Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
+  Real_v powerUse = vecCore::Blend(goodStep, kPowerShrink, kPowerGrow);
 
   Real_v stretch = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
 
@@ -1772,7 +1774,7 @@ Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits
     if (errMaxNorm > 1.0 )
     {
       // Step failed; compute the size of retrial Step.
-      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerShrink) ;
+      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,kPowerShrink) ;
 
       hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
                            // reduce stepsize, but no more
@@ -1783,7 +1785,7 @@ Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits
     {
       // Compute size of next Step for a successful step
       if (errMaxNorm > fErrcon)
-       { hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerGrow); }
+       { hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,kPowerGrow); }
       else  // No more than a factor of 5 increase
        { hnew = fMaxSteppingIncrease * hstepCurrent; }
     }*/
