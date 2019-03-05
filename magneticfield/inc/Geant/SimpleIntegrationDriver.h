@@ -654,7 +654,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   // Real_v  //  Epsilon was variable per track (ToCheck)
   double invEpsilonRelSq = 1.0 / (eps_rel_max * eps_rel_max);
 
-  static int tot_no_trials = 0; // Should be thread_local - or suppressed. Just statistics
+  //static int tot_no_trials = 0; // Should be thread_local - or suppressed. Just statistics
   const int max_trials     = 100;
 
   // int finishedArr[vecCore::VectorSize<Real_v>()] = {0,0,0,0};
@@ -810,7 +810,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   } while (itersLeft > 0 && (!vecCore::MaskFull(finished)) //  was MaskFull( stepSizeUnderflow || goodStep ) )
   );
 
-  tot_no_trials += iter;
+  // CPU time for this next line grows much more than linearly with the number
+  // of threads (eg from 0.0118% of total with 1 threads to 1.15% with 4 threads)
+  //tot_no_trials += iter;
 
 #ifdef STORE_ONCE
   //  'Idea 3' - Store exactly one time ( here - except on loop exit)
