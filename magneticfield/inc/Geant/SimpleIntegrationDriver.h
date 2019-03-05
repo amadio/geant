@@ -226,8 +226,8 @@ private:
 
   // ---------------------------------------------------------------
   // Compilation constants
-  const bool partDebug  = false;                 // Enforce debugging output
-  const int ncompSVEC   = FieldTrack::NumCompFT; // expect 6, later 8, eventually up to 12
+  static constexpr bool partDebug  = false;      // Enforce debugging output
+  static constexpr int ncompSVEC   = FieldTrack::NumCompFT; // expect 6, later 8, eventually up to 12
   const bool useOneStep = true;                  //  Algorithm selection - false for KeepStepping
 
   // ---------------------------------------------------------------
@@ -235,7 +235,7 @@ private:
 
   double fMinimumStep; // same
   // Minimum Step allowed in a Step (in absolute units)
-  double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
+  static constexpr double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
   // Smallest fraction of (existing) curve length - in relative units
   //  below this fraction the current step will be the last
 
@@ -540,7 +540,8 @@ if( !gHistStepsLog )
 template <class T_Stepper, unsigned int Nvar>
 SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(
     const SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar> &right)
-    : fMinimumStep(right.fMinimumStep), fSmallestFraction(right.fSmallestFraction),
+    : fMinimumStep(right.fMinimumStep),
+      // fSmallestFraction(right.fSmallestFraction),
       // fNoIntegrationVariables( right.fNoIntegrationVariables ),
       fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)),
 //      fPowerShrink(right.fPowerShrink),
@@ -1378,7 +1379,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
     // lastStepOK = (hdid == h);
     fNoTotalSteps++;
 
-    bool reportMove = true;
+    static constexpr bool reportMove = true;
     if (partDebug && reportMove) {
       // ThreeVector EndPos( y[0], y[1], y[2] ); // Check the endpoint
       const Real_v edx = yNext[0] - y[0], edy = yNext[1] - y[1], edz = yNext[2] - y[2];
