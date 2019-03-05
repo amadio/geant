@@ -80,7 +80,7 @@ public:
 
   // Auxiliary methods
   inline double GetHmin() const { return fMinimumStep; }
-  // inline double GetSafetyFactor() const { return fSafetyFactor; }
+  // inline double GetSafetyFactor() const { return kSafetyFactor; }
   inline double GetPowerShrink() const { return fPowerShrink; }
   inline double GetPowerGrow() const { return fPowerGrow; }
   inline double GetErrcon() const { return fErrcon; }
@@ -246,8 +246,7 @@ private:
   unsigned long fMaxNoSteps;
   static constexpr int fMaxStepBase = 250;
 
-  // static constexpr double fSafetyFactor= 0.9; // -> Fails to compile on clang 9.1 2017.12.05
-  const double fSafetyFactor = 0.9; //     OK ...
+  static constexpr double kSafetyFactor = 0.9; //     OK ...
   const double fPowerShrink;        //  exponent for shrinking
   const double fPowerGrow;          //  exponent for growth
   /*const*/ double fErrcon;
@@ -411,7 +410,7 @@ inline void SimpleIntegrationDriver<T_Stepper, Nvar>
     // void SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>
     ::ComputeAndSetErrcon()
 {
-  fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, 1.0 / fPowerGrow);
+  fErrcon = Math::Pow(fMaxSteppingIncrease / kSafetyFactor, 1.0 / fPowerGrow);
   // return fErrcon;
 }
 
@@ -762,7 +761,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
     }
 
     Real_v errPower = PowerIf<Real_v>(errmax_sq, 0.5 * fPowerShrink, !laneDone);
-    Real_v hReduced = h * Max(Real_v(0.1), fSafetyFactor * errPower);
+    Real_v hReduced = h * Max(Real_v(0.1), kSafetyFactor * errPower);
 
     Real_v hnew = vecCore::Blend(finished, Real_v(0.0), hReduced);
     xnew        = x + hnew;
@@ -835,9 +834,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   // The old way (improved) - to cross check
   constexpr double minErr2 = 1e-100;
   Real_v emax2pos          = Max(errmax_sqFinal, Real_v(minErr2));
-  // fSafetyFactor and fPowerGrow are 'const', cache them here to avoid memory contention
+  // kSafetyFactor and fPowerGrow are 'const', cache them here to avoid memory contention
   // (which leads to a lack of scalability)
-  thread_local const Real_v tSafetyFactor_v = fSafetyFactor;
+  thread_local const Real_v tSafetyFactor_v = kSafetyFactor;
   thread_local const Real_v tPowerGrow_v    = .5 * fPowerGrow;
   Real_v errStretchOld = tSafetyFactor_v * Exp(tPowerGrow_v * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
 
@@ -1737,7 +1736,7 @@ Real_v SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::ComputeNewStepSize(
 
   Bool_v goodStep = (errMaxNorm <= 1.0);
   Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
-  Real_v stretch  = fSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
+  Real_v stretch  = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
   Real_v hNew     = stretch * hStepCurrent;
   return hNew;
 }
@@ -1760,7 +1759,7 @@ Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits
   Bool_v goodStep = (errMaxNorm <= 1.0);
   Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
 
-  Real_v stretch = fSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
+  Real_v stretch = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
 
   Real_v stemp;
   stemp   = vecCore::math::Max(stretch, fMaxSteppingDecrease);
@@ -1773,7 +1772,7 @@ Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits
     if (errMaxNorm > 1.0 )
     {
       // Step failed; compute the size of retrial Step.
-      hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerShrink) ;
+      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerShrink) ;
 
       hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
                            // reduce stepsize, but no more
@@ -1784,7 +1783,7 @@ Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits
     {
       // Compute size of next Step for a successful step
       if (errMaxNorm > fErrcon)
-       { hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerGrow); }
+       { hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerGrow); }
       else  // No more than a factor of 5 increase
        { hnew = fMaxSteppingIncrease * hstepCurrent; }
     }*/
