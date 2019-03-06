@@ -128,7 +128,7 @@ void PostStepActionHandler::DoIt(geant::Track *track, geant::Basket &output, gea
       geantTrack.SetMother(track->Particle());
       geantTrack.SetPrimaryParticleIndex(track->PrimaryParticleIndex());
       // add Track
-      td->fPropagator->AddTrack(geantTrack);
+      td->AddTrack(geantTrack);
       output.Tracks().push_back(&geantTrack);
       // increase the number of secondaries inserted
       ++numSecondaries;

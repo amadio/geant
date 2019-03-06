@@ -48,6 +48,7 @@ class TrackStat;
 struct WorkspaceForFieldPropagation;
 struct BasketCounters;
 class RngWrapper;
+class RunManager;
 
 class TaskData {
 private:
@@ -58,6 +59,7 @@ public:
   using UserDataVect_t   = vector_t<char *>;
   using queue_t          = mpmc_bounded_queue<Track *>;
 
+  RunManager *fRunMgr     = nullptr;       /** Pointer to run manager */
   Propagator *fPropagator = nullptr;       /** Propagator */
   int fTid                = -1;            /** Thread unique id */
   int fTaskSlot           = -1;            /** Index of allocated slot at activation */
@@ -88,18 +90,19 @@ public:
   vector_t<SimulationStage *> fStages;     /** Vector of (possibly local) simulation stages */
 
   vector_t<Track *> fTransported1; // Transported tracks in current step
-  int fNkeepvol = 0;               /** Number of tracks keeping the same volume */
-  int fNsteps   = 0;               /** Total number of steps per thread */
-  int fNsnext   = 0;               /** Total number of calls to getting distance to next boundary */
-  int fNphys    = 0;               /** Total number of steps to physics processes */
-  int fNmag     = 0;               /** Total number of partial steps in magnetic field */
-  int fNpart    = 0;               /** Total number of particles transported by the thread */
-  int fNsmall   = 0;               /** Total number of small steps taken */
-  int fNcross   = 0;               /** Total number of boundary crossings */
-  int fNpushed  = 0;               /** Total number of pushes with 1.E-3 */
-  int fNkilled  = 0;               /** Total number of tracks killed */
-  int fNshared  = 0;               /** Overestimate of number of tracks shared in the 'shared' queue */
-  int fMaxShare = 1 << 13;         /** Maximum number of shared tracks */
+  int fNtransported = 0;           /** Total number of tracks transported by this thread */
+  int fNkeepvol     = 0;           /** Number of tracks keeping the same volume */
+  int fNsteps       = 0;           /** Total number of steps per thread */
+  int fNsnext       = 0;           /** Total number of calls to getting distance to next boundary */
+  int fNphys        = 0;           /** Total number of steps to physics processes */
+  int fNmag         = 0;           /** Total number of partial steps in magnetic field */
+  int fNpart        = 0;           /** Total number of particles transported by the thread */
+  int fNsmall       = 0;           /** Total number of small steps taken */
+  int fNcross       = 0;           /** Total number of boundary crossings */
+  int fNpushed      = 0;           /** Total number of pushes with 1.E-3 */
+  int fNkilled      = 0;           /** Total number of tracks killed */
+  int fNshared      = 0;           /** Overestimate of number of tracks shared in the 'shared' queue */
+  int fMaxShare     = 1 << 13;     /** Maximum number of shared tracks */
   // int fNinflight = 0;              /** Number of tracks in flight in this task */
   int fNinitialB = 0; /** Number of initial baskets imported */
   // std::atomic_int fStealCounter;
@@ -181,6 +184,10 @@ public:
    */
   VECCORE_ATT_HOST_DEVICE
   VolumePath_t *GetPath() const { return fPath; }
+
+  /** @brief Add a pre-filled track in the system. Return track index in the event */
+  VECCORE_ATT_HOST_DEVICE
+  int AddTrack(Track &track);
 
   /** @brief Get new track from track manager */
   VECCORE_ATT_HOST_DEVICE

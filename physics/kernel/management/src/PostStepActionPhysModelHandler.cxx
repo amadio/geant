@@ -116,7 +116,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
       geantTrack.SetPrimaryParticleIndex(track->PrimaryParticleIndex());
 
       // add Track
-      td->fPropagator->AddTrack(geantTrack);
+      td->AddTrack(geantTrack);
       output.Tracks().push_back(&geantTrack);
     }
   }
@@ -234,7 +234,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     geantTrack.SetMother(track->Particle());
     geantTrack.SetPrimaryParticleIndex(track->PrimaryParticleIndex());
     // add Track
-    td->fPropagator->AddTrack(geantTrack);
+    td->AddTrack(geantTrack);
     output.AddTrack(&geantTrack);
   }
 }

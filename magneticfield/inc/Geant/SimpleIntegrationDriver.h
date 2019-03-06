@@ -1284,7 +1284,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   int indexArr[VecSize]; // vecCore::VectorSize<Real_v>()];
 
   // Working variables for integration
-  Real_v x, hnext, hdid, h, chargeLane, x1, x2, xStartLane, hStepLane;
+  Real_v x, hnext, hdid, h, chargeLane, x1, x2, xStartLane(0.), hStepLane;
   Real_v y[ncompSVEC];     // Working array 1
   Real_v yNext[ncompSVEC], // Working array 2
       dydx[ncompSVEC];

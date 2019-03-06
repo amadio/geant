@@ -250,6 +250,7 @@ void WorkloadManager::TransportTracksV3(Propagator *propagator)
   propagator->fWMgr->DoneQueue()->push_force(nullptr);
   propagator->fWMgr->StartAll();
   // Final reduction of counters
+  propagator->fNtransported += td->fNtransported;
   propagator->fNsteps += td->fNsteps;
   propagator->fNsnext += td->fNsnext;
   propagator->fNphys += td->fNphys;
@@ -327,6 +328,7 @@ void WorkloadManager::TransportTracksSingle(Propagator *propagator)
   propagator->fWMgr->DoneQueue()->push_force(nullptr);
   propagator->fWMgr->StartAll();
   // Final reduction of counters
+  propagator->fNtransported += td->fNtransported;
   propagator->fNsteps += td->fNsteps;
   propagator->fNsnext += td->fNsnext;
   propagator->fNphys += td->fNphys;

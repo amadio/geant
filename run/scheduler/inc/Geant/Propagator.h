@@ -145,13 +145,6 @@ public:
   void StopTransport();
 
   /**
-   * @brief Function to add a track to the scheduler
-   *
-   * @param track Track that should be added
-   */
-  int AddTrack(Track &track);
-
-  /**
    * @brief  Function for marking a track as stopped
    *
    * @param track Track to be stopped

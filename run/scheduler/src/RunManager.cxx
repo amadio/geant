@@ -220,6 +220,7 @@ bool RunManager::Initialize()
   // Attach user data and physics data to task data
   for (int i = 0; i < nthreads; i++) {
     TaskData *td = fTDManager->GetTaskData(i);
+    td->fRunMgr  = this;
     if (fPhysicsInterface) fPhysicsInterface->AttachUserData(td);
     if (fStdApplication) fStdApplication->AttachUserData(td);
     if (fInitialisedRKIntegration) InitializeRKdata(td);

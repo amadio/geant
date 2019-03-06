@@ -96,24 +96,6 @@ Propagator::~Propagator()
 }
 
 //______________________________________________________________________________
-int Propagator::AddTrack(Track &track)
-{
-#ifdef VECCORE_CUDA
-  assert(0 && "DispatchTrack not implemented yet for CUDA host/device code.");
-  return 0;
-#else
-  // Add a new track in the system. returns track number within the event.
-  track.SetParticle(fRunMgr->GetEvent(track.EventSlot())->AddTrack());
-
-  // call MCTruth manager if it has been instantiated
-  if (fTruthMgr) fTruthMgr->AddTrack(track);
-
-  //++fNtransported;
-  return track.Particle();
-#endif
-}
-
-//______________________________________________________________________________
 void Propagator::StopTrack(Track *track, TaskData *td)
 {
   // Mark track as stopped for tracking.

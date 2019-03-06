@@ -2,7 +2,8 @@
 #include "Geant/Basket.h"
 #include "Geant/BasketCounters.h"
 #include "StackLikeBuffer.h"
-#include "Geant/Propagator.h"
+#include "Geant/RunManager.h"
+#include "Geant/MCTruthMgr.h"
 #include "Geant/TrackManager.h"
 #include "TrackGeo.h"
 #include "Geant/Typedefs.h"
@@ -109,6 +110,16 @@ void TaskData::CreateStageCounters(Propagator *prop)
   for (size_t stage = 0; stage < kNstages; ++stage) {
     fCounters[stage] = new BasketCounters(prop->fStages[stage]->GetNhandlers());
   }
+}
+
+VECCORE_ATT_HOST_DEVICE
+int TaskData::AddTrack(Track &track)
+{
+  track.SetParticle(fRunMgr->GetEvent(track.EventSlot())->AddTrack());
+  // call MCTruth manager if it has been instantiated
+  if (fRunMgr->GetMCTruthMgr()) fRunMgr->GetMCTruthMgr()->AddTrack(track);
+  ++fNtransported;
+  return track.Particle();
 }
 
 //______________________________________________________________________________
