@@ -219,7 +219,7 @@ void CMSFullApp::FinishRun()
   std::cout << std::setprecision(4);
   //  std::cout<< "    Number of events        = " << numEvents                                                     <<
   //  std::endl;
-  std::cout << "    Total number of primary = " << numPrimaries << std::endl;
+  std::cout << "    Total number of primaries = " << numPrimaries << std::endl;
   std::cout << " \n ---------------------------------------------------------------------------------------- \n"
             << std::endl;
   // compute and print run statistics per primary type per primary
@@ -267,10 +267,13 @@ void CMSFullApp::FinishRun()
               << "     Positrons =  " << meanNPos << " +- " << rmsNPos << std::endl;
     std::cout << "  Total number of steps is : " << nTotSteps << std::endl;
     std::cout << "  Steps per region: " << std::endl;
+    int wdmax=12; 
     int numRegion = (vecgeom::Region::GetTheRegionTable()).size();
     for (int i = 0; i < numRegion; i++)
-      std::cout << "     " << i << ": " << nTotStepsPerReg[i] << "\t\t "
-                << 100 * (double)nTotStepsPerReg[i] / (double)nTotSteps << " % of the total." << std::endl;
+      if( nTotStepsPerReg[i] > 0 ) 
+        std::cout << "     " << std::setw(3) << std::right << i << ": " << std::right << std::setw(wdmax)
+                  << nTotStepsPerReg[i] << "\t\t " << std::setw(8) << std::left
+                  << 100 * (double)nTotStepsPerReg[i] / (double)nTotSteps << " % of the total." << std::endl;
     std::cout << " ......................................................................................... \n"
               << std::endl;
   }
