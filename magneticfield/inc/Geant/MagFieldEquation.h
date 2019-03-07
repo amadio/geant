@@ -16,6 +16,12 @@
 
 // #define OUTSIDE_MagFieldEquation 1
 
+#define DEBUG_EQUATION  1
+
+#ifdef  DEBUG_EQUATION
+#include "FormattedReporter.h"
+#endif
+
 template <class Field>
 class MagFieldEquation
 {
@@ -50,12 +56,39 @@ public:
   {
     Vector3D<Real_v> Bfield;
     FieldFromY(y, Bfield);
+#ifdef DEBUG_EQUATION
+    // FormattedReporter::ReportManyRowsOfDoubles("B_field", Bfield, 3);
+    std::cout << "MagFieldEquation::RightHandSide location | B-field |  dy/dx " << std::endl;
+    FormattedReporter::ReportRowOfDoubles("Pos_x", y[0]);
+    FormattedReporter::ReportRowOfDoubles("Pos_y", y[1]);
+    FormattedReporter::ReportRowOfDoubles("Pos_z", y[2]);    
+    std::cout << "-------------------------------------------------------------------------------------"<<std::endl;
+    FormattedReporter::ReportRowOfDoubles("B_x", Bfield[0]); 
+    FormattedReporter::ReportRowOfDoubles("B_y", Bfield[1]);
+    FormattedReporter::ReportRowOfDoubles("B_z", Bfield[2]);
+    std::cout << "-------------------------------------------------------------------------------------"<<std::endl;    
+#endif
     EvaluateRhsGivenB(y, Bfield, charge, dydx);
+    
+    std::cout << "MagFieldEquation::RightHandSide obtained: " << std::endl;
+    FormattedReporter::ReportManyRowsOfDoubles("dydx[.]", dydx, 6);
+    FormattedReporter::ReportRowOfDoubles("dydx[0]", dydx[0]);
+    FormattedReporter::ReportRowOfDoubles("dydx[1]", dydx[1]);
+    FormattedReporter::ReportRowOfDoubles("dydx[2]", dydx[2]);
+    FormattedReporter::ReportRowOfDoubles("dydx[3]", dydx[3]);
+    FormattedReporter::ReportRowOfDoubles("dydx[4]", dydx[4]);
+    FormattedReporter::ReportRowOfDoubles("dydx[5]", dydx[5]);
+    std::cout << "---===============================================================================---"<<std::endl;    
+    // std::cout << "MagFieldEquation::RightHandSide - new PrintInputFieldAndDyDx: " << std::endl;    
+    // PrintInputFieldAndDyDx(y, charge, dydx);
+    // std::cout << "MagFieldEquation::RightHandSide - Ending. " << std::endl;
   }
 #endif
   template <typename Real_v>
-  GEANT_FORCE_INLINE void EvaluateRhsGivenB(const Real_v y[], const Vector3D<Real_v> &B, const Real_v &charge,
-                                            Real_v dydx[]) const
+  GEANT_FORCE_INLINE void EvaluateRhsGivenB(const Real_v             y[],
+                                            const Vector3D<Real_v> & B,
+                                            const Real_v           & charge,
+                                            Real_v                   dydx[]) const
   {
     // ThreeVectorD momentum( y[3], y[4], y[5]);
     Real_v momentum_mag_square    = y[3] * y[3] + y[4] * y[4] + y[5] * y[5];
@@ -82,7 +115,7 @@ public:
   template <typename Real_v>
   void PrintInputFieldAndDyDx(const Real_v y[], Real_v charge, Real_v dydx[]) const
   {
-    RightHandSide(y, dydx);
+    RightHandSide<Real_v>(y, charge, dydx);
 
     // Obtain the field value
     Vector3D<Real_v> Bfield;
@@ -138,7 +171,19 @@ MagFieldEquation<Field>::RightHandSide(const Real_v y[], Real_v charge, Real_v d
 {
   Vector3D<Real_v> Bfield;
   FieldFromY(y, Bfield);
+
+#ifdef DEBUG_EQUATION    
+  // FormattedReporter::ReportManyRowsOfDoubles("B_field", Bfield, 3);
+  FormattedReporter::ReportRowOfDoubles("B_x", Bfield[0]); 
+  FormattedReporter::ReportRowOfDoubles("B_y", Bfield[1]);
+  FormattedReporter::ReportRowOfDoubles("B_z", Bfield[2]);
+#endif  
+
   EvaluateRhsGivenB(y, Bfield, charge, dydx);
+
+#ifdef DEBUG_EQUATION
+  // PrintInputFieldAndDyDx(y, charge, dydx) const
+#endif  
 }
 #endif
 
