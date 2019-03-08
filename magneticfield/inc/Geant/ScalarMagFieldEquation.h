@@ -74,7 +74,8 @@ public:
   }
 
   GEANT_FORCE_INLINE
-  void TEvaluateRhsReturnB(const double y[], double dydx[], double charge, vecgeom::Vector3D<double> &field) const;
+     void TEvaluateRhsReturnB(const double y[], double charge,                          // Input
+                              double dydx[], vecgeom::Vector3D<double> &field) const;      // Output
 
   GEANT_FORCE_INLINE
   void FieldFromY(const double y[], vecgeom::Vector3D<double> &Bfield) const;
@@ -230,8 +231,9 @@ GEANT_FORCE_INLINE void ScalarMagFieldEquation<Field, Size>::RightHandSide(const
 }
 
 template <class Field, unsigned int Size>
-GEANT_FORCE_INLINE void ScalarMagFieldEquation<Field, Size>::TEvaluateRhsReturnB(const double y[], double dydx[],
+GEANT_FORCE_INLINE void ScalarMagFieldEquation<Field, Size>::TEvaluateRhsReturnB(const double y[],
                                                                                  double charge,
+                                                                                 double dydx[],
                                                                                  vecgeom::Vector3D<double> &field) const
 {
   using ThreeVector = vecgeom::Vector3D<double>;

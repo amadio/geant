@@ -310,6 +310,7 @@ int main(int argc, char *argv[])
       yTrackIn= ScalarFieldTrack (startPosition, startMomentum, charge[i]);
 
       refScalarDriver->SetPrintDerived(i==trackToCheck);
+      refScalarDriver->SetTrackNumber(i);  // For info only
       refScalarDriver->AccurateAdvance(yTrackIn, hstep[i], epsTol, yTrackOut);
       // ************  ***************
       

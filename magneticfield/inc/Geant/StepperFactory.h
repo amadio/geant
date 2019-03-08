@@ -70,10 +70,14 @@ VScalarIntegrationStepper *StepperFactory::CreateStepper(EquationType *equation,
   // case 3: stepper = new BogackiShampine23(equation); break;
   case 4:
     stepper     = new TClassicalRK4<EquationType, Nposmom>(equation);
+    if( verbose ) std::cout << "StepperFactory: Created a stepper of type TClassicalRK4 <Equation, N="
+                            << Nposmom << ">." << std::endl;    
     stepperName = NameClassicalRK4;
     break;
   case 5:
     stepper     = new GUTCashKarpRKF45<EquationType, Nposmom>(equation);
+    if( verbose ) std::cout << "StepperFactory: Created a stepper of type GUTCashKarpRKF45 <Equation, N="
+                            << Nposmom << ">." << std::endl;
     stepperName = NameCashKarpRKF45;
     break;
   default:

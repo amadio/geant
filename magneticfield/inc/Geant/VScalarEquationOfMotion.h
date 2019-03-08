@@ -49,7 +49,7 @@ public: // with description
   // ---------------------------
   // It uses the virtual function EvaluateRhsGivenB
 
-  inline void EvaluateRhsReturnB(const double y[], double dydx[], double charge,
+  inline void EvaluateRhsReturnB(const double y[], double charge, double dydx[], 
                                  vecgeom::Vector3D<double> &field) const;
   // Same as RHS above, but also returns the value of B.
   // Should be made the new default ? after putting dydx & B in a class.
@@ -124,7 +124,7 @@ void VScalarEquationOfMotion::RightHandSide(const double y[], double charge, dou
 }
 
 GEANT_FORCE_INLINE
-void VScalarEquationOfMotion::EvaluateRhsReturnB(const double y[], double dydx[], double charge,
+void VScalarEquationOfMotion::EvaluateRhsReturnB(const double y[], double charge, double dydx[], 
                                                  vecgeom::Vector3D<double> &field) const
 {
   using ThreeVector = vecgeom::Vector3D<double>;

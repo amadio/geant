@@ -72,12 +72,6 @@ public:
     
     std::cout << "MagFieldEquation::RightHandSide obtained: " << std::endl;
     FormattedReporter::ReportManyRowsOfDoubles("dydx[.]", dydx, 6);
-    FormattedReporter::ReportRowOfDoubles("dydx[0]", dydx[0]);
-    FormattedReporter::ReportRowOfDoubles("dydx[1]", dydx[1]);
-    FormattedReporter::ReportRowOfDoubles("dydx[2]", dydx[2]);
-    FormattedReporter::ReportRowOfDoubles("dydx[3]", dydx[3]);
-    FormattedReporter::ReportRowOfDoubles("dydx[4]", dydx[4]);
-    FormattedReporter::ReportRowOfDoubles("dydx[5]", dydx[5]);
     std::cout << "---===============================================================================---"<<std::endl;    
     // std::cout << "MagFieldEquation::RightHandSide - new PrintInputFieldAndDyDx: " << std::endl;    
     // PrintInputFieldAndDyDx(y, charge, dydx);

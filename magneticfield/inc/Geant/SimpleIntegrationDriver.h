@@ -1543,6 +1543,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
 
     static constexpr bool reportMove = true;
     if (partDebug && reportMove) {
+      ReportRowOfDoubles("charge", chargeLane);
+      
       // ThreeVector EndPos( y[0], y[1], y[2] ); // Check the endpoint
       const Real_v edx = yNext[0] - y[0], edy = yNext[1] - y[1], edz = yNext[2] - y[2];
       Real_v endPointDist = vecgeom::Sqrt(edx * edx + edy * edy + edz * edz);
