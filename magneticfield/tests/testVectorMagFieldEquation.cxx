@@ -5,78 +5,116 @@
 #include "base/Vector3D.h"
 #include <Geant/VectorTypes.h>
 
-#include "GUVVectorEquationOfMotion.h"
-#include "TVectorMagFieldEquation.h"
+#include "Geant/PhysicalConstants.h"
+
+// #include "GUVVectorEquationOfMotion.h"
+// #include "TVectorMagFieldEquation.h"
+#include "Geant/MagFieldEquation.h"
 #include "Geant/ScalarUniformMagField.h"
 
 #include "Geant/VVectorField.h"
-#include "TMagFieldEquation.h"
+
+#include "Geant/MagFieldEquation.h"
+
+// #include "TMagFieldEquation.h"
+// #include "Geant/ScalarFieldEquation.h"
 #include "Geant/FieldEquationFactory.h"
 
 // #include "Geant/ScalarUniformMagField.h"
 
-// #define CMS_FIELD 1
+#define CMS_FIELD 1
 
 #ifdef CMS_FIELD
 #include "Geant/Utils.h"
-#include "Geant/CMSmagField.h"
+#include "CMSmagField.h"
+
+using VectorFieldType = CMSmagField;
+// using ScalarFieldType = CMSmagField;
+
+#else
+#include "Geant/UniformMagField.h"
+#include "Geant/ScalarUniformMagField.h"
+
+using VectorFieldType = UniformMagField;
+// using ScalarFieldType = ScalarUniformMagField;
 #endif
 
-using ThreeVector_f = vecgeom::Vector3D<float>;  // vecgeom::Vector3D<float>;
-using ThreeVector_d = vecgeom::Vector3D<double>; // vecgeom::Vector3D<double>;
-
 using Double_v = geant::Double_v;
+
+using ThreeVector_f = vecgeom::Vector3D<float>;
+using ThreeVector_d = vecgeom::Vector3D<double>;
+
+using ThreeVector_dVec = vecgeom::Vector3D<Double_v>;
+
+// constexpr unsigned int SixComp = 6; // Number of components in state of equation: position / momentum 
+constexpr unsigned int gNposmom = 6; // Position 3-vec + Momentum 3-vec
+
+// using ScalarEquationType = /* geant:: */ ScalarMagFieldEquation<ScalarFieldType, gNposmom>;
+using VectorEquationType = /* geant:: */ MagFieldEquation<VectorFieldType>;
+
 // using Float_v  = geant::Float_v;
 
-// using ThreeVec_DblV = vecgeom::Vector3D<Double_v>;
-// using ThreeVec_FltV = vecgeom::Vector3D<Float_v>;
+using ThreeVector_DblV = vecgeom::Vector3D<Double_v>;
+// using ThreeVector_FltV = vecgeom::Vector3D<Float_v>;
 
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::setw;
 
-GUVVectorEquationOfMotion *CreateUniformFieldAndEquation(ThreeVector_f constFieldValue);
-GUVVectorEquationOfMotion *CreateFieldAndEquation(const char *filename);
+VectorEquationType *CreateUniformFieldAndEquation(ThreeVector_f constFieldValue);
+VectorEquationType *CreateFieldAndEquation(const char *filename);
 
-bool TestEquation(GUVVectorEquationOfMotion *);
-
-constexpr unsigned int gNposmom = 6; // Position 3-vec + Momentum 3-vec
+bool TestEquation(VectorEquationType *);
 
 const char *defaultFieldFileName = "cmsmagfield2015.txt";
+
+int gVerbose = 0;  // Control global verbosity
 
 int main(int, char **)
 {
   ThreeVector_f fieldValue(0.0, 0.0, 1.0);
-
-  GUVVectorEquationOfMotion *eq = CreateUniformFieldAndEquation(fieldValue);
-  bool errUniform               = TestEquation(eq);
-  bool bad                      = errUniform;
+  bool bad = false;
+  bool testCMSfield= false;
 
 #ifdef CMS_FIELD
-  GUVVectorEquationOfMotion *eq2 = CreateFieldAndEquation(defaultFieldFileName); // ("cmsMagneticField2015.txt");
+  testCMSfield= true;
+  // VectorEquationType  or ScalarEquationType ?
+  auto *eq2 = CreateFieldAndEquation(defaultFieldFileName); // ("cmsMagneticField2015.txt");
   bool errCMSfield               = TestEquation(eq2);
-
-  bad = bad && errCMSfield;
+  bad = errCMSfield;
+#else
+  // VectorEquationType  or ScalarEquationType ?  
+  auto *eq = CreateUniformFieldAndEquation(fieldValue);
+  
+  bool errUniform = TestEquation(eq);
+  bad             = errUniform;
 #endif
 
-  if (!bad)
-    cout << "*** TEST PASSED ***\n";
-  else
+  if (bad) {
     cout << "*** TEST FAILED ***\n";
+    cout << "    version tested:  " << ( testCMSfield ? "simplified CMS-field" : "Uniform" ) << endl;
+  } else {
+    // if( gVerbose ) 
+    cout << "*** TEST PASSED ***\n";
+  }
 
   return bad;
 }
 
-GUVVectorEquationOfMotion *CreateUniformFieldAndEquation(ThreeVector_f fieldValue)
+#if !defined(CMS_FIELD)
+
+VectorEquationType *CreateUniformFieldAndEquation(ThreeVector_f fieldValue)
 {
   // using Field_t = ScalarUniformMagField;
 
-  auto *pConstBfield = new ScalarUniformMagField(fieldValue);
+  auto *pConstBfield = // new ScalarUniformMagField(fieldValue);
+      new UniformMagField(fieldValue);
 
   // 1. Original way of creating an equation
-  using EquationType = TVectorMagFieldEquation<ScalarUniformMagField, gNposmom>;
-  auto magEquation   = new EquationType(pConstBfield);
+  // using VectorEquationType = ScalarMagFieldEquation<ScalarUniformMagField, gNposmom>;
+                  // Before: MagFieldEquation<ScalarUniformMagField, gNposmom>;
+  auto magEquation   = new VectorEquationType(pConstBfield);
   return magEquation;
 
   //  2. Different method of creating equation:  Factory
@@ -84,17 +122,20 @@ GUVVectorEquationOfMotion *CreateUniformFieldAndEquation(ThreeVector_f fieldValu
   // return vecEquation;
 }
 
-#ifdef CMS_FIELD
-GUVVectorEquationOfMotion *CreateFieldAndEquation(const char *filename)
+#else
+
+VectorEquationType *CreateFieldAndEquation(const char *filename)
 {
   // const char *defaultFieldFileName= "cmsMagneticField2015.txt";
 
   //  3. Equation for CMS field
   auto cmsField    = new CMSmagField(filename ? filename : defaultFieldFileName);
-  auto equationCMS = FieldEquationFactory::CreateMagEquation<CMSmagField>(cmsField);
-
+  // auto equationCMS = FieldEquationFactory::CreateMagEquation<CMSmagField>(cmsField);
+  auto    equationCMS = new VectorEquationType(cmsField);
+  
   return equationCMS;
 }
+
 #endif
 
 // Auxiliary methods (define below) to check results & report problems.
@@ -102,18 +143,18 @@ GUVVectorEquationOfMotion *CreateFieldAndEquation(const char *filename)
 bool SanityCheckMagFieldEquation(double charge, ThreeVector_d Momentum, ThreeVector_d Field, ThreeVector_d ForceVec,
                                  int lane);
 
-bool CheckDerivativeInLanesAndReport(const Double_v &chargeVec, const Double_v PositionMomentum[gNposmom],
-                                     vecgeom::Vector3D<Double_v> &FieldVec, const Double_v dydxVec[gNposmom],
-                                     bool printContents = false);
+bool CheckDerivativeInLanesAndReport(const Double_v         & chargeVec,
+                                     const Double_v           PositionMomentum[gNposmom],
+                                     const ThreeVector_DblV /*vecgeom::Vector3D<Double_v>*/ & FieldVec,
+                                     const Double_v           dydxVec[gNposmom],
+                                     bool                     printContents = false);
 
-int gVerbose = 0;
-
-bool TestEquation(GUVVectorEquationOfMotion *equation)
+bool TestEquation(VectorEquationType *equation)
 {
 
   bool hasError = false; // Return value
 
-  ThreeVector_d Position(1., 2., 3.); // initial
+  ThreeVector_d initialPosition3d(1., 2., 3.); // initial
   ThreeVector_d Momentum(0., 0.1, 1.);
   ThreeVector_d BFieldValue(0., 0., 1.); // Magnetic field value (constant)
 
@@ -129,7 +170,7 @@ bool TestEquation(GUVVectorEquationOfMotion *equation)
 
   vecgeom::Vector3D<Double_v> FieldVec = {Double_v(BFieldValue[0]), Double_v(BFieldValue[1]), Double_v(BFieldValue[2])};
   for (int i = 0; i < 3; i++) {
-    PositionMomentum[i]     = Double_v(Position[i]);
+    PositionMomentum[i]     = Double_v(initialPosition3d[i]);
     PositionMomentum[3 + i] = Double_v(Momentum[i]);
   }
 
@@ -139,7 +180,7 @@ bool TestEquation(GUVVectorEquationOfMotion *equation)
 
   if (printInput) {
     for (int i = 0; i < 3; i++)
-      cout << " pos[" << i << "] = " << setw(6) << Position[i] << " PositionMomentum[] = " << PositionMomentum[i]
+      cout << " pos[" << i << "] = " << setw(6) << initialPosition3d[i] << " PositionMomentum[] = " << PositionMomentum[i]
            << endl;
     for (int i = 0; i < 3; i++)
       cout << " mom[" << i << "] = " << setw(6) << Momentum[i] << " PositionMomentum[] = " << PositionMomentum[3 + i]
@@ -153,8 +194,10 @@ bool TestEquation(GUVVectorEquationOfMotion *equation)
 
   // 1.) Simple case: Use the equation with a given field value
   // ------------------------------------------------------------
-
-  equation->EvaluateRhsGivenB(PositionMomentum, FieldVec, chargeVec, dydxVec);
+  if( gVerbose )
+     cout << "Checking with fixed values of Field Vec = { 0, 1, 2 }. " << endl;
+  
+  equation->EvaluateRhsGivenB(PositionMomentum, chargeVec, FieldVec, dydxVec);
 
   //   Simple printing for visual cross check of output
   if (printContents) {
@@ -178,6 +221,15 @@ bool TestEquation(GUVVectorEquationOfMotion *equation)
 
   // 2.) Regular case: Use the full equation -- allow it to obtain the field too !
   // -------------------------------------------------------------------------
+  cout << "Checking using RightHandSide -- Field Vec from " << endl;
+
+  // equation->GetFieldValue( PositionMomentum, FieldVec );
+  VVectorField *magField = equation->GetField();
+  vecgeom::Vector3D<Double_v> Position( PositionMomentum[0], PositionMomentum[1], PositionMomentum[2] );
+  // ObtainFieldValue(const Vector3D<double> &position, Vector3D<double> &fieldValue);
+  // ObtainFieldValueSIMD( const Vector3D<Double_v> &position, Vector3D<Double_v> &fieldValue);  
+  magField-> ObtainFieldValueSIMD( Position, FieldVec );
+  
   Double_v dydxVecRegular[gNposmom];
   equation->RightHandSide(PositionMomentum, chargeVec, dydxVecRegular);
 
@@ -191,7 +243,8 @@ bool TestEquation(GUVVectorEquationOfMotion *equation)
   // ------------------------------------------------------------------------------
   Double_v dydxVecFull[gNposmom];
   vecgeom::Vector3D<Double_v> FieldVecEval;
-  equation->EvaluateRhsReturnB(PositionMomentum, dydxVecFull, chargeVec, FieldVecEval);
+  equation->EvaluateRhsReturnB(PositionMomentum, chargeVec, dydxVecFull, FieldVecEval);
+
   bool laneError3 =
       CheckDerivativeInLanesAndReport(chargeVec, PositionMomentum, FieldVecEval, dydxVecFull, printContents);
 
@@ -200,9 +253,11 @@ bool TestEquation(GUVVectorEquationOfMotion *equation)
   return hasError;
 }
 
-bool CheckDerivativeInLanesAndReport(const Double_v &chargeVec, const Double_v PositionMomentum[gNposmom],
-                                     vecgeom::Vector3D<Double_v> &FieldVec, const Double_v dydxVec[gNposmom],
-                                     bool printContents)
+bool CheckDerivativeInLanesAndReport(const Double_v              & chargeVec,
+                                     const Double_v                PositionMomentum[gNposmom],
+                                     const ThreeVector_DblV /*vecgeom::Vector3D<Double_v>*/ & FieldVec,
+                                     const Double_v                dydxVec[gNposmom],
+                                     bool                          printContents)
 {
   bool hasError = false;
 
@@ -240,6 +295,9 @@ bool CheckDerivativeInLanesAndReport(const Double_v &chargeVec, const Double_v P
     double charge = vecCore::Get(chargeVec, lane);
 
     bool badLane = SanityCheckMagFieldEquation(charge, Momentum3v, BFieldVal, ForceVec, lane);
+    if( badLane ) {
+       cerr << "Problem seen by Sanity Check in lane " << lane << std::endl;
+    }
     hasError     = hasError || badLane;
   }
   return hasError;
@@ -249,8 +307,9 @@ bool SanityCheckMagFieldEquation(double charge, ThreeVector_d Momentum, ThreeVec
                                  int lane //  To print (if error)
                                  )
 {
-  bool hasError;
+  using geant::units::kCLight;  
   constexpr double perMillion = 1e-6;
+  bool hasError= false;
 
   // Check result
   double MdotF = Momentum.Dot(ForceVec);
@@ -261,20 +320,28 @@ bool SanityCheckMagFieldEquation(double charge, ThreeVector_d Momentum, ThreeVec
   double sineAngle   = Field.Cross(Momentum).Mag() / (momentumMag * fieldMag);
 
   double ForceMag = ForceVec.Mag();
-  const double c  = Constants::c_light;
-
+  double expectedFmag = kCLight * std::fabs(charge) * fieldMag * sineAngle;
+   
   // Tolerance of difference in values (used below)
   double tolerance = perMillion;
 
   if (gVerbose) {
     cout << "Test output: ( lane = " << lane << " ). " << endl;
   }
-  if (std::fabs(ForceMag - c * std::fabs(charge) * fieldMag * sineAngle) > tolerance * ForceMag) {
-    cerr << "ERROR: Force magnitude is not equal to   c * |charge| * |field| * sin( p, B )." << endl;
-    cerr << "       Force magnitude = " << ForceMag << endl;
-    cerr << "         other side =    " << c * std::fabs(charge) * fieldMag * sineAngle;
-    cerr << " charge = " << charge << " field-Mag= " << fieldMag << endl;
+  
+  if ( std::fabs(ForceMag - expectedFmag ) /*( kCLight * std::fabs(charge) * fieldMag * sineAngle ) */
+              > 0.5 * tolerance * (ForceMag+expectedFmag) )
+  {
+    cerr << "ERROR: Force magnitude is NOT equal to   c * |charge| * |field| * sin( p, B )." << endl;
+    cerr << "    Force magnitude = " << ForceMag << endl;
+    cerr << "    Expected        = " << expectedFmag << endl; // kCLight * std::fabs(charge) * fieldMag * sineAngle;
+    cerr << "    Components: ";
+    cerr << " charge = " << charge << " field-Mag= " << fieldMag << " sin(p, B) = " << sineAngle
+         << " c_light = " << kCLight
+         << endl;
     cerr << "       Force = " << ForceVec[0] << " " << ForceVec[1] << " " << ForceVec[2] << " " << endl;
+
+    // exit(1);
   }
 
   assert(ForceMag != momentumMag * fieldMag); // Must add coefficient !!

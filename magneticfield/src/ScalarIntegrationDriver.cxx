@@ -257,6 +257,17 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
     fpStepper->RightHandSideVIS(y, charge, dydx); // TODO: change to inline
     fNoTotalSteps++;
 
+    std::cout << "ScalarDriver::AccurateAdv>  RHS called with q= " << charge
+              << " at Position = " << y[0] << " y= " << y[1] << " z= " << y[2]
+              << " with Momentum = " << y[3] << " y= " << y[4] << " z= " << y[5] << " ";
+    std::cout << " gives Derivs dydx= :  x = " << dydx[0] << " y = " << dydx[1] << " z = " << dydx[2]        
+              << " px= " << dydx[3] << " py= " << dydx[4] << " pz= " << dydx[5] << std::endl;
+                                                                              
+    vecgeom::Vector3D<double> fieldVal;
+    auto equationPtr= fpStepper->GetEquationOfMotion();
+    equationPtr->EvaluateRhsReturnB(y, charge, dydx, fieldVal);
+          // (const double y[], double dydx[], double charge,
+                                                                                   
     // Perform the Integration
     //
     if ( true )

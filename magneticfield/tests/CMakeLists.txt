@@ -39,9 +39,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTDIR}/bin/tests/${RelativeCurrentSourcePa
 # target_link_libraries(testMagFieldEquation Vmagfield Geant_v ${VECGEOM_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 #message(STATUS "Created target for testMagFieldEquation")
 
-#add_executable(testVectorMagFieldEquation testVectorMagFieldEquation.cxx)
-#target_link_libraries(testVectorMagFieldEquation Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-#message(STATUS "Created target for testVectorMagFieldEquation")
+add_executable(testVectorMagFieldEquation testVectorMagFieldEquation.cxx)
+target_link_libraries(testVectorMagFieldEquation Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${VECGEOM_LIBRARIES_EXTERNAL} ${USERKERNELLIB} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+message(STATUS "Created target for testVectorMagFieldEquation")
 
 ## Test for 'simple' scalar class
 #add_executable(testScalarCashKarp testScalarCashKarp.cxx)

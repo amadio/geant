@@ -36,8 +36,9 @@ using geant::units::degree;
 
 #ifdef USECMSFIELD
 #include "CMSmagField.h"
-#include "RZMagFieldFromMap.h"
-using ScalarCMSmagField = RZMagFieldFromMap;
+// #include "RZMagFieldFromMap.h"
+// using ScalarCMSmagField = RZMagFieldFromMap;
+using ScalarCMSmagField = CMSmagField;   // Trial 2019.03.20 16:30
 #include "Geant/Utils.h"
 // #else
 #endif
@@ -61,9 +62,88 @@ using std::endl;
 using Double_v = geant::Double_v;
 using Bool_v   = vecCore::Mask_v<Double_v>;
 
+constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
+
+
+//  A few parameters ...
+//
+int   gVerbose = 0;  // Global verbosity level ... 
+
+
+
+int CompareSixVectors( const FieldTrack  & outVec,
+                       const ScalarFieldTrack & yTrackOut,
+                       const std::string & varName,
+                       int                 varNum,
+                       double              hStep,
+                       FieldTrack        & yVecInput,
+                       ScalarFieldTrack  & yScalInput,
+                       double            & maxRelDiff                      
+   )
+   
+{
+   const int  hiPrec= 8;  // High precision output
+   const int lowPrec= 5;  
+   const int    Npm = Nposmom;
+
+   constexpr double threshold = 1.0e-6;    
+   constexpr double kTiny=  1.0e-30;    
+
+   int oldPrecErr= -1;
+   double outSer[8] = { 0., 0.1, 0.2, 0.3, 0.4, 0.5 };
+
+   yTrackOut.DumpToArray(outSer);
+   
+   // Return number of differences found between lanes
+   // 
+   int     diffFound = 0;
+   maxRelDiff = 0.0;
+
+   for (unsigned int j = 0; j < Npm; ++j)
+   {
+      double  dif   = outVec[j] - outSer[j];
+      double midAbs = 0.5 * ( std::fabs(outVec[j]) + std::fabs(outSer[j]) ) + kTiny ;
+      if( std::fabs(dif) > threshold * midAbs )
+      {
+         if( ! diffFound ) {
+            oldPrecErr= cerr.precision(hiPrec);
+            cerr << "##-------------------------------------------------------------------------------" << endl;
+            cerr << " Compare-Six> Difference found in " << varName 
+                 << " : vector [ i= " << varNum << " ] and for hStep = " << hStep << ": " << endl;
+            diffFound++;
+         }
+         cerr.precision(hiPrec);
+         cerr << "   [" << j << " ]:"
+              << "  vec = " << std::setw(6+hiPrec) << outVec[j]
+              << "  ser = " << std::setw(6+hiPrec) << outSer[j]
+              << " diff = " << std::setw(6+hiPrec) << dif
+              << std::setprecision(lowPrec)
+              << " rel dif = " << std::setw(6+hiPrec) << dif / midAbs
+              << endl;
+      }
+   }
+   
+   if( diffFound ) {
+      cerr.precision(oldPrecErr);
+      cerr << "##-------------------------------------------------------------------------------" << endl;
+   }
+   
+   if( gVerbose || diffFound ) {
+      int oldPrecOut = cout.precision(hiPrec);
+      cout << " Vector  len = " <<  outVec.GetCurveLength()    << " yOut [" << varNum << "]  is : " << outVec
+           << " for yInput: " << yVecInput << endl;
+      cout << " Serial  len = " <<  yTrackOut.GetCurveLength() << " yTrackOut  is : " << yTrackOut << endl
+           << " for yTrackIn: " << yScalInput
+           << " for hstep= " << hStep << endl << endl;
+      cout.precision(oldPrecOut);
+      cout << "##-------------------------------------------------------------------------------" << endl;
+   }
+   
+   return diffFound;
+}
+
 int main(int argc, char *argv[])
 {
-  constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
   // template <typename T> using Vector3D = vecgeom::Vector3D<T>;
   using ThreeVector_d = vecgeom::Vector3D<double>;
 
@@ -281,74 +361,41 @@ int main(int argc, char *argv[])
 
     const ThreeVector_d startPosition(posMom[0], posMom[1], posMom[2]);
     const ThreeVector_d startMomentum(posMom[3], posMom[4], posMom[5]);
-    ScalarFieldTrack yTrackIn(startPosition, startMomentum, charge[0]);  // yStart
-    ScalarFieldTrack yTrackOut(startPosition, startMomentum, charge[0]); // yStart
 
+    ScalarFieldTrack yScalTrackIn(startPosition, startMomentum, charge[0]);  // constant !! yStart
+    ScalarFieldTrack yScalTrackOut(startPosition, startMomentum, charge[0]); // yStart
+    
 #if 0    
     refScalarDriver->SetPrintDerived(false);
-    bool scalarResult = refScalarDriver->AccurateAdvance(yTrackIn, hstep[0], epsTol, yTrackOut);
+    bool scalarResult = refScalarDriver->AccurateAdvance(yScalTrackIn, hstep[0], epsTol, yScalTrackOut);
 
     if( verbose )
     {
        cout << "-- Scalar Driver done (advanced)." << endl;
        cout << " yOutput is   : " << yOutput[0] << " for yInput: " << yInput[0] << endl;
-       cout << " yTrackOut is : " << yTrackOut << " for yTrackIn: " << yTrackIn << endl;
+       cout << " yTrackOut is : " << yScalTrackOut << " for yTrackIn: " << yScalTrackIn << endl;
        cout << " Success of Vector: " << succeeded[0] << endl;
        cout << " Success of scalar: " << scalarResult << endl;
     }
 #endif
 
-    constexpr double threshold = 1.0e-6;
-    constexpr double kTiny=  1.0e-30;
-
-    int  hiPrec= 8;  // High precision output
-    int lowPrec= 5;  
-    int oldPrec= -1;
-
     for (int i = 0; i < nTracks; ++i)
     {
-      yTrackIn= ScalarFieldTrack (startPosition, startMomentum, charge[i]);
+      yScalTrackIn= ScalarFieldTrack (startPosition, startMomentum, charge[i]);
+      yScalTrackOut= ScalarFieldTrack(startPosition, startMomentum, charge[i]); // yStart
 
       refScalarDriver->SetPrintDerived(i==trackToCheck);
       refScalarDriver->SetTrackNumber(i);  // For info only
-      refScalarDriver->AccurateAdvance(yTrackIn, hstep[i], epsTol, yTrackOut);
-      // ************  ***************
       
-      FieldTrack       & outVec = yOutput[i];
-      double outSer[8];
-      yTrackOut.DumpToArray(outSer);
+      refScalarDriver->AccurateAdvance(yScalTrackIn, hstep[i], epsTol, yScalTrackOut);
+      // ************  ***************
 
-      bool diffFound = false;
-      for (unsigned int j = 0; j < Nposmom; ++j)
-      {
-         double  dif   = outVec[j] - outSer[j];
-         double midAbs = 0.5 * ( std::fabs(outVec[j]) + std::fabs(outSer[j]) ) + kTiny ;
-         if( std::fabs(dif) > threshold * midAbs )
-         {
-            if( ! diffFound ) {
-               oldPrec= cerr.precision(hiPrec);               
-               cerr << " Difference found in vector i= " << i << " ( h = " << hstep[i] << " ) " << endl;
-               diffFound = true;
-            }
-            cerr.precision(hiPrec);
-            cerr << "   [" << j << " ]:  vec = " << std::setw(12) << outVec[j]
-                 << "  ser = " << std::setw(6+hiPrec) << outSer[j]
-                 << " diff = " << std::setw(6+hiPrec) << dif
-                 << std::setprecision(lowPrec)
-                 << " rel dif = " << std::setw(6+hiPrec) << dif / midAbs
-                 << endl;
-         }
-      }
-      if( diffFound ) cerr.precision(oldPrec);
-        
-      if( verbose || diffFound ) {
-        int oldPrec2 = cout.precision(hiPrec);
-        cout << " Vector  len = " <<  yOutput[i].GetCurveLength() << " yOutput[" << i << "] is : " << yOutput[i] << " for yInput: " << yInput[i] << endl;
-        cout << " Serial  len = " <<   yTrackOut.GetCurveLength() << " yTrackOut  is : " << yTrackOut << endl
-             << " for yTrackIn: " << yTrackIn
-             << " for hstep: " << hstep[i] << endl << endl;
-        cout.precision(oldPrec2);
-      }
+      // bool diffFound;
+      double maxRelDiff= 0.0; // Max (Absolute) relative diff
+      // int dfLane =
+         CompareSixVectors( yOutput[i], yScalTrackOut, "yOut/x,p", i, hstep[i],
+                                      yInput[i],  yScalTrackIn, maxRelDiff );
+      // diffFound= dfLane > 0;
     }
   }
 // #define CALCULATETIME

@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <iomanip>
 
+// #include "Geant/IntegrationDriverConstants.h"  // For ReportOneLane
+
 //  Auxiliary methods - should be encapsulated into a separate helper class
 
 #ifndef FORMATTED_REPORTER_H
@@ -11,7 +13,8 @@ namespace FormattedReporter // Was ReportValuesOfVectors
 {
 
 const int sDefaultNameLength = 14;
-const int sDefaultVarSize    = 12;
+const int sDefaultPrecision  = 9;
+const int sDefaultVarSize    = sDefaultPrecision + 7;  // Was 12
 
 // using std::setw;
 // using std::cout;
@@ -208,47 +211,62 @@ void
    ReportOneLane( Double_v hStep,
                   Double_v epsPosition, Double_v errPosSq,
                   Double_v errMomSq,    Double_v errmax_sq,
-                  Bool_v   lanesDone,    bool     allDone,
+                  Bool_v   lanesDone,   int     allDone,
                   int      iter,        int      noCall,
-                  int      lanePrint,
+                  int      lanePrint,   int      trackNum,
                   const char *methodName)
 {
-   using std::setw;
+   using std::cout;
+   using std::setw;   
    bool  laneIsDone = vecCore::Get( lanesDone , lanePrint );
-   int   oldPrec= std::cout.precision(6);
+   int   prec = 10; // precision
+   int   wd = prec + 5;
+   int   oldPrec= cout.precision(prec);
    bool  printSquares = false; // Old version - true
    bool  printValues  = true; 
+
+   // const int trackToPrint = IntegrationDriverConstants::GetInstance()->GetTrackToCheck();   
    
-   std::cout << std::setw(12) << methodName << " - ReportOneLane : " 
-             << " lane: " << lanePrint << " > "
-             << " iter = " << setw(3) << iter << " #call= " << setw(5) << noCall
-             << std::setprecision( 6 )
-             << " h = "           << setw( 6 ) << vecCore::Get( hStep ,       lanePrint )
-             << " Eps-x = "       << setw( 6 ) << vecCore::Get( epsPosition , lanePrint );
+   cout << std::setw(12) << methodName << " - ReportOneLane : "
+        << " track/2pr : " << setw(3) << trackNum  /* trackToPrint */ << " "
+        << " lane: " << setw(3) << lanePrint << " > "
+        << " iter = " << setw(3) << iter << " #call= " << setw(5) << noCall
+        << std::setprecision( 6 )
+        << " h = "           << setw( wd ) << vecCore::Get( hStep ,       lanePrint )
+        << " Eps-x = "       << setw( wd ) << vecCore::Get( epsPosition , lanePrint );
 
    double errPosLane2 = vecCore::Get( errPosSq ,    lanePrint );
    double errMomLane2 = vecCore::Get( errMomSq ,    lanePrint );
    double errMax2     = vecCore::Get( errmax_sq ,   lanePrint );
-   
+
+   int   prec2 = 9; // precision
+   int   wd2 = prec2 + 5;
+
+   cout.precision( prec2 );
+            
    if( printSquares ) 
-      std::cout
-             << " errSq-x/p = "   << setw( 12) << errPosLane2  // vecCore::Get( errPosSq ,    lanePrint )
-             << " "               << setw( 12) << errMomLane2  // vecCore::Get( errMomSq ,    lanePrint ) // << " "
-             << " errMax^2 = "    << setw( 12) << errMax2;     // vecCore::Get( errmax_sq ,   lanePrint );
+      cout
+             << " errSq-x/p = "   << setw( wd2) << errPosLane2  // vecCore::Get( errPosSq ,    lanePrint )
+             << " "               << setw( wd2) << errMomLane2  // vecCore::Get( errMomSq ,    lanePrint ) // << " "
+             << " errMax^2 = "    << setw( wd2) << errMax2;     // vecCore::Get( errmax_sq ,   lanePrint );
    if( printValues ) 
-      std::cout
-             << " error-x/p = "   << setw( 12) << sqrt( errPosLane2 ) // vecCore::Get( errPosSq ,    lanePrint ) )
-             << " "               << setw( 12) << sqrt( errMomLane2 ) // vecCore::Get( errMomSq ,    lanePrint ) ) // << " "
-             << " errMax = "      << setw( 12) << sqrt( errMax2 )  ; // vecCore::Get( errmax_sq ,   lanePrint ) );
-   std::cout << " lane done = "   << laneIsDone
-             << " allDone = "     << allDone
-             << std::endl;
+      cout
+             << " error-x/p = "   << setw( wd2) << sqrt( errPosLane2 ) // vecCore::Get( errPosSq ,    lanePrint ) )
+             << " "               << setw( wd2) << sqrt( errMomLane2 ) // vecCore::Get( errMomSq ,    lanePrint ) ) // << " "
+             << " errMax = "      << setw( wd2) << sqrt( errMax2 )  ; // vecCore::Get( errmax_sq ,   lanePrint ) );
 
-   if( laneIsDone  ) std::cout << std::endl;
+   cout << " lane done = "   << laneIsDone;
 
-   std::cout.precision(oldPrec);
+   if( allDone >= 0 )
+      cout << " allDone = "     << allDone;
+             
+   cout << std::endl;
+
+   if( laneIsDone  ) cout << std::endl;
+
+   cout.precision(oldPrec);
    
-   // if( allDone ) std::cout << std::endl;
+   // if( allDone ) cout << std::endl;
    // **> Old mode - that printed all updates - not just ones in which this lane was active.
 }
 
