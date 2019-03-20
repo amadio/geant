@@ -804,7 +804,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
     // Debugging one lane (at a time)  -------------  2019.02.27
     if( printLane ) { // if ( (laneToCheck >= 0) && vecCore::Get( Active, laneToCheck ) ) {
        ReportOneLane ( h, epsPosition, errpos_sq, errmom_sq, errmax_sq, laneDone,
-                       allDone, iter, tot_no_trials, laneToCheck, "SimpleID" );  // "SimpleIntDrv" );
+                       allDone, iter, tot_no_trials, laneToCheck, trackToPrint,
+                       "SimpleID" );  // "SimpleIntDrv" );
     }
     // End debug code                 -------------  2019.02.27
 #endif          
@@ -1273,7 +1274,7 @@ bool SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::InsertNewTrack(
       Set(startCurveLength, slot, slen);
 
 #ifdef CHECK_ONE_LANE
-      const int trackToPrint = IntegrationDriverConstants::GetInstance()->GetTrackToCheck();            
+      const int trackToPrint = IntegrationDriverConstants::GetInstance()->GetTrackToCheck();
       if( trackNextInput == trackToPrint )
          laneToCheck = slot;
 #endif

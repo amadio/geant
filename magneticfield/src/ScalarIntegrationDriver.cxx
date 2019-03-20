@@ -257,17 +257,35 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
     fpStepper->RightHandSideVIS(y, charge, dydx); // TODO: change to inline
     fNoTotalSteps++;
 
+// #ifdef CHECK_DYDX    
     std::cout << "ScalarDriver::AccurateAdv>  RHS called with q= " << charge
               << " at Position = " << y[0] << " y= " << y[1] << " z= " << y[2]
               << " with Momentum = " << y[3] << " y= " << y[4] << " z= " << y[5] << " ";
+          
+    vecgeom::Vector3D<double> Bfield;
+    double dydxAgn[ScalarFieldTrack::ncompSVEC];
+    auto equationPtr= fpStepper->GetEquationOfMotion();
+    using geant::units::tesla;
+
+    equationPtr->EvaluateRhsReturnB(y, charge, dydxAgn, Bfield);
+          // (const double y[], double dydx[], double charge,
+    std::cout << " from B-field,  Bx= " << Bfield.x() / tesla << " By= " << Bfield.y() / tesla
+              << " Bz= " << Bfield.z() / tesla << " ";
     std::cout << " gives Derivs dydx= :  x = " << dydx[0] << " y = " << dydx[1] << " z = " << dydx[2]        
               << " px= " << dydx[3] << " py= " << dydx[4] << " pz= " << dydx[5] << std::endl;
-                                                                              
-    vecgeom::Vector3D<double> fieldVal;
-    auto equationPtr= fpStepper->GetEquationOfMotion();
-    equationPtr->EvaluateRhsReturnB(y, charge, dydx, fieldVal);
-          // (const double y[], double dydx[], double charge,
-                                                                                   
+/***                                                                                   
+    std::cout << " Cross check: ";                                                                               
+    std::cout << "   Derivs  dydx= :  x = " << dydx[0] << " y = " << dydx[1] << " z = " << dydx[2]        
+              << " px= " << dydx[3] << " py= " << dydx[4] << " pz= " << dydx[5] << std::endl;
+    std::cout << "   D/again dydx= :  x = " << dydxAgn[0] << " y = " << dydxAgn[1] << " z = " << dydxAgn[2]        
+              << " px= " << dydxAgn[3] << " py= " << dydxAgn[4] << " pz= " << dydxAgn[5] << std::endl;
+***/
+    std::cout << "   -diff   dydx= :  x = " << dydx[0] - dydxAgn[0] << " y = " << dydx[1] - dydxAgn[1]
+              << " z = " << dydx[2] - dydxAgn[2]
+              << " px= " << dydx[3] - dydxAgn[3]
+              << " py= " << dydx[4]-dydxAgn[4] << " pz= " << dydx[5]-dydxAgn[5] << std::endl;
+// #endif // of CHECK_DYDX
+
     // Perform the Integration
     //
     if ( true )
@@ -659,8 +677,10 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     // Debugging output
     bool stepOk = (errmax_sq <= 1.0);
     if( fPrintDerived )
-       ReportOneLane ( h, eps_pos, errpos_sq, errmom_sq, errmax_sq, stepOk, stepOk, 
-                       iter, tot_no_trials, 0, "ScalarIntDrv" );
+       ReportOneLane ( h, eps_pos, errpos_sq, errmom_sq, errmax_sq, stepOk, -1,
+                       iter, tot_no_trials, 0,
+                       this->GetTrackNumber(),
+                       "ScalarIntDrv" );
 #endif
     
     // if( hasSpin )

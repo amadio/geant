@@ -14,6 +14,8 @@
 #ifndef ScalarIntegrationDriver_Def
 #define ScalarIntegrationDriver_Def
 
+#include "Geant/SystemOfUnits.h"   // For definition of Tesla in debug printout .. 2019.03.15
+
 #include "Geant/ScalarFieldTrack.h"
 
 // class VScalarIntegrationStepper;

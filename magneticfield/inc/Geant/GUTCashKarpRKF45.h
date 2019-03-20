@@ -55,7 +55,20 @@ public:
   REALLY_INLINE
   void RightHandSideInl(const double y[], double charge, double dydx[])
   {
-    fEquation_Rhs->T_Equation::RightHandSide(y, charge, dydx);
+     using geant::units::tesla;
+     
+     std::cout << "Scalar GUT-CashKarpRKF45::RHS called with q= " << charge
+               << " at Position = " << y[0] << " y= " << y[1] << " z= " << y[2]
+               << " with Momentum = " << y[3] << " y= " << y[4] << " z= " << y[5] << " ";
+    // fEquation_Rhs->T_Equation::RightHandSide(y, charge, dydx);
+
+    vecgeom::Vector3D<double> Bfield;
+     
+    fEquation_Rhs->T_Equation::EvaluateRhsReturnB(y, charge, dydx, Bfield);
+    std::cout << " from B-field,  Bx= " << Bfield.x() / tesla << " By= " << Bfield.y() / tesla << " Bz= " << Bfield.z() / tesla << " ";
+    std::cout << " gives Derivs dydx= :  x = " << dydx[0] << " y = " << dydx[1] << " z = " << dydx[2]
+              << " px= " << dydx[3] << " py= " << dydx[4] << " pz= " << dydx[5]
+              << std::endl;
   }
 
   REALLY_INLINE
@@ -72,7 +85,7 @@ public:
     // fEquation_Rhs->T_Equation::RightHandSide(y, dydx, Bfield);
     // fEquation_Rhs->TEvaluateRhsGivenB( y, dydx, charge, Bfield);
 
-    fEquation_Rhs->TEvaluateRhsReturnB(y, dydx, charge, Bfield);
+    fEquation_Rhs->TEvaluateRhsReturnB(y, charge, dydx, Bfield);
   }
 
   void SetEquationOfMotion(T_Equation *equation);
