@@ -51,12 +51,12 @@ public:
 
   /**
    * @brief Begin a new event.
-   * @details The slot number is evt%ninflight, for easier user data management.
+   * @details The event was just begun, no track dispatched yet.
    */
-  virtual void BeginEvent(int /*evt*/, int /*islot*/) {}
+  virtual void BeginEvent(Event * /*event*/) {}
   /**
    * @brief  User FinishEvent function.
-   * @details The slot released is evt%ninflight, for easier user data management.
+   * @details The event has finished transporting its laast track
    */
   virtual void FinishEvent(Event * /*event*/) {}
 

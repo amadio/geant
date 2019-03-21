@@ -12,6 +12,7 @@
 #include "Geant/Basket.h"
 #include "StackLikeBuffer.h"
 #include "Geant/MCTruthMgr.h"
+#include "Geant/StdApplication.h"
 
 #include "navigation/SimpleNavigator.h"
 #include "volumes/PlacedVolume.h"
@@ -276,6 +277,11 @@ Event *EventServer::ActivateEvent(Event *event, unsigned int &error, TaskData *t
   }
   event       = fEvents[slot];
   int nactive = fNactive.fetch_add(1) + 1;
+
+  // Call user BeginEvent function
+  assert(fRunMgr->GetUserApplication() != nullptr);
+  fRunMgr->GetUserApplication()->BeginEvent(event);
+  if (fRunMgr->GetStdApplication()) fRunMgr->GetStdApplication()->BeginEvent(event);
 
   // Check if all events were served
   if (fRunMgr->GetConfig()->fRunMode == GeantConfig::kGenerator) {

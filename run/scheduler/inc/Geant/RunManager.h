@@ -153,6 +153,9 @@ public:
   UserApplication *GetUserApplication() const { return fApplication; }
 
   GEANT_FORCE_INLINE
+  UserApplication *GetStdApplication() const { return fStdApplication; }
+
+  GEANT_FORCE_INLINE
   void SetDetectorConstruction(UserDetectorConstruction *det) { fDetConstruction = det; }
 
   GEANT_FORCE_INLINE
