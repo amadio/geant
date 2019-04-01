@@ -624,6 +624,8 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
   // double   spin_mag2 =Spin.Mag2() ;
   // bool     hasSpin= (spin_mag2 > 0.0);
 
+  double magmomInit_sq = y[3] * y[3] + y[4] * y[4] + y[5] * y[5];
+  
   for (iter = 0; iter < max_trials; iter++)
   {
     tot_no_trials++;
@@ -639,7 +641,8 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     errpos_sq *= inv_eps_pos_sq; // Scale relative to required tolerance
 
     // Accuracy for momentum
-    double magmom_sq = y[3] * y[3] + y[4] * y[4] + y[5] * y[5];
+    // double magmom_sq = ytemp[3] * ytemp[3] + ytemp[4] * ytemp[4] + ytemp[5] * ytemp[5];   // Use the final momentum
+    double magmom_sq = magmomInit_sq;
     double sumerr_sq = yerr[3] * yerr[3] + yerr[4] * yerr[4] + yerr[5] * yerr[5];
 
     constexpr double tinyValue = 1.0e-80; // Just to ensure there is no division by zero
@@ -676,13 +679,22 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     
     // Debugging output
     bool stepOk = (errmax_sq <= 1.0);
-    if( fPrintDerived )
+    if( fPrintDerived ) {
        ReportOneLane ( h, eps_pos, errpos_sq, errmom_sq, errmax_sq, stepOk, -1,
                        iter, tot_no_trials, 0,
                        this->GetTrackNumber(),
                        "ScalarIntDrv" );
+       if( 0 ) {  
+          std::cout << " - Errors mom x/y/z = " << yerr[3] << " / " << yerr[4] << " / " << yerr[5] << " " << std::endl;
+          std::cout << " - Sum Errors: pos^2 = " << errpos_sq << "  mom^2 = " << sumerr_sq   << std::endl;
+          std::cout << " up - Sum Err mom^2 = " << sumerr_sq   << std::endl;
+          std::cout << " dwn - |Mom^2|      = " << magmom_sq + tinyValue << std::endl;
+          std::cout << " mul:1/e_vel^2      = " << inv_eps_vel_sq << std::endl;
+          std::cout << " - errMom^2 " << errmom_sq << " , errMom " << std::sqrt(errmom_sq)
+                    << " tiny = " << tinyValue  << std::endl;
+       }
+    }
 #endif
-    
     // if( hasSpin )
     // {
     //    // Accuracy for spin
@@ -699,6 +711,8 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     // Step failed; compute the size of retrial Step.
     htemp = fSafetyFactor * h * Math::Pow(errmax_sq, 0.5 * fPowerShrink);
 
+    if( fPrintDerived ) { std::cout << " htemp = " << htemp << " pow-shrink = " << fPowerShrink; }
+    
     if (htemp >= 0.1 * h) {
       h = htemp;
     } // Truncation error too large,
@@ -706,7 +720,11 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
       h = 0.1 * h;
     } // reduce stepsize, but no more
     // than a factor of 10
+
     xnew = x + h;
+
+    if( fPrintDerived ) { std::cout << " h (new) = " << h << " xnew = " << xnew << std::endl; }
+    
     if (xnew == x) {
       std::cerr << "GVIntegratorDriver::OneGoodStep:" << std::endl << "  Stepsize underflow in Stepper " << std::endl;
       std::cerr << "  Step's start x=" << x << " and end x= " << xnew << " are equal !! " << std::endl
@@ -729,11 +747,15 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
   // Compute size of next Step
   if (errmax_sq > fErrcon * fErrcon) {
     hnext = GetSafety() * h * Math::Pow(errmax_sq, 0.5 * GetPowerGrow());
+    if( fPrintDerived ) { std::cout << " hnext = " << hnext << "(formula)"; }
   } else {
     hnext = fMaxSteppingIncrease * h; // No more than a factor of 5 increase
+    if( fPrintDerived ) { std::cout << " hnext = " << hnext << " (else)  "; }    
   }
   x += (hdid = h);
 
+  if( fPrintDerived ) { std::cout << " xEnd = " << x << " hdid = " << hdid  << std::endl; }    
+  
   for (int k = 0; k < fNoIntegrationVariables; k++) {
     y[k] = ytemp[k];
   }

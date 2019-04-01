@@ -718,6 +718,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   int itersLeft     = max_trials;
 
   // ReportManyRowsOfDoubles( "yStart",  yStart, Nvar );
+  Real_v magmomInit_sq = yStart[3] * yStart[3] + yStart[4] * yStart[4] + yStart[5] * yStart[5];
 
   do {
     Real_v errpos_sq = 0.0; // square of displacement error
@@ -771,7 +772,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
     errpos_sq *= invEpsPositionSq; // Scale relative to required tolerance
 
     // Accuracy for momentum
-    const Real_v magmom_sq = ytemp[3] * ytemp[3] + ytemp[4] * ytemp[4] + ytemp[5] * ytemp[5];
+    // const Real_v magmom_sq = ytemp[3] * ytemp[3] + ytemp[4] * ytemp[4] + ytemp[5] * ytemp[5];  // Use the final momentum
+    const Real_v magmom_sq = magmomInit_sq;
     const Real_v sumerr_sq = yerr[3] * yerr[3] + yerr[4] * yerr[4] + yerr[5] * yerr[5];
 
     // vecCore::CondAssign(magmom_sq > 0.0, sumerr_sq/magmom_sq, sumerr_sq, &errmom_sq);
@@ -806,6 +808,15 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
        ReportOneLane ( h, epsPosition, errpos_sq, errmom_sq, errmax_sq, laneDone,
                        allDone, iter, tot_no_trials, laneToCheck, trackToPrint,
                        "SimpleID" );  // "SimpleIntDrv" );
+       // ReportManyRowsOfDoubles("err-p/xyz", yerr[3], 3 );
+       ReportRowOfDoubles("err-p/x", yerr[3] );
+       ReportRowOfDoubles("err-p/y", yerr[4] );
+       ReportRowOfDoubles("err-p/z", yerr[5] );
+       // ReportRowOfSquareRoots("|err-p|^2", yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5] );
+       // ReportRowOfDoubles("up = SumErr^2", sumerr_sq );
+       // ReportRowOfDoubles("dwn= magMom^2+e", magmom_sq + tinyValue );
+       // ReportRowOfDoubles("mul:1/e_vel^2", invEpsilonRelSq );
+       // ReportRowOfDoubles("ErrMom", errmom_sq );
     }
     // End debug code                 -------------  2019.02.27
 #endif          
@@ -837,6 +848,22 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
     stepSizeUnderflow = Active && (xnew == x);
 
+#ifdef CHECK_ONE_LANE    
+    if( printLane ) {
+      ReportRowOfBools<Real_v>("laneDone", laneDone);
+      ReportRowOfBools<Real_v>("Active", Active);
+      ReportRowOfDoubles("powerShrink=", fPowerShrink );
+      std::cout << " safetyFactor = " << fSafetyFactor << std::endl;
+      ReportRowOfDoubles("errMaxSq=", errmax_sq );
+      ReportRowOfSquareRoots("errMax=", errmax_sq );
+      ReportRowOfDoubles("errPower=", errPower );
+      ReportRowOfDoubles("hReduced=", hReduced );
+      ReportRowOfDoubles("hnew=", hnew );
+      ReportRowOfDoubles("xnew=", xnew );
+      ReportRowOfBools<Real_v>("underflow", stepSizeUnderflow);
+    }
+#endif
+    
 #ifndef STORE_ONCE
     if (!vecCore::MaskEmpty(stepSizeUnderflow)) {
       int numUnder = 0;
@@ -1390,16 +1417,12 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   using FormattedReporter::ReportRowOfSquareRoots;
   using FormattedReporter::ReportRowsOfPositionsMomenta;
   using Bool_v = vecCore::Mask_v<Real_v>;
-<<<<<<< HEAD
-=======
+
   // using AllignedInt_v = vecCore::Int_v<Real_v>; // Alligned with Real_v ... same # of entries ..
   using vecCore::math::Min;
   using vecCore::math::Max;
->>>>>>> Create and use ReportOneLane methods in Scalar & Vector code, to print/debug progress of one lane.
   using std::cout;
   using std::endl;
-  using vecCore::math::Max;
-  using vecCore::math::Min;
 
   constexpr unsigned int VecSize = vecCore::VectorSize<Real_v>();
   int indexArr[VecSize]; // vecCore::VectorSize<Real_v>()];
@@ -1481,15 +1504,6 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
 
   x = x1;
 
-<<<<<<< HEAD
-  while ((!vecCore::MaskFull(isDoneLane) &&
-          !vecCore::MaskEmpty((nstp <= Index_v(fMaxNoSteps)) && (x < x2) && (!isLastStepLane))) ||
-         idNext < nTracks) {
-    if (partDebug)
-      std::cout << "************************************" << std::endl
-                << "** Top of while loop ***************" << endl
-                << "----hStepLane is: " << hStepLane << endl;
-=======
   // const AllignedInt_v laneNum =
 
   while (
@@ -1503,8 +1517,6 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
         ReportManyRowsOfDoubles("yStart", y, Nvar);
         // ReportManyRowsOfInts("Lane#", laneNum, Nvar);
      }
->>>>>>> Create and use ReportOneLane methods in Scalar & Vector code, to print/debug progress of one lane.
-
     
     // if( h > fMinimumStep ) { QuickAdvance .. } else { .. below  //  ( Sequential code  )
     // if (useOneStep) {

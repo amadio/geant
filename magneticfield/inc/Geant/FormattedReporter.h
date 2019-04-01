@@ -26,6 +26,8 @@ void ReportRowOfDoubles(std::string varName, const Real_v &varValue, int charNam
   using std::cout;
   using std::endl;
 
+  const int minPrec= 9;
+  
   // int argWV= widthVal;
   if (charName <= 0) {
     charName = sDefaultNameLength;
@@ -35,7 +37,7 @@ void ReportRowOfDoubles(std::string varName, const Real_v &varValue, int charNam
   }
 
   int prec = (widthVal - 7);
-  prec     = std::min(5, prec);
+  prec     = std::min(minPrec, prec);
   widthVal = prec + 7;
 
   cout << std::setw(charName) << varName << " : ";
@@ -228,12 +230,14 @@ void
    // const int trackToPrint = IntegrationDriverConstants::GetInstance()->GetTrackToCheck();   
    
    cout << std::setw(12) << methodName << " - ReportOneLane : "
-        << " track/2pr : " << setw(3) << trackNum  /* trackToPrint */ << " "
-        << " lane: " << setw(3) << lanePrint << " > "
-        << " iter = " << setw(3) << iter << " #call= " << setw(5) << noCall
-        << std::setprecision( 6 )
-        << " h = "           << setw( wd ) << vecCore::Get( hStep ,       lanePrint )
-        << " Eps-x = "       << setw( wd ) << vecCore::Get( epsPosition , lanePrint );
+        << " trk# "     << setw(3) << trackNum  /* trackToPrint */ << " "
+        << " lane: "    << setw(3) << lanePrint << " > "
+        << " iter = "   << setw(3) << iter << " #call= " << setw(5) << noCall;
+   prec=6;
+   wd = prec + 5;
+   cout << std::setprecision( prec )
+        << " h = "      << setw( wd ) << vecCore::Get( hStep ,       lanePrint )
+        << " Eps-x = "  << setw( wd ) << vecCore::Get( epsPosition , lanePrint );
 
    double errPosLane2 = vecCore::Get( errPosSq ,    lanePrint );
    double errMomLane2 = vecCore::Get( errMomSq ,    lanePrint );

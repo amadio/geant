@@ -16,7 +16,7 @@
 
 // #define OUTSIDE_MagFieldEquation 1
 
-#define DEBUG_EQUATION  1
+// #define DEBUG_EQUATION  1
 
 #ifdef  DEBUG_EQUATION
 #include "FormattedReporter.h"
@@ -54,6 +54,8 @@ public:
                                                   Real_v             dydx [] ) const
   {
     // FormattedReporter::ReportManyRowsOfDoubles("B_field", Bfield, 3);
+   ( y[0] * Bfield[0] + y[1] ) - dydx[2];
+#ifdef  DEBUG_EQUATION    
     double invTesla = 1.0 / geant::units::tesla;
     std::cout << "MagFieldEquation::ReportPositionFieldDydx location | B-field |  dy/dx " << std::endl;
     FormattedReporter::ReportRowOfDoubles("Pos_x", y[0]);
@@ -67,6 +69,7 @@ public:
     std::cout << "MagFieldEquation::RightHandSide obtained: " << std::endl;
     FormattedReporter::ReportManyRowsOfDoubles("dydx", dydx, 6);
     std::cout << "---===============================================================================---"<<std::endl;
+#endif
   }
   
   template <typename Real_v>
