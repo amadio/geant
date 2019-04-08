@@ -617,10 +617,13 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
   // if (partDebug) { cout << "\n" << endl; }
 
-  Real_v errmaxSqEnd(0.0), xnew;
+  Real_v xnew;
   Real_v yerr[ncompSVEC], ytemp[ncompSVEC];
   Real_v h = htry; // Set stepsize to the initial trial value
   // Renamed it to hStep
+#ifdef STORE_ONCE  
+  Real_v errmaxSqFallThru(0.0);
+#endif  
 
   // Real_v  //  Epsilon was variable per track (ToCheck)
   double invEpsilonRelSq = 1.0 / (eps_rel_max * eps_rel_max);
@@ -747,7 +750,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
       ReportConditionLanes(problemLanes, x, xnew, h, htry);
     }
 
-    errmaxSqEnd= errmax_sq;
+#ifdef STORE_ONCE
+    errmaxSqFallThru= errmax_sq;
+#endif
     
   } while (itersLeft > 0 && (!vecCore::MaskFull(finished)) //  was MaskFull( stepSizeUnderflow || goodStep ) )
   );
@@ -758,7 +763,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
 #ifdef STORE_ONCE
   //  'Idea 3' - Store exactly one time ( here - except on loop exit)
-  StoreGoodValues(ytemp, h, errmaxSqEnd, finished, yFinal, hFinal, errmax_sqFinal);
+  StoreGoodValues(ytemp, h, errmaxSqFallThru, finished, yFinal, hFinal, errmax_sqFinal);
   //*************        
 //   Why not store all ?
 #endif

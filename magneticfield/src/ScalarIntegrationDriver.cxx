@@ -745,16 +745,21 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
 #endif
 
   // Compute size of next Step
+  if( fPrintDerived ) { std::cout << " errmax / fErrcon = " << std::sqrt( errmax_sq ) / fErrcon << " "; }
+  
   if (errmax_sq > fErrcon * fErrcon) {
-    hnext = GetSafety() * h * Math::Pow(errmax_sq, 0.5 * GetPowerGrow());
-    if( fPrintDerived ) { std::cout << " hnext = " << hnext << "(formula)"; }
+    double growthFac = GetSafety() * Math::Pow(errmax_sq, 0.5 * GetPowerGrow());     
+    hnext = h * growthFac; // GetSafety() * h * Math::Pow(errmax_sq, 0.5 * GetPowerGrow());
+    if( fPrintDerived ) { std::cout << " hnext = " << hnext << "  ( formula - grow  )   stretch-factor = " << growthFac << " "; }
   } else {
     hnext = fMaxSteppingIncrease * h; // No more than a factor of 5 increase
-    if( fPrintDerived ) { std::cout << " hnext = " << hnext << " (else)  "; }    
+    if( fPrintDerived ) { std::cout << " hnext = " << hnext << "  (else MaxIncrease )  "; }
   }
   x += (hdid = h);
 
-  if( fPrintDerived ) { std::cout << " xEnd = " << x << " hdid = " << hdid  << std::endl; }    
+  if( fPrintDerived ) { std::cout << " [ errCon = " << fErrcon << " ]  "
+                                  << " errmax / errcon = " << std::sqrt( errmax_sq ) / fErrcon << "  " 
+                                  << "xEnd = " << x << " hdid = " << hdid  << std::endl; }
   
   for (int k = 0; k < fNoIntegrationVariables; k++) {
     y[k] = ytemp[k];

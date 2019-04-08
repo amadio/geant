@@ -127,7 +127,7 @@ public:
   const int gMaxIndex = kNoRValues * kNoZValues;
   // static constexpr
   const size_t gNumberOfFieldValues = gNumFieldComponents * gMaxIndex; //  kNoZValues * kNoRValues;
-   
+
   // Derived values
   // kRDiff and kZDiff take care of mm because they come from kRMax and kZMax which have mm in them
   const float kRDiff = kRMax / (kNoRValues - 1);     //  Radius increment between lattice points

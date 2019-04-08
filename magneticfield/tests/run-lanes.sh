@@ -10,7 +10,7 @@
 runId=$1;  shift ;  ## "runD10"
 list=$*
 
-( cd $EX_BUILD_DIR ; make -k -j 4 testVectorIntegrationDriver ) || ( echo "Make failed - exiting. " ; exit 1 )
+( cd $EX_BUILD_DIR ; make -k -j 4 testVectorIntegrationDriver || ( echo "Make failed - exiting. " ; exit 1 ) )
 
 for lane in $list 
 do
