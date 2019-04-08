@@ -116,12 +116,18 @@ public:
 
   const float kRMax                         = 9000. * millimeter;  //  Maximum value of R =  9.00 meters
   const float kZMax                         = 16000. * millimeter; //  Max value of Z = 16.00 meters
-  static constexpr int kNoZValues           = 161;
+  // static constexpr int kNoZValues           = 161;
+  const int kNoZValues           = 161;   
   static constexpr int kNoRValues           = 181;
   static constexpr int kHalfZValues         = 80;
   static constexpr int gNumFieldComponents  = 3;
   static constexpr bool gFieldChangesEnergy = false;
 
+  // static constexpr int gMaxIndex = kNoRValues * kNoZValues;
+  const int gMaxIndex = kNoRValues * kNoZValues;
+  // static constexpr
+  const size_t gNumberOfFieldValues = gNumFieldComponents * gMaxIndex; //  kNoZValues * kNoRValues;
+   
   // Derived values
   // kRDiff and kZDiff take care of mm because they come from kRMax and kZMax which have mm in them
   const float kRDiff = kRMax / (kNoRValues - 1);     //  Radius increment between lattice points
@@ -163,8 +169,8 @@ public:
   enum kIndexRPhiZ { kNumR = 0, kNumPhi = 1, kNumZ = 2 };
 
 private:
-  float*  fMagLinArray;   // float fMagLinArray[3 * kNoZValues * kNoRValues];
-  double* fMagLinArrayD;  // double fMagLinArrayD[3 * kNoZValues * kNoRValues];
+  float*  fMagLinArray;   // float fMagLinArray[gNumberOfFieldValues];
+  double* fMagLinArrayD;  // double fMagLinArrayD[gNumberOfFieldValues];
   bool fReadData;
   bool fOwnData;
   bool fVerbose;
@@ -178,8 +184,8 @@ CMSmagField::CMSmagField()
       fVerbose(true), fPrimary(false)
 {
   // fMagvArray = new MagVector3<float>[kNoZValues*kNoRValues];
-  fMagLinArray = new float[3 * kNoZValues * kNoRValues];
-  fMagLinArrayD = new double[3 * kNoZValues * kNoRValues];  
+  fMagLinArray = new float[gNumberOfFieldValues];
+  fMagLinArrayD = new double[gNumberOfFieldValues];  
   if (fVerbose) {
     ReportVersion();
   }
@@ -255,7 +261,7 @@ bool CMSmagField::ReadVectorData(std::string inputMap)
       ind += 3;
     }
     pFile.close();
-    for (size_t i      = 0; i < 3 * kNoZValues * kNoRValues; ++i)
+    for (size_t i      = 0; i < gNumberOfFieldValues; ++i)
       fMagLinArrayD[i] = fMagLinArray[i];
   } else {
     std::cerr << "Unable to open file (for CMS mag field). Name = '" << inputMap << "'" << std::endl;
@@ -313,11 +319,19 @@ GEANT_FORCE_INLINE const double *CMSmagField::GetFieldArray<geant::Double_v>() c
 template <typename Real_v>
 GEANT_FORCE_INLINE void CMSmagField::Gather2(const vecCore::Index<Real_v> index, Real_v B1[3], Real_v B2[3])
 {
+  using namespace vecCore::math;   
   using Index_v = vecCore::Index<Real_v>;
   using Real_s  = vecCore::Scalar<Real_v>;
 
   const Index_v ind1 = 3 * index; // 3 components per 'location'
-  const Index_v ind2 = ind1 + 3 * kNoZValues;
+  // const Index_v ind2 = ind + 3 * kNoZValues;  // Can exceed array size ... Bad !
+  const Index_v ind2 = 3 * Min( index + kNoZValues,
+                                   // + Index_v(kNoZValues),
+                                Index_v(kNoRValues*kNoZValues) );
+
+  // const Index_v ind2_old = ind + 3 * kNoZValues;
+  // Index_v diffInd = ind2 - ind2_old;
+  
   Real_s const *addr = GetFieldArray<Real_v>();
   // float const *addr = (Real_s const *)fMagLinArray;
 
@@ -341,8 +355,11 @@ template <>
 GEANT_FORCE_INLINE void CMSmagField::Gather2<double>(const vecCore::Index<double> index, double B1[3], double B2[3])
 {
   const int ind1 = 3 * int(index);
-  const int ind2 = ind1 + 3 * kNoZValues;
-
+  const int indexPlus = index + kNoZValues;
+  const int ind2 = 3 * std::min( indexPlus, gMaxIndex );
+  // const int ind2_old = ind1 + 3 * kNoZValues;
+  // assert ( ind2 == ind2_old || index >= (kNoRValues * kNoZValues - 1 ) );
+  
   // Fetch one component of each point first, then the rest.
   B1[0] = fMagLinArrayD[ind1 + kNumR];
   B2[0] = fMagLinArrayD[ind2 + kNumR];
