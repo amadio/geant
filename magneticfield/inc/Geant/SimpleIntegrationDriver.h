@@ -245,17 +245,11 @@ private:
 
   // ---------------------------------------------------------------
   // Compilation constants
-<<<<<<< HEAD
-  static constexpr bool partDebug = false;                 // Enforce debugging output
-  static constexpr int ncompSVEC  = FieldTrack::NumCompFT; // expect 6, later 8, eventually up to 12
-  const bool useOneStep           = true;                  //  Algorithm selection - false for KeepStepping
-=======
 #ifdef CONST_DEBUG  
   const bool partDebug  = false;                 // Enforce debugging output
 #endif
   const int ncompSVEC   = FieldTrack::NumCompFT; // expect 6, later 8, eventually up to 12
   const bool useOneStep = true;                  //  Algorithm selection - false for KeepStepping
->>>>>>> Create and use ReportOneLane methods in Scalar & Vector code, to print/debug progress of one lane.
 
   // ---------------------------------------------------------------
   //  INVARIANTS
@@ -930,6 +924,10 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   h = hFinal;
   // errmax_sq = errmax_sqFinal;
 
+// #define CHECK_STRETCH_FACTOR  1
+// #define USE_OLD_FACTOR 1
+// #if defined(CHECK_STRETCH_FACTOR) || defined(USE_OLD_FACTOR)  
+  
   // #ifdef CHECK_STRETCH_FACTOR
   // ------------------------------------------
   // The old way (improved) - to cross check
@@ -942,34 +940,50 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   Real_v errStretchOld = kSafetyFactor_v * Exp(kPowerGrow_v * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
 
   // ReportRowOfDoubles( "-raw-errStretch", errStretch);
-  errStretchOld  = Min(errStretchOld, Real_v(fMaxSteppingIncrease));
-  Bool_v zeroErr = errmax_sq <= minErr2;
+  errStretchOld  = Min( errStretchOld , Real_v(fMaxSteppingIncrease) ); 
+  Bool_v zeroErr = errmax_sqFinal <= minErr2;
   // Fix the size for steps with zero error !!
   vecCore::MaskedAssign(errStretchOld, zeroErr, Real_v(fMaxSteppingIncrease));
   // ReportRowOfDoubles( "old: errStretch", errStretchOld);
   // ------------------- End of Old way -----
   // #endif
 
+  // bool  printDbgH = (laneToCheck >= 0) && vecCore::Get( htry, laneToCheck ) > 0.0 ;
+  
+#ifdef USE_OLD_FACTOR
+  Real_v errStretch  = errStretchOld;
+  if( printDbgH ) {  
+     ReportRowOfDoubles("errStretch (=old)", errStretch);
+  }
+#else  
   // Check against fErrcon to avoid calling power ... saves work if any are 'over' max
   // fErrcon is 'const', cache them here to avoid memory contention (which leads to a lack of scalability)
-  static const Real_v kErrCon2_v     = fErrcon * fErrcon;
+  static const Real_v kErrCon2_v     = fErrcon * fErrcon;  
   static constexpr auto tPowerGrow_s = .5 * kPowerGrow;
-  Bool_v underThresh                 = errmax_sq <= kErrCon2_v;
-  Real_v errStretch                  = kSafetyFactor_v * PowerIf(errmax_sq, tPowerGrow_s, !underThresh);
+  Bool_v underThresh                 = errmax_sqFinal <= kErrCon2_v;  
+  Real_v errStretch1raw              = fSafetyFactor * PowerIf(errmax_sqFinal, tPowerGrow_s, !underThresh);
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
-  // Overwriting them!
-  vecCore::MaskedAssign(errStretch, underThresh, Real_v(fMaxSteppingIncrease));
+#if 0  
+  Real_v errStretch  = errStretch1raw;
+  vecCore::MaskedAssign(errStretch, underThresh, Real_v(fMaxSteppingIncrease));   // Overwriting them!
+#else
+  // New(est) alternative - 2019.04.03 JA
+  Real_v errStretch =
+    vecCore::Blend( underThresh, Real_v(fMaxSteppingIncrease), errStretch1raw );
+#endif
+  
+#endif  
   hnext = errStretch * h;
 
-  // #ifdef CHECK_STRETCH_FACTOR
-  if (!vecCore::MaskEmpty(errStretch - errStretchOld > 1.0e-12 * errStretch)) {
+#ifdef CHECK_STRETCH_FACTOR
+  if (!vecCore::MaskEmpty( vecCore::math::Abs(errStretch - errStretchOld) > 1.0e-12 * errStretch)) {
     cout << "ERROR> Lanes found with differences in calculated value of 'errStretch'"
          << "       ( factor for stretching step size for 'good' next step." << endl;
     ReportRowOfDoubles("old-new: errStretch", errStretch - errStretchOld);
     ReportRowOfDoubles("old: errStretch", errStretchOld);
     ReportRowOfDoubles("new: errStretch", errStretch);
   }
-  // #endif
+#endif
 
   // ReportRowOfDoubles( "OGS: h-final", hFinal);
 
@@ -978,7 +992,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
   bool OGSreport = true;
   if (partDebug && OGSreport) {
-    ReportRowOfDoubles("OGS: errmax2", errmax_sq);
+    ReportRowOfDoubles("OGS: errmax2", errmax_sqFinal);
     ReportRowOfDoubles("OGS: h-did ", hdid);
     ReportRowOfDoubles("OGS:  new-x", x);
     ReportRowOfDoubles("OGS: h-next", hnext);
