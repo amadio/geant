@@ -694,8 +694,12 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 #ifndef CONST_DEBUG
   partDebug = ( laneToCheck != -1 );
 #endif
-  if( laneToCheck != -1 )
-     cout << "* SID:AccAdv Values> trackToPrint = " << trackToPrint << " laneToCheck = " << laneToCheck << endl;
+  // bool  printNow = (laneToCheck >= 0) && vecCore::Get( htry, laneToCheck ) > 0.0 ;       
+  if( laneToCheck != -1 ) {
+     cout << "* SID:AccAdv Global Vars> trackToPrint = " << trackToPrint << " l2c / laneToCheck = " << laneToCheck;
+     cout << "  Args>  h[l2c] = " << vecCore::Get( htry, laneToCheck );     
+     cout << endl;
+  }
 #endif
 
   // int finishedArr[vecCore::VectorSize<Real_v>()] = {0,0,0,0};
@@ -924,11 +928,11 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   h = hFinal;
   // errmax_sq = errmax_sqFinal;
 
-// #define CHECK_STRETCH_FACTOR  1
-// #define USE_OLD_FACTOR 1
-// #if defined(CHECK_STRETCH_FACTOR) || defined(USE_OLD_FACTOR)  
-  
-  // #ifdef CHECK_STRETCH_FACTOR
+#define CHECK_STRETCH_FACTOR  1
+// #define USE_OLD_FACTOR   1
+     
+#if defined(CHECK_STRETCH_FACTOR) || defined(USE_OLD_FACTOR)
+// #ifdef CHECK_STRETCH_FACTOR
   // ------------------------------------------
   // The old way (improved) - to cross check
   constexpr double minErr2 = 1e-100;
@@ -946,9 +950,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   vecCore::MaskedAssign(errStretchOld, zeroErr, Real_v(fMaxSteppingIncrease));
   // ReportRowOfDoubles( "old: errStretch", errStretchOld);
   // ------------------- End of Old way -----
-  // #endif
+#endif
 
-  // bool  printDbgH = (laneToCheck >= 0) && vecCore::Get( htry, laneToCheck ) > 0.0 ;
+  bool  printDbgH = (laneToCheck >= 0) && vecCore::Get( htry, laneToCheck ) > 0.0 ;
   
 #ifdef USE_OLD_FACTOR
   Real_v errStretch  = errStretchOld;
@@ -963,16 +967,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   Bool_v underThresh                 = errmax_sqFinal <= kErrCon2_v;  
   Real_v errStretch1raw              = fSafetyFactor * PowerIf(errmax_sqFinal, tPowerGrow_s, !underThresh);
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
-#if 0  
-  Real_v errStretch  = errStretch1raw;
-  vecCore::MaskedAssign(errStretch, underThresh, Real_v(fMaxSteppingIncrease));   // Overwriting them!
-#else
-  // New(est) alternative - 2019.04.03 JA
   Real_v errStretch =
     vecCore::Blend( underThresh, Real_v(fMaxSteppingIncrease), errStretch1raw );
-#endif
-  
-#endif  
   hnext = errStretch * h;
 
 #ifdef CHECK_STRETCH_FACTOR
@@ -985,6 +981,29 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   }
 #endif
 
+#ifdef CHECK_ONE_LANE
+  // bool  printDbgH = (laneToCheck >= 0) && vecCore::Get( htry, laneToCheck ) > 0.0 ;  
+  if( printDbgH ) {
+      std::cout << "################################################################################-----------------" << std::endl;
+      std::cout << "Determining next step size (hnext) as steps were successful (in all lanes.)" << std::endl;
+      ReportRowOfDoubles("errMaxSq(Final)=", errmax_sqFinal );
+      ReportRowOfDoubles("errStretch-raw", errStretch1raw);
+      ReportRowOfDoubles("errStretch", errStretch);
+      ReportRowOfDoubles("old: errStretch", errStretchOld);
+      ReportRowOfDoubles("hnext=", hnext );      
+      std::cout << "--------------------------------------------------------------------------------------------------" << std::endl;
+      ReportRowOfSquareRoots("sqrt(errMax2/fErrcon^2)=", (1.0 / (fErrcon * fErrcon)) *  errmax_sqFinal);
+      ReportRowOfDoubles(    "errMax/Errcon (by hand)=", vecCore::math::Sqrt( errmax_sqFinal ) / fErrcon );
+      // ReportRowOfBools<Real_v>("overThresh", overThresh);
+      ReportRowOfBools<Real_v>("underThresh", underThresh);
+      std::cout << "***********   fErrcon = " << fErrcon << "    square = " << fErrcon * fErrcon << std::endl;
+      ReportRowOfDoubles("powerGrow=", fPowerGrow );
+      std::cout << " safetyFactor = " << fSafetyFactor << std::endl;
+      std::cout << "################################################################################------------------" << std::endl;      
+  }
+#endif
+#endif
+  
   // ReportRowOfDoubles( "OGS: h-final", hFinal);
 
   hdid = hFinal;
