@@ -213,7 +213,6 @@ template <typename Equation_t, typename Stepper_t>
                           Stepper_t **stepperObj )
 {
   const char *methodName = "FieldPropagatorFactory::CreateDriverForStepper";
-  int statsVerbose       = 1;
 
   // std::cout << methodName << " called. " << std::endl;
 
@@ -222,7 +221,7 @@ template <typename Equation_t, typename Stepper_t>
   auto myStepper    = new Stepper_t(&equation);
 
   using DriverType  = SimpleIntegrationDriver<Stepper_t, Nposmom>;
-  auto vectorDriver = new DriverType(minStepSize, myStepper, Nposmom, statsVerbose);
+  auto vectorDriver = new DriverType(minStepSize, myStepper, Nposmom);
 
   assert(vectorDriver);
 
@@ -256,7 +255,6 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::CreateFlexibleDriver(Field
   FlexIntegrationDriver* vectorDriver= nullptr;
   
   const char *methodName = "FieldPropagatorFactory::CreateFlexibleDriver";
-  int statsVerbose       = 1;
 
   // New flexible (scalar + vector) versions of field, equation, ...
 
@@ -274,27 +272,27 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::CreateFlexibleDriver(Field
         
            // myStepperDoPri5 = new StepperTypeDoPri457(gvEquation);
            // vectorDriver = new SimpleIntegrationDriver<StepperTypeDoPri457, Nposmom>
-           //                       (minStepSize, myStepperDoPri5, Nposmom, statsVerbose);
+           //                       (minStepSize, myStepperDoPri5, Nposmom);
         break;
      case kBogackiShampineStepper:
         myStepperBS234 = new StepperTypeBS234(gvEquation);
         vectorDriver = new SimpleIntegrationDriver<StepperTypeBS234, Nposmom>
-                                     (minStepSize, myStepperBS234, Nposmom, statsVerbose);
+                                     (minStepSize, myStepperBS234, Nposmom );
         break;         
      case kCashKarpStepper:      
         myStepperCK5 = new StepperTypeCK456(gvEquation);
         vectorDriver = new SimpleIntegrationDriver<StepperTypeCK456, Nposmom>
-                                     (minStepSize, myStepperCK5, Nposmom, statsVerbose);        
+                                     (minStepSize, myStepperCK5, Nposmom );        
         break;
      default:
         std::cerr << methodName << " WARNING : Stepper type not defined - using CashKarp (default.)" << std::endl;
         myStepperCK5 = new StepperTypeCK456(gvEquation);
         vectorDriver = new SimpleIntegrationDriver<StepperTypeCK456, Nposmom>
-                                     (minStepSize, myStepperCK5, Nposmom, statsVerbose);        
+                                     (minStepSize, myStepperCK5, Nposmom );        
         
   }
   // using DriverType  = SimpleIntegrationDriver<StepperType, Nposmom>;
-  // auto vectorDriver = new DriverType(minStepSize, myStepper, Nposmom, statsVerbose);
+  // auto vectorDriver = new DriverType(minStepSize, myStepper, Nposmom);
 
   assert(vectorDriver);
 

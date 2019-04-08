@@ -237,12 +237,10 @@ int main(int argc, char *argv[])
   using StepperType = CashKarp<GvEquationType, Nposmom>;
   auto myStepper    = new StepperType(gvEquation);
 
-  int statsVerbose = 1;
-
   using DriverType = SimpleIntegrationDriver<StepperType, Nposmom>;
   // using DriverType = OldIntegrationDriver<StepperType, Nposmom>;  
   auto vectorDriver =
-      new DriverType(hminimum, myStepper, Nposmom, statsVerbose);
+      new DriverType(hminimum, myStepper, Nposmom );
   if( verbose ) { cout << " Vector Driver created." << endl; } 
   // ========== Vector Driver prepared ========================
 
