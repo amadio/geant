@@ -41,7 +41,8 @@ class ErrorEstimatorSixVec {
     double GetMaxRelativeError() const { return fEpsRelMax; }
 
   public:
-    static constexpr double tinyValue = 1.0e-80; // Just to ensure there is no division by zero
+    // static constexpr
+    const double tinyValue = 1.0e-80; // Just to ensure there is no division by zero
     
   private:
     const double fEpsRelMax;

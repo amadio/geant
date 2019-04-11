@@ -1577,7 +1577,7 @@ Real_v RollingIntegrationDriver< T_Stepper, Nvar>::
 
   Bool_v goodStep = (errMaxNorm <= 1.0);
   Real_v powerUse = vecCore::Blend(goodStep, powerShrink, powerGrow);
-  Real_v stretch  = GetSafetyFactor() * vecgeom::Pow(errMaxNorm, powerUse);
+  Real_v stretch  = GetSafetyFactor() * Math::Pow(errMaxNorm, powerUse);
   Real_v hNew     = stretch * hStepCurrent;
   return hNew;
 }
@@ -1601,7 +1601,7 @@ Real_v RollingIntegrationDriver<T_Stepper, Nvar>::
   Bool_v goodStep = (errMaxNorm <= 1.0);
   Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
 
-  Real_v stretch = fSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
+  Real_v stretch = fSafetyFactor * Math::Pow(errMaxNorm, powerUse);
 
   Real_v stemp;
   stemp   = vecCore::math::Max(stretch, fMaxSteppingDecrease);

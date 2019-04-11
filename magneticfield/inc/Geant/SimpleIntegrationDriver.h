@@ -60,7 +60,7 @@
 template <class T_Stepper, unsigned int Nvar>
    class SimpleIntegrationDriver : public BaseRkIntegrationDriver<T_Stepper, Nvar>, 
                                        // FlexIntegrationDriver,
-                                public vecgeom::AlignedBase
+                                   public vecgeom::AlignedBase
 {
 public:
   template <typename T>
@@ -203,6 +203,7 @@ public:
   double GetSafetyFactor() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::fSafetyFactor; }
   int    GetVerboseLevel() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::fVerboseLevel; }
   int    GetStatisticsVerboseLevel() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetStatisticsVerboseLevel(); }
+  double GetSmallestFraction() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetSmallestFraction(); }
 
   // Accessors.
   unsigned int GetStepperOrder() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetStepperOrder(); }
@@ -270,11 +271,13 @@ private:
   // ---------------------------------------------------------------
   //  INVARIANTS
 
-  double fMinimumStep; // same
-  // Minimum Step allowed in a Step (in absolute units)
-  static constexpr double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
-  // Smallest fraction of (existing) curve length - in relative units
-  //  below this fraction the current step will be the last
+  // Moved to BaseRkIntegrationDriver
+  //
+  // double fMinimumStep; // same
+  //    Minimum Step allowed in a Step (in absolute units)
+  // static constexpr double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
+  //    Smallest fraction of (existing) curve length - in relative units
+  //    below this fraction the current step will be the last
 
   const double fHalfPowerShrink;
   unsigned long fMaxNoSteps= 100;  // Default - expect it to be overriden in constructor
@@ -345,6 +348,7 @@ private:
 #include "Geant/FormattedReporter.h"
 #endif
 
+<<<<<<< HEAD
 /*****
 template <class Real_v, class T_Stepper, unsigned int Nvar>
 constexpr double SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>::fMaxSteppingIncrease;
@@ -425,6 +429,8 @@ void SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>
 
 // ---------------------------------------------------------
 
+=======
+>>>>>>> SimpleIntegrationDriver: deleted code moved to BaseRkIntegrator (it was in comments.)
 //  Constructor
 //
 template <class T_Stepper, unsigned int Nvar>
@@ -437,17 +443,6 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double     hmi
                                                numComponents,
                                                false),  // statistics Verbosity
       fHalfPowerShrink( 0.5 * BaseRkIntegrationDriver<T_Stepper, Nvar>::GetPowerShrink() )
-      // , 
-      // fMinimumStep(hminimum),
-      // -- fSmallestFraction( 1.0e-12 ),
-      // -- fNoIntegrationVariables(numComponents),  // ==> Nvar
-      // -- fMinNoVars(12), fNoVars(std::max((int)Nvar, std::max((int)fMinNoVars, (int)numComponents))),
-      // - fPowerShrink(-1.0 / pStepper->GetIntegratorOrder()),       //  exponent for shrinking
-      // -fPowerGrow(-1.0 / (1.0 + pStepper->GetIntegratorOrder())), //  exponent for growth
-      // - fErrcon(0.0),
-      // fStatisticsVerboseLevel(statisticsVerbose),
-      // -- fNoInitialSmallSteps(0)
-      // fVerboseLevel(0)
 {
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
@@ -488,16 +483,9 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double     hmi
 //  Copy Constructor - used by Clone
 template <class T_Stepper, unsigned int Nvar>
 SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(
-    const SimpleIntegrationDriver</*Real_v,*/ T_Stepper, Nvar> &right)
+    const SimpleIntegrationDriver<T_Stepper, Nvar> &right)
     :
    BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver( right )
-
-// fMinimumStep(right.fMinimumStep), fSmallestFraction(right.fSmallestFraction),
-      // fNoIntegrationVariables( right.fNoIntegrationVariables ),
-      // fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)), 
-      // fPowerShrink(right.fPowerShrink), fPowerGrow(right.fPowerGrow), fErrcon(right.fErrcon),
-      // fStatisticsVerboseLevel(right.fStatisticsVerboseLevel) // ,
-      // fVerboseLevel(right.fVerboseLevel)
 {
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
@@ -526,10 +514,6 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::
    if (GetStatisticsVerboseLevel() > 1) {
       // PrintStatisticsReport();
    }
-
-   // delete fpScalarDriver;
-   // delete fpScalarStepper;
-   // delete fpStepper;
 }
 
 // ---------------------------------------------------------
@@ -662,7 +646,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
     Real_v errpos_sq = 0.0; // square of displacement error
     Real_v errmom_sq = 0.0; // square of momentum vector difference
     
-    Real_v epsPosition = eps_rel_max * vecCore::math::Max(h, Real_v(fMinimumStep)); // Uses remaining step 'h'
+    Real_v epsPosition = eps_rel_max * vecCore::math::Max(h, Real_v(GetMinimumStep())); // Uses remaining step 'h'
     // Could change it to use full step size ==> move it outside loop !!   2017.11.10 JA
     Real_v invEpsPositionSq = 1.0 / (epsPosition * epsPosition);
 
@@ -1421,7 +1405,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
 #endif
 
     // Note: xStartLane must be positive. ( Ok - expect starting value = 0 )
-    Real_v stepThreshold           = vecCore::math::Min(epsilon * hStepLane, fSmallestFraction * (xStartLane + hdid));
+    Real_v stepThreshold           = vecCore::math::Min(epsilon * hStepLane, GetSmallestFraction() * (xStartLane + hdid));
     Bool_v avoidNumerousSmallSteps = h < stepThreshold;
 
     // If it is always true for h<=0 --> lastStep is true, hence the lane will be sent to StoreOutput.
@@ -1646,82 +1630,6 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   return;
 } // end of AccurateAdvance (flexible / vector )  .....................
 
-//----------------------------------------------------------------------
-
-/*********************************
-#define SQR(a)   ((a)*(a))
-
-// QuickAdvance just tries one Step - it does not ensure accuracy
-template <class Real_v, class T_Stepper, unsigned int Nvar>//
-   typename vecCore::Mask_v<Real_v>
-// SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>
-SimpleIntegrationDriver< T_Stepper, Nvar>
-  ::QuickAdvance( TemplateFieldTrack<Real_v>&       y_posvel,         // INOUT
-                  const Real_v  dydx[],
-                        Real_v  hstep,       // In
-                  // Real_v& dchord_step,
-                        Real_v& dyerr_pos_sq,
-                        Real_v& dyerr_mom_rel_sq )
-{
-  // typedef typename Real_v Real_v;
-//  typedef typename Mask<Real_v>      Bool_v;
-  // Real_v dyerr_pos_sq, dyerr_mom_rel_sq;
-  Real_v yerr_vec[TemplateFieldTrack<Real_v>::ncompSVEC],
-           yarrin  [TemplateFieldTrack<Real_v>::ncompSVEC],
-           yarrout [TemplateFieldTrack<Real_v>::ncompSVEC];
-  Real_v s_start;
-  Real_v dyerr_mom_sq, vel_mag_sq, inv_vel_mag_sq;
-
-  static int no_call=0;  // thread_local
-  no_call ++;
-
-  // Move data into array
-  y_posvel.DumpToArray( yarrin );      //  yarrin  <== y_posvel
-  s_start = y_posvel.GetCurveLength();
-
-  // Do an Integration Step
-  GetStepper()-> StepWithErrorEstimate(yarrin, dydx, hstep, yarrout, yerr_vec) ;
-  //          *********************
-
-#ifdef USE_DCHORD
-  // Estimate curve-chord distance
-  dchord_step= GetStepper()-> DistChord();
-  //                       *********
-#endif
-
-  // Put back the values.  yarrout ==> y_posvel
-  y_posvel.LoadFromArray( yarrout, Nvar ); // fNoIntegrationVariables );
-  y_posvel.SetCurveLength( s_start + hstep );
-
-#ifdef  GUDEBUG_FIELD
-  if(fVerboseLevel>2)
-  {
-    cout << "G4MagIntDrv: Quick Advance" << std::endl;
-    PrintStatus( yarrin, s_start, yarrout, s_start+hstep, hstep,  1);
-  }
-#endif
-
-  // A single measure of the error
-  //      TO-DO :  account for  energy,  spin, ... ?
-  vel_mag_sq   = ( SQR(yarrout[3])+SQR(yarrout[4])+SQR(yarrout[5]) );
-  inv_vel_mag_sq = 1.0 / vel_mag_sq;
-  dyerr_pos_sq = ( SQR(yerr_vec[0])+SQR(yerr_vec[1])+SQR(yerr_vec[2]));
-  dyerr_mom_sq = ( SQR(yerr_vec[3])+SQR(yerr_vec[4])+SQR(yerr_vec[5]));
-  dyerr_mom_rel_sq = dyerr_mom_sq * inv_vel_mag_sq;
-
-#ifdef RETURN_A_NEW_STEP_LENGTH
-  // The following step cannot be done here because "eps" is not known.
-  dyerr_len = Sqrt( dyerr_len_sq );   // vecgeom::
-  dyerr_len_sq /= epsilon ;
-
-  // Set suggested new step
-  hstep= ComputeNewStepSize( dyerr_len, hstep);
-#endif
-
-  return true;
-}
- *********************************/
-
 // --------------------------------------------------------------------------
 #ifdef QUICK_ADV_ARRAY_IN_AND_OUT
 template <class Real_v, class T_Stepper, unsigned int Nvar>
@@ -1742,83 +1650,6 @@ typename Mask<Real_v> SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>::QuickAdv
 }
 #endif
 
-/*****************************************
-// --------------------------------------------------------------------------
-
-//  This method computes new step sizes - but does not limit changes to
-//  within  certain factors
-//
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-Real_v SimpleIntegrationDriver< T_Stepper, Nvar>::
-   ComputeNewStepSize(
-      Real_v errMaxNorm,   // max error  (normalised)
-      Real_v hStepCurrent) // current step size
-{
-  using Bool_v = vecCore::Mask_v<Real_v>;
-  const int powerShrink = GetPowerShrink();
-  const int powerGrow = GetPowerGrow();
-
-  Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, kPowerShrink, kPowerGrow);
-  Real_v stretch  = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
-  Real_v hNew     = stretch * hStepCurrent;
-  return hNew;
-}
-
-// ---------------------------------------------------------------------------
-
-// This method computes new step sizes limiting changes within certain factors
-//
-// It shares its logic with AccurateAdvance.
-// They are kept separate currently for optimisation.
-//
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-Real_v SimpleIntegrationDriver<T_Stepper, Nvar>::
-   ComputeNewStepSize_WithinLimits(
-      Real_v errMaxNorm,   // max error  (normalised)
-      Real_v hStepCurrent) // current step size
-{
-  using Bool_v = vecCore::Mask_v<Real_v>;
-
-  Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, kPowerShrink, kPowerGrow);
-
-  Real_v stretch = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
-
-  Real_v stemp;
-  stemp   = vecCore::math::Max(stretch, fMaxSteppingDecrease);
-  stretch = vecCore::math::Min(stemp, fMaxSteppingIncrease);
-
-  Real_v hNew = stretch * hStepCurrent;
-
-#if 0
-    // Compute size of next Step for a failed step
-    if (errMaxNorm > 1.0 )
-    {
-      // Step failed; compute the size of retrial Step.
-      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,kPowerShrink) ;
-
-      hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
-                           // reduce stepsize, but no more
-                           // than this factor (value= 1/10)
-      }
-    }
-    else
-    {
-      // Compute size of next Step for a successful step
-      if (errMaxNorm > fErrcon)
-       { hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,kPowerGrow); }
-      else  // No more than a factor of 5 increase
-       { hnew = fMaxSteppingIncrease * hstepCurrent; }
-    }
-#endif
-
-  return hNew;
-}
-
-// ---------------------------------------------------------------------------
 template <class T_Stepper, unsigned int Nvar>
 void SimpleIntegrationDriver<T_Stepper, Nvar>::ReportInvalidStepInputs(double hStepArr[], int nTracks)
 {
@@ -1834,34 +1665,6 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::ReportInvalidStepInputs(double hS
     }
   }
 }
-******************************************/
-
-// ------------------------------------------------------------
-
-// ####################  Testing method(s) ####################
-
-#include <cassert>
-/******************************************
-template <class T_Stepper, unsigned int Nvar>
-void SimpleIntegrationDriver<T_Stepper, Nvar>::CreateInput(FieldTrack yInput[], int nTracks)
-{
-  constexpr int Ncomp = FieldTrack::NumCompFT;
-  double PositionMomArr[Ncomp];
-
-  assert(Nvar <= Ncomp); // Ensure that arrays are large enough for Integr.
-
-  double length;
-  for (int itr = 0; itr < nTracks; itr++) {
-    for (unsigned int j = 0; j < Nvar; j++) {
-      PositionMomArr[j] = 10. * itr + j;
-    }
-    length = 0.1 * itr;
-    // yInput[j] = FieldTrack( PositionMomArr, length );
-    yInput[itr].LoadFromArray(PositionMomArr, Nvar);
-    yInput[itr].SetCurveLength(length);
-  }
-}
-******************************************/
 
 // ------------------------------------------------------------
 

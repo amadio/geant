@@ -124,18 +124,18 @@ public:                                    // with description
   //   (ie a single call to AccurateAdvance).
 
 public: // without description
-  inline void SetHmin(double newMin) { fMinimumStep = newMin; }
-  inline void SetVerboseLevel(int lev) { fVerboseLevel = lev; }
-  inline int GetVerboseLevel() const { return fVerboseLevel; }
+  void SetHmin(double newMin) { fMinimumStep = newMin; }
+  void SetVerboseLevel(int lev) { fVerboseLevel = lev; }
+  int GetVerboseLevel() const { return fVerboseLevel; }
 
-  inline double GetSmallestFraction() const { return fSmallestFraction; }
+  double GetSmallestFraction() const { return fSmallestFraction; }
   void SetSmallestFraction(double val);
 
-  inline void   SetPrintDerived(bool val) { fPrintDerived= val; }
-  inline bool   GetPrintDerived()         { return fPrintDerived; }
+  void   SetPrintDerived(bool val) { fPrintDerived= val; }
+  bool   GetPrintDerived()         { return fPrintDerived; }
 
-  inline void   SetTrackNumber(bool val) { fNumberOfTrack= val; }
-  inline bool   GetTrackNumber()         { return fNumberOfTrack; }  
+  void   SetTrackNumber(bool val) { fNumberOfTrack= val; }
+  bool   GetTrackNumber()         { return fNumberOfTrack; }  
   // Information value - only for printing (debugging or just info.)
   
 protected: // without description

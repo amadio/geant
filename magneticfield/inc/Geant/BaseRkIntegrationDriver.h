@@ -72,18 +72,23 @@ public:
   inline const T_Stepper *GetStepper() const { return fpStepper; }
   inline       T_Stepper *GetStepper()       { return fpStepper; }
    ***/
+
+  // Accessor for Key parameters
+  double GetPowerShrink()  const { return kPowerShrink; }
+  double GetPowerGrow()    const { return kPowerGrow; }
+  double GetMinimumStep()  const { return fMinimumStep; }
   
-  double GetPowerShrink()  const { return fPowerShrink; }
-  double GetPowerGrow()    const { return fPowerGrow; }
   int    GetVerboseLevel() const { return fVerboseLevel; }
   int    GetErrcon()       const { return fErrcon; }  
   int    GetStatisticsVerboseLevel() const { return fStatisticsVerboseLevel; }
-  double GetMinimumStep()  const { return fMinimumStep; }
-  unsigned int GetStepperOrder() const { return fStepperOrder; }
-  // Accessors.
+
+  unsigned int  GetStepperOrder() const { return fStepperOrder; }
+  inline double GetSmallestFraction() const { return fSmallestFraction; }
+  // Accessors - end
 
   void SetVerboseLevel( int val ) { fVerboseLevel= val; }
   void SetMinimumStep(double dval) { fMinimumStep = dval; }
+  // void SetSmallestFraction(double val) { if( fSmallestFraction >= 0.0 ) { fSmallestFraction= val; } }
   // Modifiers
   
   // Compute dependent parameters
@@ -118,7 +123,7 @@ protected:
 
   double fMinimumStep; // same
   // Minimum Step allowed in a Step (in absolute units)
-  double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
+  const double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
   // Smallest fraction of (existing) curve length - in relative units
   //  below this fraction the current step will be the last
 
@@ -130,10 +135,10 @@ protected:
   static constexpr int fMaxStepBase = 250;
 
   // static constexpr double fSafetyFactor= 0.9; // -> Fails to compile on clang 9.1 2017.12.05
-  const double fSafetyFactor = 0.9; //     OK ...
+  const double  kSafetyFactor      = 0.9; //     OK ...
   const unsigned int fStepperOrder = 0; //  the Integrator order of the (RK or other) stepper
-  const double fPowerShrink;        //  exponent for shrinking
-  const double fPowerGrow;          //  exponent for growth
+  const double kPowerShrink;        //  exponent for shrinking
+  const double kPowerGrow;          //  exponent for growth
   /*const*/ double fErrcon;
   // Parameters used to grow and shrink trial stepsize.
 
@@ -195,8 +200,8 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
       // fNoIntegrationVariables(numComponents),  // ==> Nvar
       fMinNoVars(6), fNoVars(Nvar), // Was fNoVars(std::max((int)Nvar, std::max((int)fMinNoVars, (int)numComponents))),
       fStepperOrder( pStepper->GetIntegratorOrder() ),
-      fPowerShrink(-1.0 / fStepperOrder),       //  exponent for shrinking
-      fPowerGrow(-1.0 / (1.0 + fStepperOrder)), //  exponent for growth
+      kPowerShrink(-1.0 / fStepperOrder),       //  exponent for shrinking
+      kPowerGrow(-1.0 / (1.0 + fStepperOrder)), //  exponent for growth
       // - fErrcon(0.0),
       fStatisticsVerboseLevel(statisticsVerbose),
       fVerboseLevel(0)
@@ -222,7 +227,7 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
 
   if (fVerboseLevel) {
     std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
-              << " shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
+              << " shrink = " << kPowerShrink << "  grow = " << kPowerGrow << std::endl;
   }
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {
     std::cout << "BaseRkIntegrationDriver constructor called.";
@@ -239,7 +244,7 @@ inline void BaseRkIntegrationDriver<T_Stepper, Nvar>
     // void BaseRkIntegrationDriver<Real_v, T_Stepper, Nvar>
     ::ComputeAndSetErrcon()
 {
-  fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, 1.0 / fPowerGrow);
+  fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, kPowerGrow);
   // return fErrcon;
 }
 
@@ -254,28 +259,28 @@ inline void BaseRkIntegrationDriver<T_Stepper, Nvar>::CheckParameters()
 
   double checkPowerShrink = -1.0 / fStepperOrder;
 
-  double diffShrink = fPowerShrink - checkPowerShrink;
-  if (std::fabs(diffShrink) // checkPowerShrink - fPowerShrink)
-      >= perMillion * std::fabs(fPowerShrink)) {
-    cerr << "BaseRkIntegrationDriver: ERROR in fPowerShrink" << std::endl;
-    cerr << "    calculated = " << checkPowerShrink << "    pre-computed = " << fPowerShrink << "  diff= " << diffShrink
-         << "  tolerance = " << perMillion * std::fabs(fPowerShrink) << endl;
+  double diffShrink = kPowerShrink - checkPowerShrink;
+  if (std::fabs(diffShrink) // checkPowerShrink - kPowerShrink)
+      >= perMillion * std::fabs(kPowerShrink)) {
+    cerr << "BaseRkIntegrationDriver: ERROR in kPowerShrink" << std::endl;
+    cerr << "    calculated = " << checkPowerShrink << "    pre-computed = " << kPowerShrink << "  diff= " << diffShrink
+         << "  tolerance = " << perMillion * std::fabs(kPowerShrink) << endl;
     cerr << "  Order of integrator = " << fStepperOrder << endl;
     exit(1);
   }
-  assert(std::fabs(checkPowerShrink - fPowerShrink) < perMillion * std::fabs(fPowerShrink));
+  assert(std::fabs(checkPowerShrink - kPowerShrink) < perMillion * std::fabs(kPowerShrink));
 
   double checkPowerGrow = -1.0 / (1.0 + fStepperOrder);
-  assert(std::fabs(checkPowerGrow - fPowerGrow) < perMillion * std::fabs(fPowerGrow));
+  assert(std::fabs(checkPowerGrow - kPowerGrow) < perMillion * std::fabs(kPowerGrow));
 
-  if (std::fabs(checkPowerGrow - fPowerGrow) >= perMillion * std::fabs(fPowerGrow)) {
-    std::cerr << "BaseRkIntegrationDriver: ERROR in fPowerGrow" << std::endl;
+  if (std::fabs(checkPowerGrow - kPowerGrow) >= perMillion * std::fabs(kPowerGrow)) {
+    std::cerr << "BaseRkIntegrationDriver: ERROR in kPowerGrow" << std::endl;
     exit(1);
   }
 
   if (fVerboseLevel)
     std::cout << "BaseRkIntegrationDriver::CheckParameters > Powers used: " << std::endl
-              << "  shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
+              << "  shrink = " << kPowerShrink << "  grow = " << kPowerGrow << std::endl;
 }
 
 // ---------------------------------------------------------
@@ -286,8 +291,8 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(
     const BaseRkIntegrationDriver</*Real_v,*/ T_Stepper, Nvar> &right)
     : fMinimumStep(right.fMinimumStep), fSmallestFraction(right.fSmallestFraction),
       // fNoIntegrationVariables( right.fNoIntegrationVariables ),
-      fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)), fPowerShrink(right.fPowerShrink),
-      fPowerGrow(right.fPowerGrow), fErrcon(right.fErrcon),
+      fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)), kPowerShrink(right.kPowerShrink),
+      kPowerGrow(right.kPowerGrow), fErrcon(right.fErrcon),
       // fSurfaceTolerance( right.fSurfaceTolerance ),
       fStatisticsVerboseLevel(right.fStatisticsVerboseLevel),
       /* fDyerr_max(0.0), fDyerr_mx2(0.0),
@@ -340,8 +345,8 @@ Real_v BaseRkIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::
   using Bool_v = vecCore::Mask_v<Real_v>;
 
   Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
-  Real_v stretch  = fSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
+  Real_v powerUse = vecCore::Blend(goodStep, kPowerShrink, kPowerGrow);
+  Real_v stretch  = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
   Real_v hNew     = stretch * hStepCurrent;
   return hNew;
 }
@@ -363,9 +368,9 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
   using Bool_v = vecCore::Mask_v<Real_v>;
 
   Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
+  Real_v powerUse = vecCore::Blend(goodStep, kPowerShrink, kPowerGrow);
 
-  Real_v stretch = fSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
+  Real_v stretch = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
 
   Real_v stemp;
   stemp   = vecCore::math::Max(stretch, fMaxSteppingDecrease);
@@ -378,7 +383,7 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
     if (errMaxNorm > 1.0 )
     {
       // Step failed; compute the size of retrial Step.
-      hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerShrink) ;
+      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,kPowerShrink) ;
 
       hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
                            // reduce stepsize, but no more
@@ -389,7 +394,7 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
     {
       // Compute size of next Step for a successful step
       if (errMaxNorm > fErrcon)
-       { hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerGrow); }
+       { hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,kPowerGrow); }
       else  // No more than a factor of 5 increase
        { hnew = fMaxSteppingIncrease * hstepCurrent; }
     }*/
