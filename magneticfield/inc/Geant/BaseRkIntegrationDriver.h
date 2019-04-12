@@ -19,12 +19,17 @@
 
 // #include "Geant/TemplateFieldTrack.h"
 #include "base/AlignedBase.h"
+#include "base/Vector.h"  //  Moved above  2019.04.12
+
+#include "Geant/VectorTypes.h" //  Defines geant::Double_v
+#include "Geant/math_wrappers.h"
+
 #include "Geant/FieldTrack.h"
 
 // #include "TemplateVScalarIntegrationStepper.h"
 // #include "IntegrationStepper.h"
 
-#include "base/Vector.h"
+// #include "base/Vector.h"  //  Moved above  2019.04.12
 
 // Adding because adding scalar stepper for new constructor (KeepStepping)
 // #include "Geant/VScalarIntegrationStepper.h"
@@ -36,8 +41,8 @@
 #include "Geant/FlexIntegrationDriver.h"
 #include "Geant/FormattedReporter.h"
 
-#include "Geant/VectorTypes.h" //  Defines geant::Double_v
-#include "Geant/math_wrappers.h"
+// #include "Geant/VectorTypes.h" //  Defines geant::Double_v
+// #include "Geant/math_wrappers.h"
 
 // --------------------------------------------------------------
 template <class T_Stepper, unsigned int Nvar>

@@ -1,5 +1,8 @@
 // Auxiliary methods, unrelated to printing
 
+#ifndef AuxVecMethods_Def
+#define AuxVecMethods_Def
+
 template <class Real_v>
 Real_v PowerIf(const Real_v value, double exponent, vecCore::Mask_v<Real_v> condition = true); // const
   // Return the power in each 'lane':
@@ -35,3 +38,5 @@ inline Real_v PowerIf(const Real_v value,
 
   return result;
 }
+
+#endif

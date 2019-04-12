@@ -26,12 +26,16 @@
 
 // #include "TemplateFieldTrack.h"
 #include "base/AlignedBase.h"
+#include "base/Vector.h"
+
+#include "Geant/math_wrappers.h"
+
 #include "FieldTrack.h"
 
 // #include "TemplateVScalarIntegrationStepper.h"
 // #include "IntegrationStepper.h"
 
-#include "base/Vector.h"
+// #include "base/Vector.h"
 
 // Adding because adding scalar stepper for new constructor (KeepStepping)
 // #include "VScalarIntegrationStepper.h"

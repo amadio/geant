@@ -38,6 +38,13 @@ class ErrorEstimatorSixVec {
     //
     //  Last argument enables the use of initial momentum square in calculating the relative error
 
+    template <class Real_v>
+      Real_v EstimateErrorWithFinalP( const Real_v yError[fNoComponents],
+                                      const Real_v hStep,
+                                      const Real_v yValue[fNoComponents] // Use it for momentum square (used for rel. error)
+         ) const;
+    // Same as above, but use final momentum value as divisor for momentum relative error
+     
     double GetMaxRelativeError() const { return fEpsRelMax; }
 
   public:
@@ -54,11 +61,10 @@ template <class Real_v>
    Real_v ErrorEstimatorSixVec::EstimateError(
              const Real_v yEstError[fNoComponents],
              const Real_v hStep,
-             // const Real_v yValues[fNoComponents],
-             const Real_v magInitMomentumSq  //   Initial momentum square (used for rel. error)
+             const Real_v magInitMomentumSq  //   (Initial) momentum square (used for rel. error)
       ) const
 {
-    // const  double fInvEpsilonRelSq = 1.0 / (eps_rel_max * eps_rel_max);
+    Real_v invMagMomentumSq = 1.0 / (magInitMomentumSq + tinyValue);
    
     Real_v epsPosition = fEpsRelMax * vecCore::math::Max(hStep, Real_v(fMinimumStep));
     // Note: it uses the remaining step 'h'
@@ -72,18 +78,28 @@ template <class Real_v>
     errpos_sq *= invEpsPositionSq; // Scale relative to required tolerance
     
     // Accuracy for momentum
-    Real_v invMagMomentumSq = 1.0 / (magInitMomentumSq + tinyValue);
+
     // Old choice: use  ( |momentum_final|^2 + tiny ) as divisor
-    //   Real_v magmom_sq = yValues[3] * yValues[3] + yValues[4] * yValues[4] + yValues[5] * yValues[5];
-    //   Real_v errmom_sq = sumerr_sq / (magmom_sq + tinyValue);
-    // Oldest code: 
-    //   vecCore::CondAssign(magmom_sq > 0.0, sumerr_sq/magmom_sq, sumerr_sq, &errmom_sq);    
     Real_v sumerr_sq = yEstError[3] * yEstError[3] + yEstError[4] * yEstError[4] + yEstError[5] * yEstError[5];
     Real_v errmom_sq = invMagMomentumSq * sumerr_sq ;
+    // Oldest code: 
+    //   vecCore::CondAssign(magmom_sq > 0.0, sumerr_sq/magmom_sq, sumerr_sq, &errmom_sq);    
 
     errmom_sq *= fInvEpsilonRelSq;
     
     return vecCore::math::Max(errpos_sq, errmom_sq); // Maximum Square Error
 }
 
+template <class Real_v> 
+   Real_v ErrorEstimatorSixVec::EstimateErrorWithFinalP(
+             const Real_v yEstError[fNoComponents],
+             const Real_v hStep,
+             const Real_v yValues[fNoComponents]
+      ) const
+{
+    Real_v magmom_sq = yValues[3] * yValues[3] + yValues[4] * yValues[4] + yValues[5] * yValues[5];
+
+    return EstimateErrorWithFinalP( yEstError, hStep, magmom_sq );
+}
+ 
 #endif /* ErrorEstimatorSixVec_h */
