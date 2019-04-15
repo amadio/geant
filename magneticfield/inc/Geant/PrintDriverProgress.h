@@ -4,7 +4,7 @@
 #ifndef PRINTDRIVERPROGRESS_H
 #define PRINTDRIVERPROGRESS_H
 
-namespace ReportValuesOfVectors
+namespace PrintDriverProgress // Was:  ReportValuesOfVectors
 {
 
 // Auxiliary printing methods 
@@ -21,6 +21,34 @@ void ReportResults(const Real_v hFinal, const Real_v errmaxSqFinal, const Real_v
 
 // ------------------------------------------------------------------------------------
 // Definitions
+
+template <class Real_v, unsigned int Nvar>
+// template <class T_Stepper, unsigned int Nvar>
+void
+   Report1( const vecCore::Mask_v<Real_v>   finished,     // Bool_v
+            const vecCore::Mask_v<Real_v>   active,       // Bool_v
+            const Real_v                    charge,
+            const Real_v                    yEndStep[Nvar],
+            const Real_v                    yerr[Nvar],
+            const Real_v                    h   
+      ) // const
+{
+  using FormattedReporter::ReportRowOfDoubles;
+  // using FormattedReporter::ReportRowOfSquareRoots;
+  using FormattedReporter::ReportManyRowsOfDoubles;
+  using FormattedReporter::ReportRowOfBools;
+  // using ReportValuesOfVectors::ReportConditionLanes;
+   
+  std::cout << "1st Report - after call to Step-With-Error-Estimate" << std::endl;
+  ReportRowOfBools<Real_v>( "finished", finished );
+  ReportRowOfBools<Real_v>("active", active);
+  // ReportManyRowsOfDoubles( "yStart",  yStart, Nvar );
+  ReportRowOfDoubles("h", h);
+  ReportRowOfDoubles("charge", charge);  
+  ReportManyRowsOfDoubles("yOut", yEndStep, Nvar);
+  ReportManyRowsOfDoubles("yerr", yerr, Nvar);
+  // } else {
+}
 
 
 

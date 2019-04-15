@@ -68,21 +68,31 @@ public:
 
   SimpleIntegrationDriver(double     hminimum, // same
                           T_Stepper *pStepper,
+                          double     epsRelMax,
                           int        numberOfComponents = 6 );
 
   virtual ~SimpleIntegrationDriver();
 
-  virtual void AccurateAdvance(const FieldTrack yInput[], const double hstep[], const double charge[], double epsilon,
-                               FieldTrack yOutput[], int nTracks, bool succeeded[]) const override final;
+  virtual void AccurateAdvance( const FieldTrack yInput[],
+                                const double hstep[],
+                                const double charge[], // double epsilon,
+                                FieldTrack yOutput[],
+                                int nTracks,
+                                bool succeeded[]
+                              ) const override final;
 
 #ifdef EXTEND_SINGLE
-  virtual void AccurateAdvance(const FieldTrack &yInput, const double hstep, const double charge, double epsilon,
-                               FieldTrack &yOutput, bool succeeded) const override final;
+  virtual void AccurateAdvance( const FieldTrack & yInput,
+                                const double       hstep,
+                                const double       charge, // double epsilon,
+                                FieldTrack       & yOutput,
+                                bool               succeeded
+                              ) const override final;
 #endif
 
   // Implemented in terms of the following templated function:
   template <class Real_v>
-  void AccurateAdvance(const FieldTrack yInput[], const double hstep[], const double charge[], double epsilon,
+     void AccurateAdvance(const FieldTrack yInput[], const double hstep[], const double charge[], /* double epsilon, */
                        FieldTrack yOutput[], bool succeeded[], int nTracks) const;
   // Drive Runge-Kutta integration of ODE for several tracks (ntracks)
   // with starting values yInput, from current 's'=0 to s=h with variable
@@ -348,98 +358,17 @@ private:
 #include "Geant/FormattedReporter.h"
 #endif
 
-<<<<<<< HEAD
-/*****
-template <class Real_v, class T_Stepper, unsigned int Nvar>
-constexpr double SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>::fMaxSteppingIncrease;
-
-template <class Real_v, class T_Stepper, unsigned int Nvar>
-constexpr double SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>::fMaxSteppingDecrease;
- *****/
-
-/*****
-template <class T_Stepper, unsigned int Nvar>
-inline void SimpleIntegrationDriver<T_Stepper, Nvar>
-    // void SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>
-    ::ComputeAndSetErrcon()
-{
-  fErrcon = Math::Pow(fMaxSteppingIncrease / kSafetyFactor, 1.0 / kPowerGrow);
-  // return fErrcon;
-}
-
-// ---------------------------------------------------------
-
-template <class T_Stepper, unsigned int Nvar>
-inline void SimpleIntegrationDriver<T_Stepper, Nvar>::
-   CheckParameters()
-{
-  constexpr double perMillion = 1.0e-6;
-  using std::cerr;
-  using std::endl;
-
-  double checkPowerShrink = -1.0 / fpStepper->GetIntegratorOrder();
-
-  double diffShrink = kPowerShrink - checkPowerShrink;
-  if (std::fabs(diffShrink) // checkPowerShrink - kPowerShrink)
-      >= perMillion * std::fabs(kPowerShrink)) {
-    cerr << "SimpleIntegrationDriver: ERROR in kPowerShrink" << std::endl;
-    cerr << "    calculated = " << checkPowerShrink << "    pre-computed = " << kPowerShrink << "  diff= " << diffShrink
-         << "  tolerance = " << perMillion * std::fabs(kPowerShrink) << endl;
-    cerr << "  Order of integrator = " << fpStepper->GetIntegratorOrder() << endl;
-    exit(1);
-  }
-  assert(std::fabs(checkPowerShrink - kPowerShrink) < perMillion * std::fabs(kPowerShrink));
-
-  double checkPowerGrow = -1.0 / (1.0 + fpStepper->GetIntegratorOrder());
-  assert(std::fabs(checkPowerGrow - kPowerGrow) < perMillion * std::fabs(kPowerGrow));
-
-  if (std::fabs(checkPowerGrow - kPowerGrow) >= perMillion * std::fabs(kPowerGrow)) {
-    std::cerr << "SimpleIntegrationDriver: ERROR in kPowerGrow" << std::endl;
-    exit(1);
-  }
-
-  if (fVerboseLevel)
-    std::cout << "SimpleIntegrationDriver::CheckParameters > Powers used: " << std::endl
-              << "  shrink = " << kPowerShrink << "  grow = " << kPowerGrow << std::endl;
-}
-****/
-
-/*********
-// ---------------------------------------------------------
-
-template <class Real_v, class T_Stepper, unsigned int Nvar>
-inline
-void SimpleIntegrationDriver<Real_v, T_Stepper, Nvar>
-  ::GetDerivatives(const TemplateFieldTrack<Real_v> &y_curr, // const, INput
-                         Real_v  charge,
-                         Real_v  dydx[])  // OUTput
-{
-  Real_v  tmpValArr[ncompSVEC]; // TemplateFieldTrack<Real_v>::ncompSVEC];
-  y_curr.DumpToArray( tmpValArr  );
-  fpStepper -> RightHandSideVIS( tmpValArr , charge, dydx );
-}
- ********/
-
-// template <class T_Stepper, unsigned int Nvar>
-// const int  SimpleIntegrationDriver< /* Real_v, */ T_Stepper, Nvar>::fMaxStepBase = 250;  // Was 5000
-
-// To add much printing for debugging purposes, uncomment the following
-// and set verbose level to 1 or higher value !
-// #define  GUDEBUG_FIELD 1
-
-// ---------------------------------------------------------
-
-=======
->>>>>>> SimpleIntegrationDriver: deleted code moved to BaseRkIntegrator (it was in comments.)
 //  Constructor
 //
 template <class T_Stepper, unsigned int Nvar>
 SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double     hminimum,
                                                                   T_Stepper *pStepper,
+                                                                  double     epsRelMax,                                                                  
                                                                   int        numComponents )
     :
       BaseRkIntegrationDriver<T_Stepper, Nvar>(hminimum,
                                                pStepper,     // or pass pStepper->GetIntegratorOrder()  ??
+                                               epsRelMax,
                                                numComponents,
                                                false),  // statistics Verbosity
       fHalfPowerShrink( 0.5 * BaseRkIntegrationDriver<T_Stepper, Nvar>::GetPowerShrink() )
@@ -466,8 +395,9 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::SimpleIntegrationDriver(double     hmi
 
   if (fVerboseLevel) {
     std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
-              << " shrink = " << kPowerShrink << "  grow = " << kPowerGrow << std::endl;
-          //  << " shrink = " << GetPowerShrink() << "  grow = " << GetPowerGrow() << std::endl;
+              << " shrink (half) = " << kPowerShrink     << "  grow (half) = " << kPowerGrow << std::endl;
+              << " shrink (full) = " << GetPowerShrink() << "  grow (full) = " << GetPowerGrow() << std::endl
+              << " and with  max-relative-error = " << epsRelMax << std::endl;     
   }
   if ((GetVerboseLevel() > 0) || (GetStatisticsVerboseLevel() > 1)) {
      std::cout << "SimpleIntegrationDriver created. " << std::endl;
@@ -570,8 +500,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   using FormattedReporter::ReportRowOfDoubles;
   using FormattedReporter::ReportRowOfSquareRoots;
   using FormattedReporter::ReportOneLane;
-  using ReportValuesOfVectors::ReportConditionLanes;
-  
+  // using ReportValuesOfVectors::ReportConditionLanes;
+  using PrintDriverProgress::ReportConditionLanes;
+   
   // if (partDebug) { cout << "\n" << endl; }
 
   Real_v xnew;
@@ -1202,7 +1133,7 @@ template <class Real_v>
 void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack yInput[],
                                                                const double     hstep[],
                                                                const double     charge[],
-                                                               double           epsilon, // Can be scalar or varying
+                                                               // double           epsilon, // Can be scalar or varying
                                                                FieldTrack       yOutput[],
                                                                bool             stillOK[],
                                                                int              nTracks) const
@@ -1241,6 +1172,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   using std::cout;
   using std::endl;
 
+  const double epsilon= FlexIntegrationDriver::GetMaxRelativeEpsilon();
+  
   constexpr unsigned int VecSize = vecCore::VectorSize<Real_v>();
   int indexArr[VecSize]; // vecCore::VectorSize<Real_v>()];
 
@@ -1830,24 +1763,26 @@ template <class T_Stepper, unsigned int Nvar>
 void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack yInput[],
                                                                const double     hstep[],
                                                                const double     charge[],
-                                                               double           epsilon, // Can be scalar or varying
+                                                               // double           epsilon, // Can be scalar or varying
                                                                FieldTrack       yOutput[],
                                                                int              nTracks,
                                                                bool             stillOK[] ) const
 {
   AccurateAdvance<geant::Double_v>(yInput, hstep, charge,
-                                   epsilon, // Can be scalar or varying
+                                   // epsilon, // Can be scalar or varying
                                    yOutput, stillOK, nTracks);
 }
 
 #ifdef EXTEND_SINGLE
 template <class T_Stepper, unsigned int Nvar>
 void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack &yInput, const double hstep,
-                                                               const double charge, double epsilon, FieldTrack &yOutput,
+                                                               const double charge,
+                                                               // double epsilon,
+                                                               FieldTrack &yOutput,
                                                                bool succeeded) const
 {
   AccurateAdvance<double>(&yInput, &hstep, &charge,
-                          epsilon, // Can be scalar or varying
+                          // epsilon, // Can be scalar or varying
                           &yOutput, &succeeded, 1);
 }
 #endif

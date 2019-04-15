@@ -87,7 +87,7 @@ public:
 
   RollingIntegrationDriver(double     hminimum, // same
                            T_Stepper *pStepper,
-                           double     epsRelativeMax = 1.0e-5,
+                           double     epsRelativeMax, // = 1.0e-5,
                            int        numberOfComponents = 6 );
 
   virtual ~RollingIntegrationDriver();
@@ -213,9 +213,15 @@ protected:
 
   void ComputeAndSetErrcon() { BaseRkIntegrationDriver<T_Stepper, Nvar>::ComputeAndSetErrcon(); }
   void CheckParameters()     { BaseRkIntegrationDriver<T_Stepper, Nvar>::CheckParameters(); }
-  int IncrementStepperCalls() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::IncrementStepperCalls() ; }
-  int IncrementNumberSteps()  { return ++fNoTotalSteps; }
-  // Setting parameters ( few now )
+  int  IncrementStepperCalls() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::IncrementStepperCalls() ; }
+  int  IncrementNumberSteps()  { return ++fNoTotalSteps; }
+
+  template <class Real_v>  
+    Real_v ComputeNewStepLengthWithinLimits2( Real_v errMaxSq, Real_v hStepCurrent) const
+      { return BaseRkIntegrationDriver<T_Stepper, Nvar>::
+                       ComputeNewStepLengthWithinLimits2( errMaxSq, hStepCurrent ); }
+
+  // Setting parameters ( few / none now )
 
   // Compute dependent parameters
   // inline void ComputeAndSetErrcon();
@@ -228,8 +234,9 @@ protected:
                const vecCore::Mask_v<Real_v>   active,     // Bool_v
                const Real_v charge,
                const Real_v yEndStep[],
-               const Real_v yerr[],
-               const Real_v h  ) const ;
+               const Real_v yErr[],
+               const Real_v h  ) const
+      { PrintDriverProgress::Report1<Real_v,Nvar>( finished, active, charge, yEndStep, yErr, h ); }
   
 public:
   // Access parameters
@@ -249,7 +256,7 @@ public:
   double GetMinimumStep() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetMinimumStep(); }
   double GetErrcon()      const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetErrcon(); }
 
-  double GetMaxRelativeEpsilon() const { return fEpsilonRelMax; }
+   // double GetMaxRelativeEpsilon() const { return fEpsilonRelMax; }
 
   inline unsigned int GetMaxNoSteps() const { return fMaxNoSteps; } 
   // inline unsigned int GetMaxNoSteps() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetMaxNoSteps() ; } // fMaxNoSteps; }  
@@ -306,7 +313,6 @@ private:
   T_Stepper                   *fpStepper;
   const  ErrorEstimatorSixVec  fErrorEstimator;
 
-  const double fEpsilonRelMax;
   // ---------------------------------------------------------------
   //  INVARIANTS
 
@@ -317,6 +323,8 @@ private:
   // static constexpr double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
   //    Smallest fraction of (existing) curve length - in relative units
   //    below this fraction the current step will be the last
+
+  // const double fEpsilonRelMax; //  Maximum Relative Error in integration ==> Moved to FlexIntegrationDriver
 
   const double fHalfPowerShrink;
   unsigned long fMaxNoSteps= 100;  // Default - expect it to be overriden in constructor
@@ -471,9 +479,10 @@ RollingIntegrationDriver<T_Stepper, Nvar>::
     :
       BaseRkIntegrationDriver<T_Stepper, Nvar>(hMinimumStep,
                                                pStepper,     // or pass pStepper->GetIntegratorOrder()  ??
+                                               epsRelMax,
                                                numComponents,
                                                false),  // statistics Verbosity
-      fEpsilonRelMax( epsRelMax ),
+      // fEpsilonRelMax( epsRelMax ),
       fErrorEstimator( epsRelMax, hMinimumStep ),
       fHalfPowerShrink( 0.5 * BaseRkIntegrationDriver<T_Stepper, Nvar>::GetPowerShrink() )
 {
@@ -499,7 +508,9 @@ RollingIntegrationDriver<T_Stepper, Nvar>::
 
   if (fVerboseLevel) {
     std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
-              << " shrink = " << GetPowerShrink() << "  grow = " << GetPowerGrow() << std::endl;
+              << " shrink = " << GetPowerShrink() << "  grow = " << GetPowerGrow()
+              << " and with  max-relative-error = " << epsRelMax       
+              << std::endl;
   }
   if ((GetVerboseLevel() > 0) || (GetStatisticsVerboseLevel() > 1)) {
      std::cout << "RollingIntegrationDriver created. " << std::endl;
@@ -604,7 +615,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   using FormattedReporter::ReportManyRowsOfDoubles;
   using FormattedReporter::ReportRowOfBools;
   using FormattedReporter::ReportOneLane;
-  using ReportValuesOfVectors::ReportConditionLanes;
+  using PrintDriverProgress::ReportConditionLanes;
 
   if (partDebug) { cout << "\n" << endl; }
 
@@ -631,7 +642,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 
   // ErrorEstimatorSixVec fErrorEstimator( eps_rel_max, GetMinimumStep() );
 
-  for( int i=0; i<Nvar; i++)
+  for( unsigned int i=0; i<Nvar; i++)
     yStepStart[i] = yStart[i];
   
   do {
@@ -650,7 +661,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 
 #ifdef DRIVER_PRINT_PROGRESS
     bool DebugEachIteration = false;
-    if (partDebug && DebugEachIteration) { Report1( finishedLane, Active, hStep, yStepEnd, yerr ); }
+    if (partDebug && DebugEachIteration) { Report1( finishedLane, Active, charge, yStepEnd, yerr, hStep ); }
 #endif
 
     errmax_sq  = fErrorEstimator.EstimateError( yerr, hStep, magmomInit_sq ); //   Older version   yStepEnd );
@@ -659,7 +670,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     goodStep = Active && (errmax_sq <= 1.0);
     
     // Update hdid for successful steps
-    Real_v hAdvance= Blend( goodStep, hStep, 0.0 );
+    Real_v hAdvance= vecCore::Blend( goodStep, hStep, Real_v(0.0) );
     hdid += hAdvance;
 
     // Real_v xNext = x + hStep; //   Updates both good and bad steps -- else it should be  = x + hAdvance;
@@ -694,12 +705,12 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     }
 
     // Refill StepStart using values from StepEnd -- for successful lanes
-    for( int i=0; i<Nvar; i++)
-       MaskedAssign( yStepStart[i], goodStep, yStepEnd[i] );
+    for( unsigned int i=0; i<Nvar; i++)
+       vecCore::MaskedAssign( yStepStart[i], goodStep, yStepEnd[i] );
 
     x = xNext;
 
-    Real_v hReduced = ComputeStepLengthWithinLimits( errmax_sq, hStep );
+    Real_v hReduced = ComputeNewStepLengthWithinLimits2( errmax_sq, hStep );
 
     hnew = vecCore::Blend(finishedLane, Real_v(0.0), hReduced);    
 
@@ -1374,8 +1385,10 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
     }
 #endif
 
+    const double epsilonRelMax= FlexIntegrationDriver::GetMaxRelativeEpsilon();
+    
     // Note: xStartLane must be positive. ( Ok - expect starting value = 0 )
-    Real_v stepThreshold           = vecCore::math::Min(fEpsilonRelMax * hStepLane, fSmallestFraction * (xStartLane + hdid));
+    Real_v stepThreshold           = vecCore::math::Min(epsilonRelMax * hStepLane, fSmallestFraction * (xStartLane + hdid));
     Bool_v avoidNumerousSmallSteps = hTry < stepThreshold;
 
     // If it is always true for h<=0 --> lastStep is true, hence the lane will be sent to StoreOutput.
@@ -1611,8 +1624,8 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
           ScalarFieldTrack y_input(Pos, Mom);
           ScalarFieldTrack y_output(Pos, Mom);
           // y_input.SetCurveLength( hDone[indLastLane] ) ;
-          fpScalarDriver->AccurateAdvance(y_input, hstep[ indexArr[indLastLane] ] - hDone[indLastLane], fEpsilonRelMax,
-       y_output );
+          fpScalarDriver->AccurateAdvance(y_input, hstep[ indexArr[indLastLane] ] - hDone[indLastLane], // epsilonRelMax,
+                                          y_output );
 
           isDoneLane[indLastLane] == true;
           // Store Output

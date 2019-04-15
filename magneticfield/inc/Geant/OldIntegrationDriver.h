@@ -65,9 +65,10 @@ template < class T_Stepper, unsigned int Nvar>
        using Vector3D = vecgeom::Vector3D<T>;
 
     OldIntegrationDriver( double     hminimum,  //same 
-                             T_Stepper *pStepper,
-                             int        numberOfComponents  = 6,
-                             int        statsVerbosity = 1     );
+                          T_Stepper *pStepper,
+                          double     maxRelativeError,                          
+                          int        numberOfComponents  = 6,
+                          int        statsVerbosity = 1     );
 
     ~OldIntegrationDriver();
 
@@ -75,7 +76,7 @@ template < class T_Stepper, unsigned int Nvar>
     void AccurateAdvance( const  FieldTrack  yInput[],
                           const  double      hstep[],
                           const  double      charge[],                            
-                                 double      epsilon,
+                              // double      epsilon,
                                  FieldTrack  yOutput[],
                                  int         nTracks, 
                                  bool        succeeded[] ) const override final;
@@ -85,7 +86,7 @@ template < class T_Stepper, unsigned int Nvar>
     void AccurateAdvance( const  FieldTrack& yInput,
                           const  double      hstep,
                           const  double      charge,                            
-                                 double      epsilon,
+                              // double      epsilon,
                                  FieldTrack& yOutput,
                                  bool        succeeded  ) const override final;
 #endif
@@ -95,7 +96,7 @@ template < class T_Stepper, unsigned int Nvar>
     void AccurateAdvance( const  FieldTrack  yInput[],
                           const  double      hstep[],
                           const  double      charge[],                            
-                                 double      epsilon,
+                              // double      epsilon,
                                  FieldTrack  yOutput[],
                                  bool        succeeded[],
                                  int         nTracks
@@ -164,7 +165,7 @@ protected:
                        const Real_v  charge,                          
                              Real_v& x,        // InOut                    
                              Real_v  htry,
-                             double  epsilon, // Was const Real_v  epsilon,  // required relative accuracy
+                          // double  epsilon, // Was const Real_v  epsilon,  // required relative accuracy
                              Real_v  yEnd[],   // [N]
                              Real_v& hdid,
                              Real_v& hnext ) const ;
@@ -500,7 +501,6 @@ constexpr double OldIntegrationDriver<Real_v, T_Stepper, Nvar>::fMaxSteppingDecr
 template <class T_Stepper, unsigned int Nvar>   
 inline
 void OldIntegrationDriver<T_Stepper, Nvar>
-// void OldIntegrationDriver<Real_v, T_Stepper, Nvar>
    ::ComputeAndSetErrcon()
 {
   fErrcon = std::pow(fMaxSteppingIncrease/fSafetyFactor,1.0/fPowerGrow);
@@ -577,17 +577,18 @@ void OldIntegrationDriver<Real_v, T_Stepper, Nvar>
 template<class T_Stepper, unsigned int Nvar>   
 OldIntegrationDriver<T_Stepper, Nvar>
   ::OldIntegrationDriver( double     hminimum, 
-                             T_Stepper *pStepper,
-                             int        numComponents,
-                             int        statisticsVerbose)
-   : fMinimumStep( hminimum ),
+                          T_Stepper *pStepper,
+                          double     maxRelativeError,
+                          int        numComponents,
+                          int        statisticsVerbose)
+   : FlexIntegrationDriver( maxRelativeError ),
+     fMinimumStep( hminimum ),
      // fSmallestFraction( 1.0e-12 ), 
      // fNoIntegrationVariables(numComponents),  // ==> Nvar
      fMinNoVars(12),
      fNoVars( std::max( (int)Nvar, std::max((int)fMinNoVars, (int)numComponents ))),
      fPowerShrink( -1.0 / pStepper->GetIntegratorOrder() ),      //  exponent for shrinking
      fPowerGrow( -1.0 / (1.0 + pStepper->GetIntegratorOrder() ) ), //  exponent for growth
-     // fErrcon(0.0),
      fStatisticsVerboseLevel(statisticsVerbose),
      fNoInitialSmallSteps(0), 
   /* fDyerr_max(0.0), fDyerr_mx2(0.0), 
@@ -609,8 +610,11 @@ OldIntegrationDriver<T_Stepper, Nvar>
 #endif
 
   if( (fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1) ) {
-     std::cout << "MagIntDriver version: Accur-Adv: "
-               << "invE_nS, QuickAdv-2sqrt with Statistics " << fStatsStatus << std::endl;
+     std::cout << "MagIntDriver version: "
+               << " > Powers used: "
+               << " shrink = " << GetPowerShrink() << "  grow = " << GetPowerGrow()        
+               << " with  max-relative-error = " << maxRelativeError 
+               << "with Statistics " << fStatsStatus << std::endl;
         // ( fStatsEnabled ? "enabled" : "disabled" ) 
   }
 
@@ -698,8 +702,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
                 const Real_v  charge,                
                       Real_v& x,         // InOut
                       Real_v  htry,
-                      double  eps_rel_max,
-                // const Real_v  eps_rel_max,                
+                   // double  eps_rel_max, // Was: const Real_v  eps_rel_max,                
                       Real_v  yFinal[],  // Out-values
                       Real_v& hdid,      // Out - achieved length
                       Real_v& hnext   )  // Out - proposed next integration length
@@ -748,6 +751,8 @@ OldIntegrationDriver<T_Stepper, Nvar>
   
   if (partDebug) { cout<<"\n"<<endl; }
 
+  double  eps_rel_max = GetMaxRelativeEpsilon();
+  
   // const int vecCore::VectorSize<Real_v>() = vecgeom::vecCore::VectorSize<Real_v>();
   // const int ncompSVEC = TemplateFieldTrack<Real_v>::ncompSVEC;
   
@@ -1400,7 +1405,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
   ::AccurateAdvance(const FieldTrack yInput[],
                     const double     hstep[],
                     const double     charge[],
-                          double     epsilon,   // Can be scalar or varying 
+                       // double     epsilon,   // Can be scalar or varying 
                           FieldTrack yOutput[],
                           bool       stillOK[],
                           int        nTracks
@@ -1433,8 +1438,9 @@ OldIntegrationDriver<T_Stepper, Nvar>
   using vecCore::math::Min;
   using vecCore::math::Max;  
   using std::cout;
-  using std::endl;  
-
+  using std::endl;
+  
+  const     double   epsilon = GetMaxRelativeEpsilon();
   constexpr unsigned int VecSize = vecCore::VectorSize<Real_v>();
   int   indexArr[VecSize]; // vecCore::VectorSize<Real_v>()];
   
@@ -1517,7 +1523,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
      // if (useOneStep) {
      fpStepper->RightHandSideInl( y, chargeLane, dydx );       // TODO: change to inline
      //---------****************-----------------------
-     OneGoodStep<Real_v>( y, dydx, chargeLane, x, h, epsilon, yNext, hdid, hnext);
+     OneGoodStep<Real_v>( y, dydx, chargeLane, x, h, /* epsilon, */ yNext, hdid, hnext);
      //*********---------------------------------------------------------
      // } else KeepStepping( y, dydx, x, h, epsilon, hdid, hnext, hStepLane, hDone) ;
 
@@ -1871,6 +1877,8 @@ OldIntegrationDriver< T_Stepper, Nvar>
   dyerr_mom_rel_sq = dyerr_mom_sq * inv_vel_mag_sq;
 
 #ifdef RETURN_A_NEW_STEP_LENGTH
+  const     double   epsilon = GetMaxRelativeEpsilon();
+
   // The following step cannot be done here because "eps" is not known.
   dyerr_len = Sqrt( dyerr_len_sq );   // vecgeom::
   dyerr_len_sq /= epsilon ;
@@ -2211,7 +2219,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
   ::AccurateAdvance(const FieldTrack yInput[],
                     const double     hstep[],
                     const double     charge[],
-                          double     epsilon,   // Can be scalar or varying 
+                       // double     epsilon,   // Can be scalar or varying 
                           FieldTrack yOutput[],
                           int        nTracks,
                           bool       stillOK[]
@@ -2220,7 +2228,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
     AccurateAdvance<geant::Double_v>( yInput,
                                       hstep,
                                       charge,
-                                      epsilon,   // Can be scalar or varying 
+                                      // epsilon,   // Can be scalar or varying 
                                       yOutput,
                                       stillOK,
                                       nTracks
@@ -2234,14 +2242,14 @@ OldIntegrationDriver<T_Stepper, Nvar>
    ::AccurateAdvance( const  FieldTrack& yInput,
                       const  double      hstep,
                       const  double      charge,                            
-                             double      epsilon,
+                      // double      epsilon,
                              FieldTrack& yOutput,
                              bool        succeeded  ) const
 {
        AccurateAdvance<double>( &yInput,
                                 &hstep,
                                 &charge,
-                                epsilon,   // Can be scalar or varying 
+                                // epsilon,   // Can be scalar or varying 
                                 &yOutput,
                                 &succeeded,
                                 1

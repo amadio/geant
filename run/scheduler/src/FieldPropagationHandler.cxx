@@ -681,8 +681,9 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 
     if (vectorDriver) {
       // Integrate using Runge Kutta method
-      vectorDriver->AccurateAdvance(fldTracksIn, steps, fltCharge, fEpsTol, fldTracksOut, nTracks, succeeded);
-
+       vectorDriver->AccurateAdvance(fldTracksIn, steps, fltCharge, /* fEpsTol, */ fldTracksOut, nTracks, succeeded);
+       // Must ensure that the requested maximum relative error is passed to vectorDriver on creation instead 2019.04.15
+       
 #ifdef STATS_METHODS
     numTot += nTracks;
     numVecRK += nTracks;

@@ -30,12 +30,9 @@ bool GUFieldPropagator::fVerboseConstruct               = false;
 
 //------------------------------------------------------------------------------------
 GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver *driver, double eps, FlexIntegrationDriver *flexDriver)
-    : fScalarDriver(driver)
-// fEpsilon(eps)
+   : fScalarDriver(driver)  // , fEpsilon(eps)
 {
   const char *methodName = "GUFieldPropagator constructor (scalarDriver, eps, *flex - with default = null)";
-
-  fEpsilon = eps;
 
   if (fVerboseConstruct) {
     std::cout << "------------------------------------------------------------------------------------" << std::endl;
@@ -60,6 +57,14 @@ GUFieldPropagator::GUFieldPropagator(ScalarIntegrationDriver *driver, double eps
       std::cout << "WARNING: Gufieldpropagator> Not setting Vector/Flexible Driver: none provided." << std::endl;
       std::cout << "==============================================================================" << std::endl;
     }
+  }
+
+  // Check added after epsilon is made parameter of flex/vector driver
+  
+  if( flexDriver && flexDriver-> GetMaxRelativeEpsilon() != eps ){
+     std::cerr << "ERROR> Difference in Epsilon value requested ( = " << eps << " ) " 
+        " , and value stored in Driver ( value = " << flexDriver->GetMaxRelativeEpsilon() << std::endl;
+     exit(1);
   }
 
   if (fVerboseConstruct) {
@@ -186,7 +191,7 @@ bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector con
   }
 
   // Using the capabiity of the flexible driver to integrate a single track -- New 25.01.2018
-  fVectorDriver->AccurateAdvance(yTrackInFT, step, chargeFlt, fEpsilon, yTrackOutFT, okFlex);
+  fVectorDriver->AccurateAdvance( yTrackInFT, step, chargeFlt, /* fEpsilon, */ yTrackOutFT, okFlex);
 #else
   if (verbose && !infoPrinted) {
     std::cout << methodName << " > Using VectorDriver ( Real_v ) with 1 track" << fScalarDriver << std::endl;

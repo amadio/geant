@@ -49,9 +49,14 @@ TH1F *gHistStepsInit = 0;
 
 //  Constructor
 //
-ScalarIntegrationDriver::ScalarIntegrationDriver(double hminimum, VScalarIntegrationStepper *pStepper,
-                                                 int numComponents, int statisticsVerbose)
-    : fMinimumStep(hminimum), fSmallestFraction(1.0e-12), fNoIntegrationVariables(numComponents), fMinNoVars(12),
+ScalarIntegrationDriver::ScalarIntegrationDriver(double    hminimum,
+                                                 VScalarIntegrationStepper * pStepper,
+                                                 double    epsRelMax,
+                                                 int       numComponents,
+                                                 int       statisticsVerbose)
+    : fMinimumStep(hminimum), fEpsilonRelMax( epsRelMax ), fInvEpsilonRelMax( epsRelMax > 0.0 ? 1.0 / epsRelMax : 1.0e+20 ),
+      fSmallestFraction( std::min(1.0e-8, 0.01 * epsRelMax )),   
+      fNoIntegrationVariables(numComponents), fMinNoVars(12),
       fNoVars(std::max(fNoIntegrationVariables, fMinNoVars)), fSafetyFactor(0.9),
       fPowerShrink(0.0), //  exponent for shrinking
       fPowerGrow(0.0),   //  exponent for growth
@@ -90,7 +95,8 @@ ScalarIntegrationDriver::ScalarIntegrationDriver(double hminimum, VScalarIntegra
 //  Copy Constructor - used by Clone
 //
 ScalarIntegrationDriver::ScalarIntegrationDriver(const ScalarIntegrationDriver &right)
-    : fMinimumStep(right.fMinimumStep), fSmallestFraction(right.fSmallestFraction),
+    : fMinimumStep(right.fMinimumStep), fEpsilonRelMax( right.fEpsilonRelMax ), fInvEpsilonRelMax( right.fInvEpsilonRelMax ),
+      fSmallestFraction(right.fSmallestFraction),
       fNoIntegrationVariables(right.fNoIntegrationVariables), fMinNoVars(right.fMinNoVars),
       fNoVars(std::max(fNoIntegrationVariables, fMinNoVars)), fSafetyFactor(right.fSafetyFactor),
       fPowerShrink(right.fPowerShrink), fPowerGrow(right.fPowerGrow), fErrcon(right.fErrcon),
@@ -135,7 +141,7 @@ ScalarIntegrationDriver *ScalarIntegrationDriver::Clone() const
 
 // ---------------------------------------------------------
 
-bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, double hstep, double epsilon,
+bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, double hstep, // double epsilon,
                                               ScalarFieldTrack &yOutput, double hinitial)
 {
   // Driver for Runge-Kutta integration with adaptive stepsize control.
@@ -292,7 +298,7 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
     // if ( h > fMinimumStep) //  Changed 2019.03.04 => emulate Vector mode
     {
       // std::cout << "Calling       OneGoodStep " << std::endl;
-      OneGoodStep(y, charge, dydx, x, h, epsilon, hdid, hnext);
+      OneGoodStep(y, charge, dydx, x, h, fEpsilonRelMax, hdid, hnext);
       // std::cout << "Returned from OneGoodStep" << std::endl;
 
       //--------------------------------------
@@ -333,7 +339,7 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
         std::cout << "Another sub-min step, no " << fNoSmallSteps << " of " << fNoTotalSteps << " this time " << nstp
                   << std::endl;
         PrintStatus(ySubStepStart, x1, y, x, h, nstp); // Only this
-        std::cout << " dyerr= " << dyerr_len << " relative = " << dyerr_len / h << " epsilon= " << epsilon
+        std::cout << " dyerr= " << dyerr_len << " relative = " << dyerr_len / h << " epsilon= " << fEpsilonRelMax
                   << " hstep= " << hstep << " h= " << h << " hmin= " << fMinimumStep << std::endl;
       }
 #endif
@@ -349,10 +355,10 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
       x += hdid;
 
       // Compute suggested new step
-      hnext = ComputeNewStepSize(dyerr / epsilon, h);
+      hnext = ComputeNewStepSize(dyerr * fInvEpsilonRelMax, h);
 
-      // .. hnext= ComputeNewStepSize_WithinLimits( dyerr/epsilon, h);
-      lastStepSucceeded = (dyerr <= epsilon);
+      // .. hnext= ComputeNewStepSize_WithinLimits( dyerr/fEpsilonRelMax, h);
+      lastStepSucceeded = (dyerr <= fEpsilonRelMax);
     }
 
     if (lastStepSucceeded) {
@@ -390,7 +396,7 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
       if (endPointDist >= hdid * (1. + perThousand)) {
 #ifdef GUDEBUG_FIELD
         if (dbg) {
-          WarnEndPointTooFar(endPointDist, hdid, epsilon, dbg);
+          WarnEndPointTooFar(endPointDist, hdid, fEpsilonRelMax, dbg);
           std::cerr << "  Total steps:  bad " << fNoBadSteps << " good " << noGoodSteps << " hdid= " << hdid
                     << std::endl;
           PrintStatus(ystart, x1, y, x, hstep, no_warnings ? nstp : -nstp);
@@ -404,7 +410,7 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
     // #endif
 
     //  Avoid numerous small last steps
-    if ((h < epsilon * hstep) || (h < fSmallestFraction * startCurveLength)) {
+    if ((h < fEpsilonRelMax * hstep) || (h < fSmallestFraction * startCurveLength)) {
       // No more integration -- the next step will not happen
       lastStep = true;
     } else {
@@ -412,7 +418,7 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
       if (std::fabs(hnext) <= fMinimumStep) {
 #ifdef GUDEBUG_FIELD
         // If simply a very small interval is being integrated, do not warn
-        if ((x < x2 * (1 - epsilon)) &&        // The last step can be small: OK
+        if ((x < x2 * (1 - fEpsilonRelMax)) &&        // The last step can be small: OK
             (std::fabs(hstep) > fMinimumStep)) // and if we are asked, it's OK
         {
           if (dbg > 0) {
@@ -832,7 +838,8 @@ bool ScalarIntegrationDriver::QuickAdvance(ScalarFieldTrack &y_posvel, // INOUT
 #ifdef RETURN_A_NEW_STEP_LENGTH
   // The following step cannot be done here because "eps" is not known.
   dyerr_len = std::sqrt(dyerr_len_sq);
-  dyerr_len_sq /= epsilon;
+  // dyerr_len_sq /= fEpsilonRelMax;
+  dyerr_len_sq *= fInvEpsilonRelMax;
 
   // Look at the velocity deviation ?
   //  SQR(yerr_vec[3])+SQR(yerr_vec[4])+SQR(yerr_vec[5]));

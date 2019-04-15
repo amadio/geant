@@ -24,8 +24,11 @@
 
 class ScalarIntegrationDriver {
 public:                                    // with description
-  ScalarIntegrationDriver(double hminimum, // same
-                          VScalarIntegrationStepper *pStepper, int numberOfComponents = 6, int statisticsVerbosity = 1);
+  ScalarIntegrationDriver(double                       hminimum, // same
+                          VScalarIntegrationStepper  * pStepper,
+                          double                       epsRelMax,                          
+                          int                          numberOfComponents = 6,
+                          int                          statisticsVerbosity = 1);  // c-tor
   ScalarIntegrationDriver(const ScalarIntegrationDriver &);
   // Copy constructor used to create Clone method
   ~ScalarIntegrationDriver();
@@ -33,7 +36,7 @@ public:                                    // with description
   // Core methods
   bool AccurateAdvance(const ScalarFieldTrack &y_current,
                        double                 hstep,
-                       double                 eps, //  (Common) Requested y_err/hstep
+                       // double                 eps, //  (Common) Requested y_err/hstep
                        ScalarFieldTrack     & yOutput,
                        double hinitial = 0.0); // take it out
   // Above drivers for integrator (Runge-Kutta) with stepsize control.
@@ -69,6 +72,8 @@ public:                                    // with description
   inline double GetPowerGrow() const { return fPowerGrow; }
   inline double GetErrcon() const { return fErrcon; }
 
+  double GetMaxRelativeEpsilon() const { return fEpsilonRelMax; }
+  
   inline void GetDerivatives(const ScalarFieldTrack &y_curr, // const, INput
                              double charge,
                              double dydx[]); //       OUTput
@@ -176,8 +181,12 @@ private:
   //  INVARIANTS
 
   double fMinimumStep;
+  const double fEpsilonRelMax;    //  Maximum Relative Error in integration
+  const double fInvEpsilonRelMax; //  Inverse of above - precalculate the division !
+  
   // Minimum Step allowed in a Step (in absolute units)
-  double fSmallestFraction; //   Expected range 1e-12 to 5e-15;
+  static constexpr double fDefaultSmallestFraction= 1.0e-7;
+  double fSmallestFraction; //   Expected range 1e-5 to 1e-10  BUT must be << fEpsilonRelMax
                             // Smallest fraction of (existing) curve length - in relative units
                             //  below this fraction the current step will be the last
 

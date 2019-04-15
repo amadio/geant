@@ -233,16 +233,17 @@ int main(int argc, char *argv[])
 
   //=======================Test part for Integration driver====================
   double hminimum = 0.2;
+  double epsTol = 1.0e-5;
 
   //==========  Vector Driver: start preparation ===============
   using StepperType = CashKarp<GvEquationType, Nposmom>;
   auto myStepper    = new StepperType(gvEquation);
 
-  // using DriverType = SimpleIntegrationDriver<StepperType, Nposmom>;
+  using DriverType = SimpleIntegrationDriver<StepperType, Nposmom>;
   // using DriverType = OldIntegrationDriver<StepperType, Nposmom>;
-  using DriverType = RollingIntegrationDriver<StepperType, Nposmom>;
+  // using DriverType = RollingIntegrationDriver<StepperType, Nposmom>;
   auto vectorDriver =
-      new DriverType(hminimum, myStepper, Nposmom );
+      new DriverType(hminimum, myStepper, epsTol,  Nposmom );
   if( verbose ) { cout << " Vector Driver created." << endl; } 
   // ========== Vector Driver prepared ========================
 
@@ -288,7 +289,8 @@ int main(int argc, char *argv[])
   
   int statisticsVerbosity = 1;
 
-  auto refScalarDriver = new ScalarIntegrationDriver(hminimum, myStepperScalar, Nposmom, statisticsVerbosity);
+  auto refScalarDriver = new ScalarIntegrationDriver(hminimum, myStepperScalar, epsTol, 
+                                                     Nposmom, statisticsVerbosity);
   cout << "Scalar> Driver created:  Type= ScalarIntegrationDriver.  hminimum= " << hminimum << " , Nvar = " << Nposmom << " , statsVerb= " << statisticsVerbosity << endl;
   //==========  Scalar Driver prepared =========================
 
@@ -304,7 +306,6 @@ int main(int argc, char *argv[])
   // double total_step = 0.;
 
   Bool_v goodAdvance(true);
-  double epsTol = 1.0e-5;
 
   // Double_v  hStep1( 10.0 );
   // goodAdvance = testDriver->AccurateAdvance( yTrackIn, hStep1, epsTol, yTrackOut );
@@ -354,7 +355,7 @@ int main(int argc, char *argv[])
     IntegrationDriverConstants::GetInstance()->SetTrackToCheck(trackToCheck);
 #endif
   
-    vectorDriver->AccurateAdvance<Double_v>(yInput, hstep, charge, epsTol, yOutput, succeeded, nTracks);
+    vectorDriver->AccurateAdvance<Double_v>(yInput, hstep, charge, /* epsTol, */ yOutput, succeeded, nTracks);
     // ==========================
 
     // if( verbose ) cout << "-- Vector Driver done (advanced)." << endl;
@@ -367,7 +368,7 @@ int main(int argc, char *argv[])
     
 #if 0    
     refScalarDriver->SetPrintDerived(false);
-    bool scalarResult = refScalarDriver->AccurateAdvance(yScalTrackIn, hstep[0], epsTol, yScalTrackOut);
+    bool scalarResult = refScalarDriver->AccurateAdvance(yScalTrackIn, hstep[0], /* epsTol, */ yScalTrackOut);
 
     if( verbose )
     {
@@ -387,7 +388,7 @@ int main(int argc, char *argv[])
       refScalarDriver->SetPrintDerived(i==trackToCheck);
       refScalarDriver->SetTrackNumber(i);  // For info only
       
-      refScalarDriver->AccurateAdvance(yScalTrackIn, hstep[i], epsTol, yScalTrackOut);
+      refScalarDriver->AccurateAdvance(yScalTrackIn, hstep[i], /* epsTol, */  yScalTrackOut);
       // ************  ***************
 
       // bool diffFound;
@@ -473,7 +474,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifndef DebuggingSection
-    vectorDriver->AccurateAdvance<Double_v>(yInput, hstep, epsTol, yOutput, nTracks, succeeded);
+    vectorDriver->AccurateAdvance<Double_v>(yInput, hstep, /* epsTol, */ yOutput, nTracks, succeeded);
 #endif
 
 #ifdef CALCULATETIME
@@ -481,7 +482,7 @@ int main(int argc, char *argv[])
     float clock1InFloat = ((float)clock1) / CLOCKS_PER_SEC;
     cout << "Vector time is: " << clock1InFloat << endl;
 #endif
-/*      refScalarDriver->AccurateAdvance( yTrackIn, hstep[0], epsTol, yTrackOut );
+//      refScalarDriver->AccurateAdvance( yTrackIn, hstep[0], /*epsTol,*/ yTrackOut );
 
       cout<<" yOutput[0] is: "<< yOutput[0]<<" for yInput: "  <<yInput[0]<< endl;
       cout<<" yTrackOut is: " << yTrackOut <<" for yTrackIn: "<<yTrackIn << endl;*/
@@ -493,7 +494,8 @@ int main(int argc, char *argv[])
         ScalarFieldTrack yTrackIn ( startPosition, startMomentum );
         ScalarFieldTrack yTrackOut( startPosition, startMomentum );
 
-        refScalarDriver->AccurateAdvance( yTrackIn, hstep[i], epsTol, yTrackOut );
+        refScalarDriver->AccurateAdvance( yTrackIn, hstep[i], // epsTol, 
+            yTrackOut );
 
         cout<<" yOutput["<<i<<"] is: "<< yOutput[i]<<" for yInput: "  <<yInput[i]<< endl;
         cout<<" yTrackOut is: " << yTrackOut <<" for yTrackIn: "<<yTrackIn << endl;
@@ -504,7 +506,7 @@ int main(int argc, char *argv[])
 #endif
     for (int i = 0; i < nTracks; ++i) {
 #ifndef DebuggingSection
-      refScalarDriver->AccurateAdvance(yTrackIn, hstep[i], epsTol, yTrackOut);
+      refScalarDriver->AccurateAdvance(yTrackIn, hstep[i], /*epsTol,*/ yTrackOut);
 
       cout << " yOutput[" << i << "] is: " << yOutput[i] << " for yInput: " << yInput[i] << endl;
       cout << " yTrackOut is : " << yTrackOut << " for yTrackIn: " << yTrackIn << " for hstep: " << hstep[i] << endl;
@@ -559,11 +561,11 @@ int main(int argc, char *argv[])
     ScalarFieldTrack yTrackIn(startPosition, startMomentum, charge);
     ScalarFieldTrack yTrackOut(startPosition, startMomentum, charge);
 
-    vectorDriver->AccurateAdvance(yInput, charge, hstep, epsTol, yOutput, nTracks, succeeded);
-    // refScalarDriver->AccurateAdvance( yTrackIn, hstep[11], epsTol, yTrackOut );
+    vectorDriver->AccurateAdvance(yInput, charge, hstep, /*epsTol,*/ yOutput, nTracks, succeeded);
+    // refScalarDriver->AccurateAdvance( yTrackIn, hstep[11], /* epsTol,*/ yTrackOut );
 
     for (int i = 0; i < nTracks; ++i) {
-      refScalarDriver->AccurateAdvance(yTrackIn[i], hstep[i], epsTol, yTrackOutScalar[i]);
+      refScalarDriver->AccurateAdvance(yTrackIn[i], hstep[i], /* epsTol, */ yTrackOutScalar[i]);
 
       // cout<<" yOutput["<<i<<"] is: "<< yOutput[i]<<" for hstep: "<<hstep[i]<< endl ;
       cout << " yOutput[" << i << "] is: " << yOutput[i] << " for hstep: " << hstep[i] << endl;
