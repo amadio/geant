@@ -81,12 +81,14 @@ public:
    ***/
 
   // Accessor for Key parameters
-  double GetPowerShrink()  const { return 2.0*kPowerShrink; }
-  double GetPowerGrow()    const { return 2.0*kPowerGrow; }
+  double GetPowerShrink()  const { return kPowerShrink; }
+  double GetPowerGrow()    const { return kPowerGrow; }
   double GetMinimumStep()  const { return fMinimumStep; }
   
   int    GetVerboseLevel() const { return fVerboseLevel; }
   int    GetErrcon()       const { return fErrcon; }  
+     // std::cout << " <--- BaseRkIntDriver gives errcon = " << fErrcon << " ---> "; return fErrcon; }  
+     
   int    GetStatisticsVerboseLevel() const { return fStatisticsVerboseLevel; }
 
   unsigned int  GetStepperOrder() const { return fStepperOrder; }
@@ -99,7 +101,7 @@ public:
   // Modifiers
   
   // Compute dependent parameters
-  inline void ComputeAndSetErrcon();
+  // inline void ComputeAndSetErrcon();
 
   void ReportInvalidStepInputs(double hStepArr[], int nTracks);
   void CreateInput(FieldTrack yInput[], int nTracks);
@@ -209,8 +211,8 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
       // fNoIntegrationVariables(numComponents),  // ==> Nvar
       fMinNoVars(6), fNoVars(Nvar), // Was fNoVars(std::max((int)Nvar, std::max((int)fMinNoVars, (int)numComponents))),
       fStepperOrder( pStepper->GetIntegratorOrder() ),
-      kPowerShrink(-0.5 / fStepperOrder),       //  exponent for shrinking
-      kPowerGrow(-0.5 / (1.0 + fStepperOrder)), //  exponent for growth
+      kPowerShrink(-1.0 / fStepperOrder),       //  exponent for shrinking
+      kPowerGrow(-1.0 / (1.0 + fStepperOrder)), //  exponent for growth
       // - fErrcon(0.0),
       fStatisticsVerboseLevel(statisticsVerbose),
       fVerboseLevel(0)
@@ -223,10 +225,9 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
 
   // fpStepper = pStepper;
 
-  ComputeAndSetErrcon();
   SetMaxNoSteps( fMaxStepBase / pStepper->GetIntegratorOrder() );
 
-  ComputeAndSetErrcon();
+  // ComputeAndSetErrcon();
 
   CheckParameters();
 
@@ -237,6 +238,7 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
   if (fVerboseLevel) {
     std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
               << " shrink = " << kPowerShrink << "  grow = " << kPowerGrow << std::endl;
+              << " shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
   }
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {
     std::cout << "BaseRkIntegrationDriver constructor called.";
@@ -246,16 +248,25 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
   }
 }
 
+
+/***********
 // ---------------------------------------------------------
 
 template <class T_Stepper, unsigned int Nvar>
 inline void BaseRkIntegrationDriver<T_Stepper, Nvar>
-    // void BaseRkIntegrationDriver<Real_v, T_Stepper, Nvar>
     ::ComputeAndSetErrcon()
 {
   fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, kPowerGrow);
+
+  std::cout << "BaseRkIntegrationDriverComputAndSetErrcon():  fErrcon = " << fErrcon
+            << "  from:  maxStepIncrease =  " << fMaxSteppingIncrease
+            << "  fSafetyFactor = " << fSafetyFactor
+            << "  power-grow =  " << fPowerGrow << std::endl;
+  
+  assert( fErrcon > 0.0 ); 
   // return fErrcon;
 }
+************/
 
 // ---------------------------------------------------------
 
@@ -314,7 +325,7 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(
   // const T_Stepper *protStepper = right.GetStepper();
   // fpStepper                    = protStepper->Clone();
 
-  ComputeAndSetErrcon();
+  // ComputeAndSetErrcon();
   fMaxNoSteps = fMaxStepBase / fStepperOrder; // fpStepper->GetIntegratorOrder();
 
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {

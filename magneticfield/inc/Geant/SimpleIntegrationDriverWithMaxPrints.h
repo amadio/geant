@@ -536,7 +536,7 @@ SimpleIntegrationDriverWithMaxPrints<T_Stepper, Nvar>::
 #endif
 
   if (fVerboseLevel) {
-    std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
+    std::cout << "SiDwithMaxPrints:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
               << " shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
   }
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {
