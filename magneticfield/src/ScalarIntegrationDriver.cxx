@@ -686,7 +686,7 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     // Debugging output
     bool stepOk = (errmax_sq <= 1.0);
     if( fPrintDerived ) {
-       ReportOneLane ( h, eps_pos, errpos_sq, errmom_sq, errmax_sq, stepOk, -1,
+       ReportOneLane ( h, x, eps_pos, errpos_sq, errmom_sq, errmax_sq, stepOk, -1,
                        iter, tot_no_trials, 0,
                        this->GetTrackNumber(),
                        "ScalarIntDrv" );

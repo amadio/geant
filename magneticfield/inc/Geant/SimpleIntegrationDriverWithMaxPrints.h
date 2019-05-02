@@ -148,21 +148,6 @@ protected:
   // In this version each lane stops as soon with its first success.
 
   template <class Real_v>
-  Real_v ComputeNewStepSize(Real_v errMaxNorm,    // normalised error
-                            Real_v hstepCurrent); // current step size
-                                                  // Taking the last step's normalised error, calculate
-                                                  // a step size for the next step.
-                                                  // Do not limit the next step's size within a factor of the
-                                                  // current one.
-
-  template <class Real_v>
-  Real_v ComputeNewStepSize_WithinLimits(Real_v errMaxNorm,    // normalised error
-                                         Real_v hstepCurrent); // current step size
-                                                               // Taking the last step's normalised error, calculate
-                                                               // a step size for the next step.
-  // Limit the next step's size within a range around the current one.
-
-  template <class Real_v>
   int InitializeLanes(const FieldTrack yInput[], const double hstep[], const double charge[], int nTracks,
                       int      indexArr[], // [vecCore::VectorSize<Real_v>()] - Output
                       Real_v   y[],     // [Nvar]        - Output
@@ -1936,76 +1921,6 @@ typename Mask<Real_v> SimpleIntegrationDriverWithMaxPrints<Real_v, T_Stepper, Nv
   exit(1);
 }
 #endif
-
-// --------------------------------------------------------------------------
-
-//  This method computes new step sizes - but does not limit changes to
-//  within  certain factors
-//
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-Real_v SimpleIntegrationDriverWithMaxPrints</*Real_v,*/ T_Stepper, Nvar>::ComputeNewStepSize(
-    Real_v errMaxNorm,   // max error  (normalised)
-    Real_v hStepCurrent) // current step size
-{
-  using Bool_v = vecCore::Mask_v<Real_v>;
-
-  Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
-  Real_v stretch  = fSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
-  Real_v hNew     = stretch * hStepCurrent;
-  return hNew;
-}
-
-// ---------------------------------------------------------------------------
-
-// This method computes new step sizes limiting changes within certain factors
-//
-// It shares its logic with AccurateAdvance.
-// They are kept separate currently for optimisation.
-//
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-Real_v SimpleIntegrationDriverWithMaxPrints<T_Stepper, Nvar>::ComputeNewStepSize_WithinLimits(
-    Real_v errMaxNorm,   // max error  (normalised)
-    Real_v hStepCurrent) // current step size
-{
-  using Bool_v = vecCore::Mask_v<Real_v>;
-
-  Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, fPowerShrink, fPowerGrow);
-
-  Real_v stretch = fSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
-
-  Real_v stemp;
-  stemp   = vecCore::math::Max(stretch, fMaxSteppingDecrease);
-  stretch = vecCore::math::Min(stemp, fMaxSteppingIncrease);
-
-  Real_v hNew = stretch * hStepCurrent;
-
-  /*
-    // Compute size of next Step for a failed step
-    if (errMaxNorm > 1.0 )
-    {
-      // Step failed; compute the size of retrial Step.
-      hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerShrink) ;
-
-      hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
-                           // reduce stepsize, but no more
-                           // than this factor (value= 1/10)
-      }
-    }
-    else
-    {
-      // Compute size of next Step for a successful step
-      if (errMaxNorm > fErrcon)
-       { hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerGrow); }
-      else  // No more than a factor of 5 increase
-       { hnew = fMaxSteppingIncrease * hstepCurrent; }
-    }*/
-
-  return hNew;
-}
 
 // ---------------------------------------------------------------------------
 template <class T_Stepper, unsigned int Nvar>

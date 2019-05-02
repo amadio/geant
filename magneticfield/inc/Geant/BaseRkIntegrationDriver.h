@@ -256,7 +256,7 @@ template <class T_Stepper, unsigned int Nvar>
 inline void BaseRkIntegrationDriver<T_Stepper, Nvar>
     ::ComputeAndSetErrcon()
 {
-  fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, kPowerGrow);
+  fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, 1.0 / kPowerGrow);
 
   std::cout << "BaseRkIntegrationDriverComputAndSetErrcon():  fErrcon = " << fErrcon
             << "  from:  maxStepIncrease =  " << fMaxSteppingIncrease

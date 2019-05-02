@@ -216,6 +216,7 @@ template<typename Double_v, typename Bool_v>
 inline
 void
    ReportOneLane( Double_v hStep,
+                  Double_v xStepStart,
                   Double_v epsPosition, Double_v errPosSq,
                   Double_v errMomSq,    Double_v errmax_sq,
                   Bool_v   lanesDone,   int     allDone,
@@ -241,8 +242,9 @@ void
    prec=6;
    wd = prec + 5;
    cout << std::setprecision( prec )
-        << " h = "      << setw( wd ) << vecCore::Get( hStep ,       lanePrint )
-        << " Eps-x = "  << setw( wd ) << vecCore::Get( epsPosition , lanePrint );
+        << " h = "          << setw( wd ) << vecCore::Get( hStep ,       lanePrint )
+        << " xStepStart = " << setw( wd ) << vecCore::Get( xStepStart ,  lanePrint )      
+        << " Eps/x = "      << setw( wd ) << vecCore::Get( epsPosition , lanePrint );
 
    double errPosLane2 = vecCore::Get( errPosSq ,    lanePrint );
    double errMomLane2 = vecCore::Get( errMomSq ,    lanePrint );
@@ -255,7 +257,7 @@ void
             
    if( printSquares ) 
       cout
-             << " errSq-x/p = "   << setw( wd2) << errPosLane2  // vecCore::Get( errPosSq ,    lanePrint )
+             << " errSq: x,p = "  << setw( wd2) << errPosLane2  // vecCore::Get( errPosSq ,    lanePrint )
              << " "               << setw( wd2) << errMomLane2  // vecCore::Get( errMomSq ,    lanePrint ) // << " "
              << " errMax^2 = "    << setw( wd2) << errMax2;     // vecCore::Get( errmax_sq ,   lanePrint );
    if( printValues ) 
@@ -278,6 +280,54 @@ void
    // if( allDone ) cout << std::endl;
    // **> Old mode - that printed all updates - not just ones in which this lane was active.
 }
+
+template <class Real_v> // , unsigned int Nvar>
+void
+FullReport(const Real_v yStepStart[],
+           const Real_v charge,
+           const Real_v dydx[],
+           const Real_v hStep,
+           const Real_v yStepEnd[],
+           const Real_v yEstErr[],
+           const Real_v errmax_sq,
+           const vecCore::Mask_v<Real_v> Active
+   )
+{
+  // using FormattedReporter::ReportRowOfDoubles;
+  // using FormattedReporter::ReportManyRowsOfDoubles;
+  // using FormattedReporter::ReportRowOfBools;
+    
+  // std::cout << "RID: Status after stepper call ----------------------------------------------" << std::endl;
+  std::cout << "Status   -----------------------------------------------------------------------------------" << std::endl;  
+  std::cout << "-- Argument values" << std::endl;
+  ReportRowOfDoubles("hStep(ask)", hStep );
+  std::cout << "-- Start  values" << std::endl;
+  ReportManyRowsOfDoubles("StartX/P", yStepStart, 6 );
+  ReportRowOfDoubles("Charge",  charge, 6 );              
+  ReportManyRowsOfDoubles("d[X,P]/ds", dydx, 6 );
+
+  std::cout << "-- Return values" << std::endl;
+  ReportManyRowsOfDoubles("X,P_out", yStepEnd, 6 );
+
+  // Report Estimated Errors       
+  std::cout << "-- Estimated Errors" << std::endl;
+  ReportManyRowsOfDoubles("errXP/xyz", yEstErr, 6 );
+  
+  // ReportManyRowsOfDoubles("err-p/xyz", &yerr[3], 3 );
+  
+  // ReportRowOfSquareRoots("|err-p|", yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5] );       
+  // ReportRowOfDoubles("up = SumErr^2", sumerr_sq );
+  // ReportRowOfDoubles("dwn= magMom^2+e", magmom_sq + tinyValue );
+  // ReportRowOfDoubles("mul:1/e_vel^2", invEpsilonRelSq );
+  // ReportRowOfDoubles("ErrMom", errmom_sq );
+  // ReportRowOfSquareRoots("ErrMom", errmom_sq );       
+  ReportRowOfDoubles("ErrMaxSq", errmax_sq );
+  ReportRowOfSquareRoots("ErrMax", errmax_sq );       
+  ReportRowOfBools<Real_v>("Active(old)", Active);
+  std::cout << "End Status -------------------------------------------------------------------------------------" << std::endl;
+}
+
+
 
 }; // End of namespace FormattedReporter
 

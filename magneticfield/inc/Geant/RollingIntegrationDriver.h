@@ -140,7 +140,7 @@ protected:
   // Implementation methods
   template <class Real_v>
   void KeepStepping(const Real_v   yStart[], //  [N]
-                    const Real_v   dydx[],   //  [N]
+                    Real_v         dydx[],   //  [N]
                     const Real_v   charge,
                     Real_v       & xVal, // InOut
                     Real_v         xEnd, // Input only - End of Interval                   
@@ -157,23 +157,6 @@ protected:
   // 
   // In this version it will return as soon as one lane ends or fails.
 
-/******
-  template <class Real_v>
-  Real_v ComputeNewStepSize(Real_v errMaxNorm,    // normalised error
-                            Real_v hstepCurrent); // current step size
-                                                  // Taking the last step's normalised error, calculate
-                                                  // a step size for the next step.
-                                                  // Do not limit the next step's size within a factor of the
-                                                  // current one.
-
-  template <class Real_v>
-  Real_v ComputeNewStepSize_WithinLimits(Real_v errMaxNorm,    // normalised error
-                                         Real_v hstepCurrent); // current step size
-                                                               // Taking the last step's normalised error, calculate
-                                                               // a step size for the next step.
-  // Limit the next step's size within a range around the current one.
-*****/
-  
   template <class Real_v>
   int InitializeLanes(const FieldTrack yInput[], const double hstep[], const double charge[], int nTracks,
                       int indexArr[], // [vecCore::VectorSize<Real_v>()] - Output
@@ -236,7 +219,7 @@ protected:
   }  
 #else
   void ComputeAndSetErrcon() {
-      fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, GetPowerGrow() );
+      fErrcon = Math::Pow(fMaxSteppingIncrease / fSafetyFactor, 1.0 / GetPowerGrow() );
       
       std::cout << "SimpleIntegrationDriverComputAndSetErrcon():  fErrcon = " << fErrcon
                 << "  from:  maxStepIncrease =  " << fMaxSteppingIncrease
@@ -572,7 +555,7 @@ template <class T_Stepper, unsigned int Nvar>
 template <class Real_v>
 void RollingIntegrationDriver<T_Stepper, Nvar>::
    KeepStepping(const Real_v   yStart[], //  [N]
-                const Real_v   dydx[],
+                      Real_v   dydx[],
                 const Real_v   charge,
                 Real_v       & x,    // InOut
                 Real_v         xEnd, // Input only - End of Interval
@@ -621,23 +604,27 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   using FormattedReporter::ReportRowOfSquareRoots;
   using FormattedReporter::ReportManyRowsOfDoubles;
   using FormattedReporter::ReportRowOfBools;
+  using FormattedReporter::ReportRowOfDoublesIf;
   using FormattedReporter::ReportOneLane;
   using PrintDriverProgress::ReportConditionLanes;
 
   if (partDebug) { cout << "\n" << endl; }
 
-  Real_v errmax_sq, yerr[Nvar /*ncompSVEC*/];
+  Real_v yerr[Nvar];
   Real_v yStepStart[Nvar];
   Real_v yStepEnd[Nvar];    // Could reuse yFinal for this ??  2018.01.08
   Real_v hStep = htry; // Set stepsize to the initial trial value
-
+  const Real_v xStart= x;    // Remember
+  
   static int tot_no_trials = 0; // Should be thread_local - or suppressed. Just statistics
   const int max_trials     = 100;
 
   Bool_v finishedLane = (htry <= 0.); //  Allows h <=0 as signal lane is empty.
-
+    
   Real_v hFinal = htry, errmax_sqFinal = Real_v(0.); // xFinal, hdidFinal,
   Real_v hnew;
+  Real_v errmaxSqFallThru(0.0);  
+
   Bool_v goodStep(false), stepSizeUnderflow(false);
   // Bool_v keepGoing(true);
   
@@ -647,7 +634,6 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   // ReportManyRowsOfDoubles( "yStart",  yStart, Nvar );
   Real_v magmomInit_sq = yStart[3] * yStart[3] + yStart[4] * yStart[4] + yStart[5] * yStart[5];
 
-
 #ifdef CHECK_ONE_LANE
   const int trackToPrint = IntegrationDriverConstants::GetInstance()->GetTrackToCheck();
 #ifndef CONST_DEBUG
@@ -655,12 +641,13 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 #endif
   // bool  printNow = (laneToCheck >= 0) && vecCore::Get( htry, laneToCheck ) > 0.0 ;       
   if( laneToCheck != -1 ) {
-     cout << "* SID:AccAdv Global Vars> trackToPrint = " << trackToPrint << " l2c / laneToCheck = " << laneToCheck;
+     cout << "* RID:AccAdv Global Vars> trackToPrint = " << trackToPrint << " l2c / laneToCheck = " << laneToCheck;
      cout << "  Args>  h[l2c] = " << vecCore::Get( htry, laneToCheck );     
      cout << endl;
   }
 #endif
-
+  if( partDebug ) { std::cout << "RID: KeepStepping called." << std::endl; }
+       
   // ErrorEstimatorSixVec fErrorEstimator( eps_rel_max, GetMinimumStep() );
 
   for( unsigned int i=0; i<Nvar; i++)
@@ -673,14 +660,25 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 #ifdef CHECK_ONE_LANE    
     bool  printLane = (laneToCheck >= 0) && vecCore::Get( Active, laneToCheck );
 #endif        
-    itersLeft--;
-    iter++;
-    if (partDebug) std::cout << " KeepStepping - iteration = " << iter << endl;
 
     vecCore::MaskedAssign(hStep, finishedLane, Real_v(0.0)); // Set hStep = 0.0 for finishedLane lanes
 
+    if( iter > 0 ) {
+       fpStepper ->RightHandSideInl( yStepStart, charge, dydx ); // TODO: change to inline
+       //---------****************-----------------------
+       // cout << "RID> Recalculated dy/ds" << std::endl;
+       // ReportManyRowsOfDoubles("Current X/P",  yStepStart, 6 );
+       // ReportRowOfDoubles("Charge",  charge, 6 );       
+       // ReportManyRowsOfDoubles("d/ds [X,P] ", dydx, 6 );
+    }
+    
+    itersLeft--;
+    iter++;
+    if (partDebug) std::cout << " KeepStepping - iteration = " << iter << endl;
+    
     fpStepper->StepWithErrorEstimate(yStepStart, dydx, charge, hStep, yStepEnd, yerr); // CAREFUL -> changes for others ?
-   
+    //******************************
+    
     IncrementStepperCalls();    //  fStepperCalls++;
 
 #ifdef DRIVER_PRINT_PROGRESS
@@ -705,45 +703,73 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 
     // Real_v xNext = x + hStep; //   Updates both good and bad steps -- else it should be  = x + hAdvance;
     Real_v xNext = x + hAdvance; //   Updates only good steps --  2019.01.07
+
+    if( partDebug ) {
+       cout << " ====================================================================" << endl;    
+       ReportRowOfDoubles("x:   Start  =", x );
+       ReportRowOfDoubles("xNext: End  =", xNext );
+       ReportRowOfDoubles("hStep/tried =", hStep );
+       ReportRowOfDoubles("hAdvance/got=", hAdvance );
+       ReportRowOfDoubles("hdid (total)=", hdid );
+       ReportRowOfBools<Real_v>("goodStep", goodStep);    
+       cout << " ====================================================================" << endl;
+    }
     
     // fSmallestFraction    
     Bool_v endIntegration  = ( xEnd - xNext < geant::units::perMillion * htry ) ;  // Care for very small diff
     Bool_v laneDone = ( endIntegration | finishedLane);      // WAS = (goodStep | finished);
 
     bool   someDone = ! vecCore::MaskEmpty(laneDone);
-    bool   enoughFinished = someDone;
+    // bool   allDone =    vecCore::MaskFull(laneDone);
+    // bool   enoughFinished = allDone; // To EXPERIMENT ONLY
+    bool   enoughFinished = someDone;   // 
     //  Could refine this criterion - maybe take one more step if only one is finished ... ?
 
-
+    finishedLane = laneDone;
+    
 #ifdef CHECK_ONE_LANE
     // Debugging one lane (at a time)  -------------  2019.04.17
     if( printLane ) { // if ( (laneToCheck >= 0) && vecCore::Get( Active, laneToCheck ) ) {
        // const int trackToPrint = IntegrationDriverConstants::GetInstance()->GetTrackToCheck();
        bool    allDone =    vecCore::MaskFull(laneDone);
-       ReportOneLane ( hStep, epsPosition, errpos_sq, errmom_sq, errmax_sq, laneDone,
+       ReportOneLane ( hStep, x, epsPosition, errpos_sq, errmom_sq, errmax_sq, laneDone,
                        allDone, iter, tot_no_trials, laneToCheck, trackToPrint,
-                       "SimpleID" );  // "SimpleIntDrv" );
-       // ReportManyRowsOfDoubles("err-p/xyz", yerr[3], 3 );
-       ReportRowOfDoubles("err-p/x", yerr[3] );
-       ReportRowOfDoubles("err-p/y", yerr[4] );
-       ReportRowOfDoubles("err-p/z", yerr[5] );
-       // ReportRowOfSquareRoots("|err-p|^2", yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5] );
-       // ReportRowOfDoubles("up = SumErr^2", sumerr_sq );
-       // ReportRowOfDoubles("dwn= magMom^2+e", magmom_sq + tinyValue );
-       // ReportRowOfDoubles("mul:1/e_vel^2", invEpsilonRelSq );
-       // ReportRowOfDoubles("ErrMom", errmom_sq );
+                       "RollingID" );
+       if( 0 ) {
+          std::cout << "RID: Status after stepper call ----------------------------------------------" << std::endl;
+          std::cout << "-- Argument values" << std::endl;
+          ReportRowOfDoubles("hStep(ask)", hStep );
+          std::cout << "-- Start  values" << std::endl;
+          ReportManyRowsOfDoubles("StartX/P", yStepStart, 6 );
+          ReportRowOfDoubles("Charge",  charge, 6 );              
+          ReportManyRowsOfDoubles("d[X,P]/ds", dydx, 6 );
+          std::cout << "-- Return values" << std::endl;
+          ReportManyRowsOfDoubles("X,P_out", yStepEnd, 6 );
+          // Report Estimated Errors       
+          std::cout << "-- Estimated Errors" << std::endl;
+          ReportManyRowsOfDoubles("errXP/xyz", yerr, 6 );
+          // ReportManyRowsOfDoubles("err-p/xyz", &yerr[3], 3 );
+          // ReportRowOfSquareRoots("|err-p|", yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5] );       
+          // ReportRowOfDoubles("up = SumErr^2", sumerr_sq );
+          // ReportRowOfDoubles("dwn= magMom^2+e", magmom_sq + tinyValue );
+          // ReportRowOfDoubles("mul:1/e_vel^2", invEpsilonRelSq );
+          // ReportRowOfDoubles("ErrMom", errmom_sq );
+       }
     }
     // End debug code                 -------------  2019.04.17
 #endif 
     
-    finishedLane = laneDone;
     Active   = !finishedLane;
-
+    x = xNext;  // Move the starting point of the next step
+    
 #ifdef DRIVER_PRINT_PROGRESS
     if (partDebug) {
       ReportRowOfBools<Real_v>("goodStep", goodStep);
       ReportRowOfBools<Real_v>("laneDone", laneDone);
-      ReportRowOfBools<Real_v>("(updated) finished", finishedLane);
+      ReportRowOfBools<Real_v>("finished(upd)", finishedLane);
+      ReportRowOfBools<Real_v>("Active(upd)", Active);
+      
+      ReportRowOfDoubles("x: Updated =", x );
     }
 #endif
     
@@ -752,6 +778,11 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
        if (partDebug) cout << "RID: Enough Finished (Store and Report OFF ) - just breaking." << endl;
        // StoreGoodValues(yStepEnd, hStep, errmax_sq, goodStep, yFinal, hFinal, errmax_sqFinal);
        //   Why store here too ??? - store only after loop exit !     2019.01.07   ( TBC )
+       errmaxSqFallThru = errmax_sq;
+
+       std::cout << "** Exiting loop - Report of status -------------------------------------- " << std::endl;
+       FormattedReporter::FullReport(yStepStart, charge, dydx, hStep, yStepEnd, yerr, errmax_sq, Active);
+
        break;
     }
 
@@ -759,9 +790,8 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     for( unsigned int i=0; i<Nvar; i++)
        vecCore::MaskedAssign( yStepStart[i], goodStep, yStepEnd[i] );
 
-    x = xNext;
-
     Real_v hReduced = ComputeNewStepLengthWithinLimits2( errmax_sq, hStep );
+    //  Expect all (or nearly all) have work -- so using vecCore::Pow on all lanes makes sense.  Else ...
 
     hnew = vecCore::Blend(finishedLane, Real_v(0.0), hReduced);    
 
@@ -769,9 +799,31 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 
     stepSizeUnderflow = Active && (xnew == x);
 
+#ifdef CHECK_ONE_LANE    
+    if( printLane ) {
+      std::cout << "RID: After chance to break. (Not enoughFinished.) Remaining lanes represent work: " << std::endl;
+      ReportRowOfBools<Real_v>("laneDone", laneDone);
+      ReportRowOfBools<Real_v>("Active", Active);
+      // ReportRowOfDoubles("powerShrink=", 2*fHalfPowerShrink );
+      // std::cout << " safetyFactor = " << fSafetyFactor << std::endl;
+      ReportRowOfDoubles("errMaxSq=", errmax_sq );
+      ReportRowOfSquareRoots("errMax=", errmax_sq );
+      // ReportRowOfDoubles("errPower=", errPower );  // Intermediate result. Subsumed in ComputeNewStepLengthWithinLimits2
+      ReportRowOfDoublesIf<Real_v>("hReduced/ifActive", hReduced, Active);      
+      // ReportRowOfDoubles("hReduced=", hReduced );
+      ReportRowOfDoubles("hnew=", hnew );
+      ReportRowOfDoubles("xnew=", xnew );
+      if( ! vecCore::MaskEmpty(stepSizeUnderflow) ) {     
+         ReportRowOfBools<Real_v>("underflow", stepSizeUnderflow);
+         std::cout << "** WARNING: Underflow Detected in RollingIntegrationDrive !!" << std::endl;
+         std::cerr << "RollingIntegrationDrivero> Underflow Detected !!" << std::endl;         
+      }
+    }
+#endif
+    
     finishedLane = finishedLane || stepSizeUnderflow;
 
-    hStep = hnew;
+    hStep = Min( hnew, xEnd - x ); // Ensure not to go past end
 
     // Interim Report of problem lanes -- For debugging only !!
     Bool_v problemLanes = stepSizeUnderflow;
@@ -793,7 +845,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   tot_no_trials += iter;
 
   // Store exactly one time, here!
-  StoreGoodValues(yStepEnd, hStep, errmax_sq, finishedLane, yFinal, hFinal, errmax_sqFinal);
+  StoreGoodValues(yStepEnd, hStep, errmaxSqFallThru, finishedLane, yFinal, hFinal, errmax_sqFinal);
   // - Can shortcut this, but using yFinal[] instead of yStepEnd[] in code above.  Worthwhile or bad ? TODO
 
 #ifdef DRIVER_DIAGNOSTICS  
@@ -834,21 +886,24 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   // The old way (improved) - to cross check
   constexpr double minErr2 = 1e-100;
   Real_v emax2pos          = Max(errmax_sqFinal, Real_v(minErr2));
-  Real_v errStretchOld     = GetSafetyFactor() * Exp((0.5 * GetPowerGrow()) * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
+  Real_v errStretchOpen     = fSafetyFactor * Exp((0.5 * GetPowerGrow()) * Log(emax2pos)); // Was: Log(errmax_sqFinal) );
+  // Real_v errStretchOpen     = fSafetyFactor * Pow(emax2pos,(0.5 * GetPowerGrow()));
   // ReportRowOfDoubles( "-raw-errStretch", errStretch);
-  errStretchOld  = Min(errStretchOld, Real_v(fMaxSteppingIncrease));
+  Real_v errStretchOld  = Min( errStretchOpen, Real_v(fMaxSteppingIncrease) );
+  // ReportRowOfDoubles( "old: errStretch (initial) ", errStretchOld);
   Bool_v zeroErr = errmax_sqFinal <= minErr2;
-  // Fix the size for steps with zero error !!
+  // Fix the size for steps with zero or very tiny error !!
   vecCore::MaskedAssign(errStretchOld, zeroErr, Real_v(fMaxSteppingIncrease));
+  // ReportRowOfDoubles( "old: errStr (change4tiny) ", errStretchOld);    
   // ReportRowOfDoubles( "old: errStretch", errStretchOld);
   // ------------------- End of Old way -----
   // #endif
 
 #ifdef CHECK_STRETCH_FACTOR
-  if (!vecCore::MaskEmpty(errStretch - errStretchOld > 1.0e-12 * errStretch)) {
+  if (!vecCore::MaskEmpty( vecCore::math::Abs(errStretch - errStretchOld) > 1.0e-9 * errStretch)) {     
     cout << "ERROR> Lanes found with differences in calculated value of 'errStretch'"
          << "       ( factor for stretching step size for 'good' next step." << endl;
-    ReportRowOfDoubles("old-new: errStretch", errStretch - errStretchOld);
+    ReportRowOfDoubles("new-old: errStretch", errStretch - errStretchOld);
     ReportRowOfDoubles("old: errStretch", errStretchOld);
     ReportRowOfDoubles("new: errStretch", errStretch);
   }
@@ -856,17 +911,22 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 
   // ReportRowOfDoubles( "OGS: h-final", hFinal);
 
-  x += hdid;
-
 #ifdef DRIVER_PRINT_PROGRESS  
-  bool OGSreport = true;
-  if (partDebug && OGSreport) {
-    ReportRowOfDoubles("OGS: errmax2", errmax_sq);
-    ReportRowOfDoubles("OGS: h-did ", hdid);
-    ReportRowOfDoubles("OGS:  new-x", x);
-    ReportRowOfDoubles("OGS: h-next", hnext);
-    ReportRowOfDoubles("OGS: facStretch", errStretch);
-    // ReportRowOfDoubles( "OGS: hFinal", hFinal);
+  bool KPSreport = true;
+  if ( 1 /*partDebug*/ && KPSreport)
+  {
+    Real_v xFinish = xStart + hdid;
+    
+    ReportRowOfDoubles("KPS:  errmax2  ", errmax_sqFinal);
+    ReportRowOfSquareRoots("KPS:  errmax   ", errmax_sqFinal);
+    ReportRowOfDoubles("KPS:   x (new) ", x);
+    ReportRowOfDoubles("KPS:  h-did    ", hdid);
+    ReportRowOfDoubles("KPS:  h-next   ", hnext);
+    ReportRowOfDoubles("KPS: facStretch", errStretch);
+
+    ReportRowOfDoubles("KPS: x0+hdid ", xFinish);
+    ReportRowOfDoubles("KPS: xEnd (arg)", xEnd);
+    // ReportRowOfDoubles( "KPS: hFinal", hFinal);
   }
   if (partDebug) {
     cout << " hdid= " << hdid << " and hnext= " << hnext << std::endl
@@ -1256,7 +1316,9 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
                                                                 const double     hstep[],
                                                                 const double     charge[],
                                                                 // double epsilon, // Can be scalar or varying
-                                                               FieldTrack yOutput[], bool stillOK[], int nTracks) const
+                                                                FieldTrack yOutput[],
+                                                                bool       stillOK[],
+                                                                int        nTracks) const
 {
   // Built on original AccurateAdvance. Takes buffer stream of nTracks
   // Converts them to Vc vectors for processing
@@ -1293,7 +1355,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
   int indexArr[VecSize]; // vecCore::VectorSize<Real_v>()];
 
   // Working variables for integration
-  Real_v x, hnext, hdid, hTry, chargeLane, x1, x2, xStartLane, hStepLane;
+  Real_v x, hnext, hdid=0.0, chargeLane, xStartLane, hStepLane;
   Real_v y[Nvar /*ncompSVEC*/ ];     // Working array 1
   Real_v yNext[Nvar /*ncompSVEC*/ ], // Working array 2
       dydx[Nvar /*ncompSVEC*/ ];
@@ -1365,10 +1427,9 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
   // Say continue if isDoneLane is not 1111 and rest all conditions are not 0000
   // while ( !vecgeom::IsEmpty((nstp<=fMaxNoSteps) && (x < x2) && (!isLastStepLane)) || idNext < nTracks  )
 
-  // Real_v xStart= x;
-  hTry  = hStepLane;
-  x1 = xStartLane;
-  x2 = x1 + hStepLane;   // End of integration interval - value renewed as needed in refill
+  Real_v hTry  = hStepLane;
+  Real_v x1 = xStartLane;
+  Real_v x2 = x1 + hStepLane;   // End of integration interval - value renewed as needed in refill
   
   x = x1;
 
@@ -1381,8 +1442,8 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
      ) {
 #ifdef DRIVER_PRINT_PROGRESS     
     if (partDebug) {       
-      std::cout << "************************************" << std::endl
-                << "** Top of while loop ***************" << endl
+      std::cout << "******************************************************" << std::endl
+                << "** Top of while loop (AccurateAdvance) ***************" << endl
                 << "----hStepLane is: " << hStepLane << endl;
       //  ReportManyRowsOfDoubles("yStart", y, Nvar);
       // ReportManyRowsOfInts("Lane#", laneNum, Nvar);      
@@ -1393,24 +1454,35 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
     // GetStepper()
     fpStepper ->RightHandSideInl( y, chargeLane, dydx ); // TODO: change to inline
     //---------****************-----------------------
+
+
+    ReportRowOfDoubles("hTry(before)", hTry);
     
-    KeepStepping<Real_v>( y, dydx, chargeLane, x, x2, /* new argument */ 
-                          hTry, /* epsilon, */
-                          yNext, hdid, /* hLast, */
+    KeepStepping<Real_v>( y,
+                          dydx,        // Returns last value !
+                          chargeLane,
+                          x,
+                          x2, /* new argument : xEnd */ 
+                          hTry,
+                          // epsilon,
+                          yNext,
+                          hdid,
+                          // hLast,
                           hnext );  // hStepLane, hDone) ;
     //**********---------------------------------------------------------
 
 #ifdef DRIVER_PRINT_PROGRESS    
     if (partDebug) {
       cout << "##-------------------------------------------------------------------------------" << endl;       
-      cout << "### Accurate Advance ---- After return from OneGood Step" << endl;
+      cout << "### Accurate Advance ---- After return from KeepStepping" << endl;
       ReportManyRowsOfDoubles("yStart", y, Nvar);
       ReportManyRowsOfDoubles("dydx", dydx, Nvar);
       ReportRowOfDoubles("charge", chargeLane);      
-      ReportRowOfDoubles("h-ask", hTry);
+      ReportRowOfDoubles("hTry (after)", hTry);
       ReportRowOfDoubles("h-did", hdid);
+      ReportRowOfDoubles("hNext", hnext);
       ReportRowOfDoubles("x", x);
-      ReportRowOfDoubles("(end) x2", x2);
+      ReportRowOfDoubles("xExpectEnd/x2)", x2);
       cout << "##-------------------------------------------------------------------------------" << endl;
       // ReportManyRowsOfDoubles( "yNext", yNext, Nvar);
       Real_v momStart = GetMomentumMag(y);
@@ -1458,7 +1530,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
       cout << " hRequest= " << hStepLane << endl;
       // cout << " x-Start = " << xStartLane << endl;
       cout << " hdid    = " << hdid << endl;
-      cout << " x-Now   = " << x << endl;
+      cout << " x (Now) = " << x << endl;
       cout << " x2 -x   = " << xRemains << endl;
     }
 #endif
@@ -1469,12 +1541,16 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
     // Ensure that the next step does not overshoot
     hnext = Min(xRemains, hnext);
 
-#ifdef DRIVER_PRINT_PROGRESS      
-    if (partDebug) cout << "AccurateAdvance: hnext = " << hnext << " to replace h = " << hTry << endl;
-#endif
+// #ifdef DRIVER_PRINT_PROGRESS
+    if ( 1 /*partDebug*/ ) {
+       cout << "AccurateAdvance: hnext = " << hnext << " to replace h = " << hTry << endl;
+       ReportRowOfDoubles("RID/AccAdv: hNext=", hnext);
+    }
+// #endif
+
 
     hTry = hnext;
-
+    
     // When stepsize overshoots, decrease it!
     // Must cope with difficult rounding-error issues if hstep << x2
 
@@ -1713,109 +1789,6 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
 
 //----------------------------------------------------------------------
 
-/************
-
-//  This method computes new step sizes - but does not limit changes to
-//  within  certain factors
-//
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-Real_v RollingIntegrationDriver< T_Stepper, Nvar>::
-   ComputeNewStepSize(
-      Real_v errMaxNorm,   // max error  (normalised)
-      Real_v hStepCurrent) // current step size
-{
-  using Bool_v = vecCore::Mask_v<Real_v>;
-
-  Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, GetPowerShrink(), GetPowerGrow());
-  Real_v stretch  = GetSafetyFactor() * Math::Pow(errMaxNorm, powerUse);
-  Real_v hNew     = stretch * hStepCurrent;
-  return hNew;
-}
-
-// ---------------------------------------------------------------------------
-
-// This method computes new step sizes limiting changes within certain factors
-//
-// It shares its logic with AccurateAdvance.
-// They are kept separate currently for optimisation.
-//
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-Real_v RollingIntegrationDriver<T_Stepper, Nvar>::
-   ComputeNewStepSize_WithinLimits(
-      Real_v errMaxNorm,   // max error  (normalised)
-      Real_v hStepCurrent) // current step size
-{
-  using Bool_v = vecCore::Mask_v<Real_v>;
-
-  Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, GetPowerShrink(), GetPowerGrow());
-
-  Real_v strtUnl = GetSafetyFactor() * Math::Pow(errMaxNorm, powerUse);
-
-  Real_v stemp   = vecCore::math::Max(strtUnl, fMaxSteppingDecrease);
-  Real_v stretch = vecCore::math::Min(stemp, fMaxSteppingIncrease);
-
-  Real_v hNew = stretch * hStepCurrent;
-
-#if 0
-  // Draft improved version which does not use Power if under/over-flow ... 
-  Bool_v  overflow = (errMaxNorm > fErrcon);
-  Bool_v underflow = (errMaxNorm < fErrMin);   // Needs definition of fErrMin
-
-  Bool_v unconstrained = ! ( overflow || underflow );
-  // ... More code needed here
-  
-  // Sequential code - for starting point
-  
-    // Compute size of next Step for a failed step
-    if (errMaxNorm > 1.0 )
-    {
-      // Step failed; compute the size of retrial Step.
-      hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerShrink) ;
-
-      hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
-                           // reduce stepsize, but no more
-                           // than this factor (value= 1/10)
-      }
-    }
-    else
-    {
-      // Compute size of next Step for a successful step
-      if (errMaxNorm > fErrcon)
-       { hnew = fSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,fPowerGrow); }
-      else  // No more than a factor of 5 increase
-       { hnew = fMaxSteppingIncrease * hstepCurrent; }
-    }
-#endif
-
-  return hNew;
-
-}
-******************************************/
-
-/******************************************
-// ---------------------------------------------------------------------------
-template <class T_Stepper, unsigned int Nvar>
-void RollingIntegrationDriver<T_Stepper, Nvar>::ReportInvalidStepInputs(double hStepArr[], int nTracks)
-{
-  for (int i = 0; i < nTracks; ++i) {
-    double hStep = hStepArr[i];
-    if (hStep <= 0.0) {
-      if (hStep == 0.0) {
-        std::cerr << "Proposed step of track " << i << " is zero; hstep = " << hStep << " !";
-      } else {
-        std::cerr << "Invalid run condition." << std::endl
-                  << "Proposed step is negative; (i= " << i << " ) hstep = " << hStep << "." << std::endl;
-      }
-    }
-  }
-}
-******************************************/
-
-// ------------------------------------------------------------
 
 template <class T_Stepper, unsigned int Nvar>
 template <class Real_v>
