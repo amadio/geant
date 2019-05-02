@@ -166,8 +166,15 @@ inline void ReportRowOfDoublesIf(std::string varName, const Real_v var, vecCore:
   }
 
   cout << std::setw(widthName) << varName << " : ";
-  for (int i = 0; i < vecCore::VectorSize<Real_v>(); ++i) {
-    if (Get(cond, i)) cout << " " << std::setw(widthVal) << Get(var, i) << " | ";
+  for (unsigned int i = 0; i < vecCore::VectorSize<Real_v>(); ++i)
+  {
+    if (vecCore::Get(cond, i))
+       cout << " " << std::setw(widthVal) << vecCore::Get(var, i) << " | ";
+    else
+       cout << " " << std::setw(widthVal) << "-/NA "     << " | ";
+
+    // if( i+1 << vecCore::VectorSize<Real_v>() ) { cout << " | "; }
+       
   }
   cout << std::endl;
 }

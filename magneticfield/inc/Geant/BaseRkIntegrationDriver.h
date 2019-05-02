@@ -143,8 +143,8 @@ protected:
   unsigned long fMaxNoSteps;
   static constexpr int fMaxStepBase = 250;
 
-  // static constexpr double fSafetyFactor= 0.9; // -> Fails to compile on clang 9.1 2017.12.05
-  const double  kSafetyFactor      = 0.9; //     OK ...
+  static constexpr double kSafetyFactor= 0.9; // -> Failed to compile on clang 9.1 2017.12.05
+  // const double  kSafetyFactor      = 0.9;
   const unsigned int fStepperOrder = 0; //  the Integrator order of the (RK or other) stepper
   const double kPowerShrink;        //  exponent for shrinking
   const double kPowerGrow;          //  exponent for growth
@@ -388,8 +388,8 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
   using Bool_v = vecCore::Mask_v<Real_v>;
 
   Bool_v goodStep = (errMaxSquare <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, Real_v(kPowerShrink), Real_v(kPowerGrow) );
-  
+
+  Real_v powerUse = vecCore::Blend(goodStep, Real_v(0.5*kPowerShrink), Real_v(0.5*kPowerGrow) );
   Real_v stretch = kSafetyFactor * vecgeom::Pow(errMaxSquare, powerUse);
 
   Real_v stemp;
@@ -398,13 +398,27 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
 
   Real_v hNew = stretch * hStepCurrent;
 
-  /*
+/************
+  std::cout << "-ComputeNewStepLengthWithinLimits2 Start of Info ------" << std::endl;
+  FormattedReporter::ReportRowOfDoubles("stretch=", stretch );
+  FormattedReporter::ReportRowOfDoubles("powerUse=", powerUse );
+  FormattedReporter::ReportRowOfDoubles("hNew", hNew);
+  std::cout << "-ComputeNewStepLengthWithinLimits2 End   of Info ------" << std::endl;  
+#if 0
+    // Draft improved version which does not use Power if under/over-flow ... 
+    Bool_v  overflow = (errMaxNorm > fErrcon);
+    Bool_v underflow = (errMaxNorm < fErrMin);   // Needs definition of fErrMin
+
+    Bool_v unconstrained = ! ( overflow || underflow );
+    // ... More code needed here
+  
+    // Sequential code - for starting point
+  
     // Compute size of next Step for a failed step
-    if (errMaxSquare > 1.0 )
+    if (errMaxNorm > 1.0 )
     {
       // Step failed; compute the size of retrial Step.
-      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,kPowerShrink) ;
-                                                             // 0.5*fPowerShrink) ;
+      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,0.5*kPowerShrink) ;
       hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
                            // reduce stepsize, but no more
                            // than this factor (value= 1/10)
@@ -414,12 +428,15 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
     {
       // Compute size of next Step for a successful step
       if (errMaxSquare > fErrcon * fErrcon)
-       { hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,kPowerGrow); }
+       { hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxSquare,0.5*kPowerGrow); }
       else  // No more than a factor of 5 increase
        { hnew = fMaxSteppingIncrease * hstepCurrent; }
-    }*/
-
+    }
+#endif
+**********/
+  
   return hNew;
+
 }
 
 // ---------------------------------------------------------------------------
