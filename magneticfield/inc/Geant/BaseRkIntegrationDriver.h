@@ -24,6 +24,8 @@
 #include "Geant/VectorTypes.h" //  Defines geant::Double_v
 #include "Geant/math_wrappers.h"
 
+#include "Geant/AuxVecMethods.h"
+
 #include "Geant/FieldTrack.h"
 
 // #include "TemplateVScalarIntegrationStepper.h"
@@ -75,6 +77,14 @@ public:
                                             Real_v hStepCurrent    // current step size
      ) const;         
 
+  template <class Real_v>  
+    Real_v ComputeNewStepLengthWithinLimits3( Real_v                    errMaxSq,
+                                              Real_v                    hStepCurrent,
+                                              vecCore::Mask_v<Real_v>   isNeeded,     // Bool_v
+                                              Real_v                  & stretchFactor // Out: stretch (if needed only)
+       ) const;
+   // Calculated new step limit (and stretch factor) - but only if 'isNeeded' is true && (hStepCurrent != 0.)xo
+   
   /***
   inline const T_Stepper *GetStepper() const { return fpStepper; }
   inline       T_Stepper *GetStepper()       { return fpStepper; }
@@ -437,6 +447,50 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
   
   return hNew;
 
+}
+
+// ---------------------------------------------------------------------------
+
+// This method computes new step sizes limiting changes within certain factors
+//
+// It shares its logic with AccurateAdvance.
+// They are kept separate currently for optimisation.
+//
+template <class T_Stepper, unsigned int Nvar>
+template <class Real_v>
+Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
+   ComputeNewStepLengthWithinLimits3( Real_v                  errMaxSquare,    // max error  (normalised)
+                                      Real_v                  hStepCurrent,    // current step size
+                                      vecCore::Mask_v<Real_v> isNeeded,      /*Bool_v*/
+                                      Real_v                & stretchFactor    // Out: stretch
+      ) const
+{
+  using Bool_v = vecCore::Mask_v<Real_v>;
+  // std::cout << " ComputeNewStepLengthWithinLimits3 called." << std::endl;
+  Bool_v goodStep = (errMaxSquare <= 1.0);
+  Real_v powerUse = vecCore::Blend(goodStep, Real_v(0.5*fPowerGrow), Real_v(0.5*fPowerShrink) );
+  // std::cout << " isNeeded (inp) = " << isNeeded << std::endl;
+  isNeeded = isNeeded && ( hStepCurrent != 0.0 );
+  // std::cout << " isNeeded (use) = " << isNeeded << std::endl;
+
+  isNeeded = Bool_v(true);  // Override value - for compatibility (TEMPORARY - TODO: remove this line.)
+  
+  // stretchFactor = fSafetyFactor * Math::Pow(errMaxSquare, powerUse);
+  stretchFactor = 1.0;  
+  stretchFactor = fSafetyFactor * PowerDiffIf( errMaxSquare, powerUse, isNeeded );
+
+  Real_v stemp;
+  stemp         = vecCore::math::Max(stretchFactor, Real_v(fMaxSteppingDecrease));
+  stretchFactor = vecCore::math::Min(stemp,         Real_v(fMaxSteppingIncrease));
+
+  // Extra correction - even if not needed (for comparison with old)
+  Bool_v zeroErr = (errMaxSquare == 0.0);
+  vecCore::MaskedAssign(stretchFactor, zeroErr, Real_v(fMaxSteppingIncrease));
+
+  // std::cout << " stretchFactor= " << stretchFactor << std::endl;
+  
+  Real_v hNew = stretchFactor * hStepCurrent;
+  return hNew;
 }
 
 // ---------------------------------------------------------------------------

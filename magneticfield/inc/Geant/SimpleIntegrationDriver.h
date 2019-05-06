@@ -497,6 +497,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
    
   // if (partDebug) { cout << "\n" << endl; }
 
+  const Real_v xStart(x);
   Real_v xnew;
   Real_v yerr[Nvar], ytemp[Nvar];
 
@@ -546,6 +547,12 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 
 #ifdef CHECK_ONE_LANE    
     bool  printLane = (laneToCheck >= 0) && vecCore::Get( Active, laneToCheck );
+    
+    bool anyProgressLastStep = ! vecCore::MaskEmpty(goodStep) ;    
+    cout << " - iter = " << iter << " anyProgressLastStep = " << anyProgressLastStep << std::endl;       
+    ReportManyRowsOfDoubles("Current X/P",  yStart, 6 );
+    ReportRowOfDoubles("Charge",  charge, 6 );       
+    ReportManyRowsOfDoubles("d/ds [X,P] ", dydx, 6 );    
 #endif    
     itersLeft--;
     iter++;
@@ -555,7 +562,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
                                                      // #endif
 
     GetStepper()->StepWithErrorEstimate(yStart, dydx, charge, h, ytemp, yerr); // CAREFUL -> changes for others ?
-   
+    //**********==>>>>>>>>>>>>>>>>>>>>>
+    
     IncrementStepperCalls();     //  fStepperCalls++;
 
 #ifdef DRIVER_PRINT_PROGRESS
@@ -607,13 +615,16 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
     // Real_v xNext = x + hStep; //   Updates both good and bad steps -- else it should be  = x + hAdvance;
     Real_v xNext = x + hAdvance; //   Updates only good steps --  2019.01.07
 
-    cout << " ====================================================================" << endl;    
+    cout << " ====================================================================" << endl;
+    ReportRowOfDoubles("charge ***>", charge );    
     ReportRowOfDoubles("x:   Start  =", x );
     ReportRowOfDoubles("xNext: End  =", xNext );
     ReportRowOfDoubles("hStep/tried =", h );    
     ReportRowOfDoubles("hAdvance/got=", hAdvance );
     // ReportRowOfDoubles("hdid        =", hdid );
-    ReportRowOfBools<Real_v>("goodStep", goodStep);    
+    ReportRowOfBools<Real_v>("goodStep", goodStep);
+    
+    ReportRowOfDoubles("x: Updated =", x );    
     cout << " ====================================================================" << endl;
 #endif 
     
@@ -629,29 +640,18 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
                        epsPosition, errpos_sq, errmom_sq, errmax_sq, laneDone,
                        allDone, iter, tot_no_trials, laneToCheck, trackToPrint,
                        "SimpleID" );  // "SimpleIntDrv" );
-       if( 0 ) {
-       std::cout << "SID: Status after stepper call ----------------------------------------------" << std::endl;
-       std::cout << "-- Argument values" << std::endl;
-       ReportRowOfDoubles("hStep(ask)", h );
-       std::cout << "-- Start  values" << std::endl;
-       ReportManyRowsOfDoubles("StartX/P", yStart, 6 );
-       ReportManyRowsOfDoubles("d[x,p]/ds", dydx, 6 );
-       std::cout << "-- Return values" << std::endl;
-       ReportManyRowsOfDoubles("X,P_out", ytemp, 6 );
-       // Report Estimated Errors
-       std::cout << "-- Estimated Errors" << std::endl;
-       ReportManyRowsOfDoubles("errXP/xyz", yerr, 6 );
-       // ReportManyRowsOfDoubles("err-P/xyz", &yerr[3], 3 );
-       // ReportRowOfSquareRoots("|err-p|", yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5] );
-       // ReportRowOfDoubles("up = SumErr^2", sumerr_sq );
-       // ReportRowOfDoubles("dwn= magMom^2+e", magmom_sq + tinyValue );
-       // ReportRowOfDoubles("mul:1/e_vel^2", invEpsilonRelSq );
-       // ReportRowOfDoubles("ErrMom^2", errmom_sq );
-       // ReportRowOfSquareRoots("ErrMom", errmom_sq );
-       ReportRowOfDoubles("ErrMaxSq", errmax_sq );
-       ReportRowOfSquareRoots("ErrMax", errmax_sq );
-       ReportRowOfBools<Real_v>("Active(old)", Active);
-       std::cout << "End Status -------------------------------------------------------------------------------------" << std::endl;
+       if( 1 ) {
+          std::cout << "SID: Status after stepper call ----------------------------------------------" << std::endl;
+          FormattedReporter::FullReport(yStart, charge, dydx, h /*hStep*/, ytemp /*yStepEnd*/,
+                                        yerr, errmax_sq, Active, goodStep );
+       }
+       if( 1 ) {
+          // ReportRowOfSquareRoots("|err-p|", yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5] );
+          // ReportRowOfDoubles("up = SumErr^2", sumerr_sq );
+          // ReportRowOfDoubles("dwn= magMom^2+e", magmom_sq + tinyValue );
+          // ReportRowOfDoubles("mul:1/e_vel^2", invEpsilonRelSq );
+          // ReportRowOfDoubles("ErrMom^2", errmom_sq );
+          // ReportRowOfSquareRoots("ErrMom", errmom_sq );
        }
     }
     // End debug code                 -------------  2019.02.27
@@ -664,7 +664,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
       ReportRowOfBools<Real_v>("goodStep", goodStep);
       ReportRowOfBools<Real_v>("laneDone", laneDone);
       ReportRowOfBools<Real_v>("finished(upd)", finished);
-      ReportRowOfBools<Real_v>("Active(upd)", Active);            
+      ReportRowOfBools<Real_v>("Active(upd)", Active);
+
+      ReportRowOfDoubles("x: Updated =", x );
     }
 #endif
     
@@ -859,11 +861,14 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   bool OGSreport = true;
   if (partDebug && OGSreport) {
     ReportRowOfDoubles("OGS: errmax2", errmax_sqFinal);
-    ReportRowOfSquareRoots("OGS: errmax", errmax_sqFinal);
-    ReportRowOfDoubles("OGS: h-did ", hdid);
-    ReportRowOfDoubles("OGS:  new-x", x);
-    ReportRowOfDoubles("OGS: h-next", hnext);
+    ReportRowOfSquareRoots("OGS: errmax    ", errmax_sqFinal);
+    ReportRowOfDoubles("OGS: h-did     ", hdid);
+    ReportRowOfDoubles("OGS: x (new)   ", x);
+    ReportRowOfDoubles("OGS: h-next    ", hnext);
     ReportRowOfDoubles("OGS: facStretch", errStretch);
+
+    Real_v xFinish = xStart + hdid;    
+    ReportRowOfDoubles("KPS: x0+hdid ", xFinish);
     // ReportRowOfDoubles( "OGS: hFinal", hFinal);
   }
 
@@ -1317,9 +1322,10 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   for (unsigned int i = 0; i < VecSize; ++i)
     indexArr[i] = -1;
 
-  int idNext = InitializeLanes(yInput, hstep, charge, nTracks,                             // Input
-                               indexArr, y, hStepLane, chargeLane, xStartLane, numFilled,  // Main output
-                               badStepSize, numBadSize);                                   // 'Bad' output
+  int idNext = InitializeLanes(yInput, hstep, charge, nTracks,                   // Input
+                               indexArr,                                         // out - indices of lanes
+                               y, hStepLane, chargeLane, xStartLane, numFilled,  // Main output - values
+                               badStepSize, numBadSize);                         // 'Bad' output
   // OLD:
   // int     idNext = vecCore::VectorSize<Real_v>(); // ASSUMES that nTracks >= vecCore::VectorSize<Real_v>() !!! FIX
 
@@ -1352,6 +1358,13 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   using Index_v = vecCore::Index<Real_v>;
   Index_v nstp(0); // Should be Int_v with size compatible with Real_v ( likely 64-bit )
 
+#ifdef DRIVER_PRINT_PROGRESS       
+  // Real_v yStart[Nvar];    // Starting values
+  // for( int i=0; i<Nvar; i++ ) { yStart[i] = y[i]; }
+  // Real_v momStart = GetMomentumMag(yStart);  // Can be done later, and if needed
+  Real_v momStart = GetMomentumMag(y);  // True starting momentum
+#endif
+  
   // Real_v StartPosAr[3];
   // StartPosAr[0] = y[0];   StartPosAr[1] = y[1];  StartPosAr[2] = y[2];
 
@@ -1375,7 +1388,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
 
   auto pStepper = GetStepper();
   // TStepper_t * Stepper = GetStepper();  
-  
+
   while ( ( !vecCore::MaskFull(isDoneLane)
             && !vecCore::MaskEmpty((nstp <= GetMaxNoSteps() )
                                    && (x < x2) && (!isLastStepLane)))
@@ -1399,12 +1412,12 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
     pStepper ->RightHandSideInl( y, chargeLane, dydx ); // TODO: change to inline
     //---------****************-----------------------
 
-    ReportRowOfDoubles("hTry(before)", hTry);
-
 #ifdef DRIVER_PRINT_PROGRESS         
     // using FormattedReporter::ReportManyRowsOfDoubles;
     // using FormattedReporter::ReportRowOfDoubles;
-    if( 0 ) { 
+    ReportRowOfDoubles("hTry(before)", hTry);
+    
+    if( 0 ) {
        cout << "##-------------------------------------------------------------------------------" << endl;           
        cout << "### Accurate Advance ---- After RightHandSide" << endl;
        /* FormatterReported::*/ ReportManyRowsOfDoubles /*<Real_v>*/ ("dydx", dydx, Nvar);
@@ -1419,21 +1432,29 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
 
 #ifdef DRIVER_PRINT_PROGRESS    
     if (partDebug) {
-      cout << "##-------------------------------------------------------------------------------" << endl;       
+      cout << "##-------------------------------------------------------------------------------" << endl;
       cout << "### Accurate Advance ---- After return from OneGood Step" << endl;
-      ReportManyRowsOfDoubles("yStart", y, Nvar);
-      ReportManyRowsOfDoubles("dydx", dydx, Nvar);
       ReportRowOfDoubles("charge", chargeLane);
+      cout << "##-------------------------------------------------------------------------------" << endl;
+      // ReportManyRowsOfDoubles("yStart/True", yStart, Nvar);
+      ReportManyRowsOfDoubles("yStepStart", y, Nvar);
+      ReportManyRowsOfDoubles("dydx", dydx, Nvar);
+      cout << "##-------------------------------------------------------------------------------" << endl;
+      // ReportManyRowsOfDoubles("yNext", yNext, Nvar);
+      // Real_v momStart = GetMomentumMag(yStart); // True initial momentum magnitude      
+      Real_v momStepStart = GetMomentumMag(y);  //  'Step' start - easier to have
+      ReportRowsOfPositionsMomenta("yNext", yNext, Nvar, momStepStart);
+      // Real_v momTrueStart = GetMomentumMag(yStart); // True initial momentum magnitude
+      // ReportRowsOfPositionsMomenta("yNext", yNext, Nvar, momTrueStart);  // Check vs true initial mag.
+      // cout << "##-------------------------------------------------------------------------------" << endl;      
       // ReportRowOfDoubles("h-ask", h);
       ReportRowOfDoubles("hTry (after)", hTry);
       ReportRowOfDoubles("h-did", hdid);
       ReportRowOfDoubles("hNext", hnext);
       ReportRowOfDoubles("x", x);
-      ReportRowOfDoubles("(end) x2", x2);
+      ReportRowOfDoubles("xExpectEnd/x2", x2);
       cout << "##-------------------------------------------------------------------------------" << endl;
       // ReportManyRowsOfDoubles( "yNext", yNext, Nvar);
-      Real_v momStart = GetMomentumMag(y);
-      ReportRowsOfPositionsMomenta("yNext", yNext, Nvar, momStart);
     }
 #endif
 
@@ -1487,8 +1508,11 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
     // Ensure that the next step does not overshoot
     hnext = Min(xremains, hnext);
 
-#ifdef DRIVER_PRINT_PROGRESS      
-    if (partDebug) cout << "AccurateAdvance: hnext = " << hnext << " to replace hTry = " << hTry << endl;
+#ifdef DRIVER_PRINT_PROGRESS
+    if ( 1 /*partDebug*/ ) {
+       cout << "AccurateAdvance: hnext = " << hnext << " to replace hTry = " << hTry << endl;       
+       ReportRowOfDoubles("RID/AccAdv: hNext=", hnext);
+    }    
 #endif
 
     hTry = hnext;
@@ -1546,7 +1570,8 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
                << " <= ? ( = fMaxNoSteps ) " << endl;
 
         // if ( finishedLane[i] &&  indexArr[i] != -1)
-        if (vecCore::Get(finishedLane, i) && indexArr[i] != -1) {
+        if (vecCore::Get(finishedLane, i) && indexArr[i] != -1)
+        {
           // 1. Store the Results (Output)
           stillOK[indexArr[i]] = vecCore::Get(succeededLane, i); // succeededLane[i];
           if (partDebug) std::cout << "----Storing Output at position: " << i << std::endl;
@@ -1558,15 +1583,19 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
           // 2. Load more work (if some exists) into empty slots
           //    TODO-1:  if all lanes are empty, can load in 'Vector mode' (aligned together)
           if (idNext < nTracks) {
-            bool filled = InsertNewTrack(yInput, hstep, charge, i, idNext, stillOK, y, hStepLane, chargeLane,
-                                         xStartLane, indexArr, nTracks,
+            bool filled = InsertNewTrack(yInput, hstep, charge, i, idNext, stillOK, // Input values
+                                         y,  hStepLane, chargeLane, xStartLane,    // Output values
+                                         indexArr, nTracks,
                                          badStepSize,  numBadSize );
-            
-            Set(   isDoneLane, i, !filled);  // isDoneLane[i]   = !filled;
-            Set( finishedLane, i, !filled);  // finishedLane[i] = !filled;
-            Set( renewedLanes, i,  filled);
 
-#ifdef DRIVER_PRINT_PROGRESS            
+            Set(   isDoneLane, i, !filled); // isDoneLane[i]   = !filled;
+            Set( finishedLane, i, !filled); // finishedLane[i] = !filled;
+            Set( renewedLanes, i,  filled);
+            // Set(     momStart, i, GetMomentum(y[i] )  );  // i= laneUsed
+
+#ifdef DRIVER_PRINT_PROGRESS
+            // for( unsigned int j=0; j<Nvar; j++ ) { Set(  yStart[j], i, y[j] ); }
+            
             bool reportInsertNewTrack = true;
             if (partDebug && reportInsertNewTrack) {
               cout << " --Inserting New Track - part 1/2: loaded new state: " << (filled ? " Yes " : " No  ");
@@ -1629,12 +1658,14 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
         isLastStepLane = isLastStepLane && !renewedLanes;
 
 #ifdef DRIVER_PRINT_PROGRESS
+        MaskedAssign( momStart, renewedLanes, GetMomentumMag(y) );
+        
         if (partDebug) {
           cout << " --Inserting New Track - After 'masked' reset of remaining state: " << endl;
           cout << " *** Existing values - values after load / change" << endl;
-          ReportRowOfDoubles("hTry", hTry);
           ReportRowOfDoubles("x1", x1);
           ReportRowOfDoubles("x", x);
+          ReportRowOfDoubles("hTry", hTry);
           ReportRowOfDoubles("hdid", hdid);
           ReportRowOfDoubles("numStep", nstp);
           cout << " *** Existing values - recall" << endl;

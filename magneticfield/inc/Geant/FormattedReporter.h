@@ -290,7 +290,8 @@ FullReport(const Real_v yStepStart[],
            const Real_v yStepEnd[],
            const Real_v yEstErr[],
            const Real_v errmax_sq,
-           const vecCore::Mask_v<Real_v> Active
+           const vecCore::Mask_v<Real_v> Active,
+           const vecCore::Mask_v<Real_v> goodStep
    )
 {
   // using FormattedReporter::ReportRowOfDoubles;
@@ -300,19 +301,21 @@ FullReport(const Real_v yStepStart[],
   // std::cout << "RID: Status after stepper call ----------------------------------------------" << std::endl;
   std::cout << "Status   -----------------------------------------------------------------------------------" << std::endl;  
   std::cout << "-- Argument values" << std::endl;
+  ReportRowOfDoubles("Charge",  charge, 12, 3 );  // name-len  precision-val
   ReportRowOfDoubles("hStep(ask)", hStep );
   std::cout << "-- Start  values" << std::endl;
   ReportManyRowsOfDoubles("StartX/P", yStepStart, 6 );
-  ReportRowOfDoubles("Charge",  charge, 6 );              
   ReportManyRowsOfDoubles("d[X,P]/ds", dydx, 6 );
-
-  std::cout << "-- Return values" << std::endl;
+  std::cout << "-- Return values  --------------------------------------------------------------------------" << std::endl;
+  // std::cout << "-- Return values" << std::endl;
   ReportManyRowsOfDoubles("X,P_out", yStepEnd, 6 );
 
   // Report Estimated Errors       
   std::cout << "-- Estimated Errors" << std::endl;
   ReportManyRowsOfDoubles("errXP/xyz", yEstErr, 6 );
-  
+
+  ReportRowOfBools<Real_v>("goodStep", goodStep);
+  std::cout << "-- Auxiliary -------------------------------------------------------------------------------" << std::endl;  
   // ReportManyRowsOfDoubles("err-p/xyz", &yerr[3], 3 );
   
   // ReportRowOfSquareRoots("|err-p|", yerr[3]*yerr[3] + yerr[4]*yerr[4] + yerr[5]*yerr[5] );       
@@ -324,7 +327,7 @@ FullReport(const Real_v yStepStart[],
   ReportRowOfDoubles("ErrMaxSq", errmax_sq );
   ReportRowOfSquareRoots("ErrMax", errmax_sq );       
   ReportRowOfBools<Real_v>("Active(old)", Active);
-  std::cout << "End Status -------------------------------------------------------------------------------------" << std::endl;
+  std::cout << "End Status ---------------------------------------------------------------------------------" << std::endl;
 }
 
 

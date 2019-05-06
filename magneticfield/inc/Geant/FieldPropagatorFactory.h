@@ -284,7 +284,6 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
   constexpr unsigned int Nposmom = 6; // Position 3-vec + Momentum 3-vec
   using StepperTypeCK456    = CashKarp<Equation_t, Nposmom>;
   using StepperTypeDoPri457 = DormandPrince5RK<Equation_t, Nposmom>;
-  using StepperTypeBS234 = BogackiShampine23RK<Equation_t, Nposmom>;  
   using std::cout;
   using std::endl;
   
@@ -297,8 +296,10 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
   auto gvEquation  = new Equation_t(&gvField);
 
   StepperTypeDoPri457* myStepperDoPri5 = nullptr;
-  StepperTypeBS234*    myStepperBS234  = nullptr;
   StepperTypeCK456*    myStepperCK5    = nullptr;
+
+  // using StepperTypeBS234 = BogackiShampine23RK<Equation_t, Nposmom>;  
+  // StepperTypeBS234*    myStepperBS234  = nullptr;
   
   switch ( stepperTypeId )
   {
@@ -308,7 +309,7 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
            (*gvEquation,  minStepSize, relEpsilonTolerance, &myStepperDoPri5);
         cout << methodName << ": created Dormand Prince 4/5 (7 stage) stepper with default driver." << endl;
         break;
-
+/****
      case kMinStepperOrder:
      case kBogackiShampineStepper:
         myStepperBS234 = new StepperTypeBS234(gvEquation);
@@ -316,13 +317,14 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
            (minStepSize, myStepperBS234, relEpsilonTolerance, Nposmom );
         cout << methodName << ": created Dormand Prince 4/5 (7 stage) stepper with Simple driver. " << endl;
         break;
+*****/
      case kCashKarpStepper:      
         myStepperCK5 = new StepperTypeCK456(gvEquation);
         vectorDriver = new SimpleIntegrationDriver<StepperTypeCK456, Nposmom>
                                      (minStepSize, myStepperCK5, relEpsilonTolerance, Nposmom );
         cout << methodName << ": created Cash Karp 4/5 (7 stage) stepper with Simple driver." << endl;        
         break;
-        
+/******        
        // Explicit request for alternative *Driver* type:  Old Driver (earlier iteration of Simple)
      case kDormandPrince45StepperOldDriver:
            myStepperDoPri5 = new StepperTypeDoPri457(gvEquation);
@@ -330,7 +332,7 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
                                   (minStepSize, myStepperDoPri5, relEpsilonTolerance, Nposmom);
            cout << methodName << ": created Dormand Prince 4/5 (7 stage) stepper with Old Simple driver." << endl;
         break;
-
+****/
        // Explicit request for alternative *Driver* type:   'Simple' Driver
      case kDormandPrince45StepperSimpleDriver:
            myStepperDoPri5 = new StepperTypeDoPri457(gvEquation);
