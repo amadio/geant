@@ -1348,9 +1348,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
 
   x = x1;
 
-  while (
-      (!vecCore::MaskFull(isDoneLane) && !vecCore::MaskEmpty((nstp <= Index_v(fMaxNoSteps)) && (x < x2) && (!isLastStepLane))) ||
-      idNext < nTracks) {
+  while ((!vecCore::MaskFull(isDoneLane) &&
+          !vecCore::MaskEmpty((nstp <= Index_v(fMaxNoSteps)) && (x < x2) && (!isLastStepLane))) ||
+         idNext < nTracks) {
     if (partDebug)
       std::cout << "************************************" << std::endl
                 << "** Top of while loop ***************" << endl
