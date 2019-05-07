@@ -1349,7 +1349,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
   x = x1;
 
   while (
-      (!vecCore::MaskFull(isDoneLane) && !vecCore::MaskEmpty((nstp <= fMaxNoSteps) && (x < x2) && (!isLastStepLane))) ||
+      (!vecCore::MaskFull(isDoneLane) && !vecCore::MaskEmpty((nstp <= Index_v(fMaxNoSteps)) && (x < x2) && (!isLastStepLane))) ||
       idNext < nTracks) {
     if (partDebug)
       std::cout << "************************************" << std::endl
@@ -1436,7 +1436,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
 
     succeededLane = (xremains <= 0.0); // (x>=x2); // If it was a "forced" last step ?
 
-    Bool_v laneContinues = (nstp <= fMaxNoSteps) && !succeededLane && !isLastStepLane;
+    Bool_v laneContinues = (nstp <= Index_v(fMaxNoSteps)) && !succeededLane && !isLastStepLane;
 
     Bool_v renewedLanes(false); // To be 'set' only in the slots in which new values are inserted
 
@@ -1458,7 +1458,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
       if (partDebug) {
         cout << "SiD: At least one lane finished " << std::endl;
         cout << "  finishedLane        : " << finishedLane << std::endl;
-        Bool_v CondNoOfSteps = (nstp <= fMaxNoSteps);
+        Bool_v CondNoOfSteps = (nstp <= Index_v(fMaxNoSteps));
         cout << "  Cond numSteps < Max : " << /* (nstp<=fMaxNoSteps)*/ CondNoOfSteps << std::endl;
         cout << "  Cond    (x < x2)    : " << !succeededLane << std::endl;
         cout << "  Cond  not Last Step : " << !isLastStepLane << std::endl;
