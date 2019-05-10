@@ -637,7 +637,10 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   using PrintDriverProgress::ReportConditionLanes;
 
   if (partDebug) { cout << "\n" << endl; }
-
+  
+  static  std::atomic<unsigned int> numCallsRidKS(0);
+  int  currentCallNo= numCallsRidKS++;
+  
   Real_v yerr[Nvar];
   Real_v yStepStart[Nvar];
   Real_v yStepEnd[Nvar];    // Could reuse yFinal for this ??  2018.01.08
@@ -646,19 +649,24 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   const Real_v xStart= x;    // Remember
 
   // Store values for last good step - for use when current step is not good !
-  Real_v hStepLastGood(0.0);
-  Real_v errmaxSqLastGood(-1.0);
+  // Real_v hStepLastGood(0.0);
+  // Real_v errmaxSqLastGood(-1.0);
+
+  Real_v hStepLastActive(0.0);
+  Real_v errmaxSqLastActive(-1.0);
   
   static int tot_no_trials = 0; // Should be thread_local - or suppressed. Just statistics
   const int max_trials     = 100;
 
-  Bool_v finishedLane   = (htry <= 0.); //  Allows h <=0 as signal lane is empty.
+  Bool_v finishedBeforeStart = (htry <= 0.); //  Allows h <=0 as signal lane is empty.  
+  Bool_v finishedLane   =  finishedBeforeStart; // (htry <= 0.); //  Allows h <=0 as signal lane is empty.
   Bool_v progressedLane(false);
   
   Real_v hFinal = htry, errmax_sqFinal = Real_v(0.); // xFinal, hdidFinal,
   Real_v hnew;
-  Real_v errmaxSqFallThru(0.0);  
-
+  // Real_v errmaxSqFallThru(0.0);  
+  Real_v errmaxSqBreakOut(0.0);
+  
   Bool_v goodStep(false);
   Bool_v UnderflowOccurred(false);
   
@@ -670,7 +678,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   unsigned int iter = 0;
   int itersLeft     = max_trials;
   // ReportManyRowsOfDoubles( "yStart",  yStart, Nvar );
-  Real_v magmomInit_sq = yStart[3] * yStart[3] + yStart[4] * yStart[4] + yStart[5] * yStart[5];
+  // Real_v magmomInit_sq = yStart[3] * yStart[3] + yStart[4] * yStart[4] + yStart[5] * yStart[5];
 
 #ifdef CHECK_ONE_LANE
   const int trackToPrint = IntegrationDriverConstants::GetInstance()->GetTrackToCheck();
@@ -684,7 +692,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
      cout << endl;
   }
 #endif
-  if( partDebug ) { std::cout << "RID: KeepStepping called." << std::endl; }
+  if( partDebug ) { std::cout << "RID: KeepStepping called. Call number " << currentCallNo << std::endl; }
        
   // ErrorEstimatorSixVec fErrorEstimator( eps_rel_max, GetMinimumStep() );
 
@@ -693,9 +701,27 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 
   // Bool_v lastStepWasGood(false);
   Bool_v integrationDone(false);
+
+  bool toContinue = true;  // The while loop condition ... 
+  // bool fellThrough= false;
+       
+//----#define NO_MUST_FINISH  1 
+#ifdef  NO_MUST_FINISH  
+  //*********************************************************************************
+  const bool mustFinishAllStill = false; // lastBatch && ! allDone;  // For now cannot divert single/few lane into serial code
+  std::cout << "**************************************************************************** " << std::endl;
+  std::cout << "*****         *****                                               ********** " << std::endl;  
+  std::cout << "***** WARNING ***** - MustFinishAllStill is turned OFF            ********** " << std::endl;
+  std::cout << "*****         *****                                               ********** " << std::endl;    
+  std::cout << "*****         *****  >> ONLY for experimentation / understanding  ********** " << std::endl;
+  std::cout << "**************************************************************************** " << std::endl;
+  //*****************************************************************************************
+#endif
+
+  Bool_v Active;
   
   do {
-    Bool_v Active = !finishedLane;
+     /* Bool_v*/ Active = !finishedLane;
     Real_v errmax_sq = 0.0;
 
 #ifdef CHECK_ONE_LANE    
@@ -728,7 +754,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     
     fpStepper->StepWithErrorEstimate(yStepStart, dydx, charge, hStep, yStepEnd, yerr); // CAREFUL -> changes for others ?
     //******************************
-    
+
     IncrementStepperCalls();    //  fStepperCalls++;
 
 #ifdef DRIVER_PRINT_PROGRESS
@@ -736,20 +762,34 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     if (partDebug && DebugEachIteration) { Report1( finishedLane, Active, charge, yStepEnd, yerr, hStep ); }
 #endif
 
+    Real_v magmom_sq = yStepStart[3] * yStepStart[3] + yStepStart[4] * yStepStart[4] + yStepStart[5] * yStepStart[5];
 #ifdef CHECK_ONE_LANE
     Real_v errpos_sq = 0.0; // square of displacement error
     Real_v errmom_sq = 0.0; // square of momentum vector difference
-    Real_v epsPosition = 0.0; 
-    errmax_sq = fErrorEstimator.EstimateError( yerr, hStep, magmomInit_sq, epsPosition, errpos_sq, errmom_sq );
+    Real_v epsPosition = 0.0;
+    // errmax_sq = fErrorEstimator.EstimateError( yerr, hStep, magmomInit_sq, epsPosition, errpos_sq, errmom_sq );
+    errmax_sq = fErrorEstimator.EstimateError( yerr, hStep, magmom_sq, epsPosition,  errpos_sq, errmom_sq );    
+    if( 0 ) { // printLane ) {
+       std::cout << "Check after EstimateError:  errmom_sq= " << std::sqrt( vecCore::Get(errmom_sq, laneToCheck ));
+       std::cout << " Current mom^2= " << vecCore::Get( magmom_sq, laneToCheck ) ;
+       // std::cout << " Initial mom^2= " << vecCore::Get( magmomInit_sq, laneToCheck ) ;       
+       std::cout << "  yErr: ";
+       for( unsigned int ii=0; ii<Nvar; ii++) 
+          std::cout << "[" << ii << "] = " << vecCore::Get( yerr[ii], laneToCheck ) << " ";
+       std::cout << std::endl;       
+    }
 #else
-    errmax_sq = fErrorEstimator.EstimateError( yerr, hStep, magmomInit_sq ); // Older ver:  yStepEnd );
+    // errmax_sq = fErrorEstimator.EstimateError( yerr, hStep, magmomInit_sq ); // Older ver:  yStepEnd );
+    errmax_sq = fErrorEstimator.EstimateError( yerr, hStep, magmom_sq);
+    // errmax_sq = fErrorEstimator.EstimateError( yerr, hStep, yStepEnd );
 #endif
 
     goodStep = Active && (errmax_sq <= 1.0);
     progressedLane =  progressedLane || goodStep;
 
-    vecCore::MaskedAssign( hStepLastGood,    goodStep, hStep );     // if( goodStep[i] ) hStepLastGood[i] = hStep[i]; 
-    vecCore::MaskedAssign( errmaxSqLastGood, goodStep, errmax_sq ); // if( goodStep[i] ) errmaxSqLastGood[i] = errmax_sq[i]; 
+    // vecCore::MaskedAssign( hStepLastGood,    goodStep, hStep );     // if( goodStep[i] ) hStepLastGood[i] = hStep[i]; 
+    // vecCore::MaskedAssign( errmaxSqLastGood, goodStep, errmax_sq ); // if( goodStep[i] ) errmaxSqLastGood[i] = errmax_sq[i]; 
+    //  ****>  Moved below ==> only used if falling through the while loop
     
     // Update hdid for successful steps
     Real_v hAdvance= vecCore::Blend( goodStep, hStep, Real_v(0.0) );
@@ -763,7 +803,8 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     Bool_v laneDone = ( endingIntegration | finishedLane);      // WAS = (goodStep | finished);
 
     integrationDone =  integrationDone | endingIntegration;
-  
+
+#ifdef DRIVER_PRINT_PROGRESS    
     if( partDebug ) {
        cout << " ====================================================================" << endl;
        ReportRowOfDoubles("charge ***>", charge );           
@@ -780,26 +821,33 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
        ReportRowOfBools<Real_v>("laneDone", laneDone);              
        cout << " ====================================================================" << endl;
     }
-    
+#endif
     bool  allDone =    vecCore::MaskFull(laneDone);
     bool  enoughFinished = allDone;  // Not final value, except to experiment
     bool  someDone =   allDone; // Ver A.1  Original:  ! vecCore::MaskEmpty(laneDone);
     if( !allDone ) {
-       someDone = ! vecCore::MaskEmpty(laneDone); // Ver A.1
+       //meDone = ! vecCore::MaskEmpty(laneDone);                          // Ver A.1
+       someDone = ! vecCore::MaskEmpty(laneDone && !finishedBeforeStart ); // Ver A.2
        // enoughFinished = someDone;             // First Try
        // int   countDone = countLanesTrue( laneDone );
-       enoughFinished = allDone || (someDone && alreadySomeDone);
+
+       // Go one more step after 'some' are done ... ( current heuristic )
+       enoughFinished = allDone || (someDone && alreadySomeDone); 
+       // enoughFinished = (someDone && alreadySomeDone);   // Same thing
     }
     // bool enoughFinished = someDone; // First Try    
     // bool enoughFinished = allDone || (someDone && allreadySomeDone);
     //
     // Ideas for refinement of criterion to finish:
-    //  v2   - take exactly one more step if some had finished             --> Current    
-    //  v2.1 - take exactly one more step if only one finished last iteration
+    //  v2   - take exactly one more step the first time that some finished       --> Current    
+    //  v2.1 - take exactly one more step if only one has finished last iteration (idea ..)
 
+#ifndef NO_MUST_FINISH      
     bool mustFinishAllStill = lastBatch && ! allDone;  // For now cannot divert single/few lane into serial code
                                                   // So must do all the work here!
-
+#endif
+    
+#ifdef DRIVER_PRINT_PROGRESS      
     std::cout << "Loop end condition: " << " enoughFinished= " << enoughFinished
               << " composed using : " 
               << " someDone= " <<  someDone
@@ -807,7 +855,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
               << " alreadySomeDone = " << alreadySomeDone << " (from last iteration) "
               << " mustFinishAllStill = " << mustFinishAllStill       
               << std::endl;
-    
+#endif
     // alreadySomeDone = someDone;    // ---> Moved to just before end of while loop
     
     finishedLane = laneDone;
@@ -824,7 +872,8 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
        ReportRowOfSquareRoots("ErrPos", errpos_sq );
        ReportRowOfSquareRoots("ErrMom", errmom_sq );
        ReportRowOfSquareRoots("ErrMax", errmax_sq );
-       
+       ReportManyRowsOfDoubles("yErr", yerr, Nvar);
+    
        if( 1 ) {
           std::cout << "RID: Status after stepper call ----------------------------------------------" << std::endl;
           ReportManyRowsOfDoubles("RealStartX/P", yStart, 6 );          
@@ -856,20 +905,35 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     if( mustFinishAllStill ){
        std::cout << "RollingID> Now in 'FinishAll' mode ******** " << std::endl;
     }
+
+    vecCore::MaskedAssign( hStepLastActive,    Active, hStep );     // if( Active[i] ) hStepLastActive[i] = hStep[i]; 
+    vecCore::MaskedAssign( errmaxSqLastActive, Active, errmax_sq ); // if( Active[i] ) errmaxSqLastActive[i] = errmax_sq[i]; 
     
     if ( enoughFinished && ! mustFinishAllStill ) 
     {  // Idea 1.5
        if (partDebug) cout << "RID: Enough Finished (Store and Report OFF ) - just breaking." << endl;
        // StoreGoodValues(yStepEnd, hStep, errmax_sq, goodStep, yFinal, hFinal, errmax_sqFinal);
        //   Why store here too ??? - store only after loop exit !     2019.01.07   ( TBC )
-       errmaxSqFallThru = errmax_sq;
+       errmaxSqBreakOut = errmax_sq;
 
        // std::cout << "** Exiting loop - Report of status -------------------------------------- " << std::endl;
        // FormattedReporter::FullReport(yStepStart, charge, dydx, hStep, yStepEnd, yerr, errmax_sq, Active, goodStep);
 
+       // Version 7.0 - part 1
+       cout << " Store Good Values calls in *** break *** (v7 part 1):   2019.05.13  17:45" << std::endl;
+       // StoreGoodValues(yStepEnd, hStep, errmaxSqBreakOut, progressedLane, yFinal, hFinal, errmax_sqFinal);
+       // StoreGoodValues(yStepEnd, hStep, errmax_sq, progressedLane, yFinal, hFinal, errmax_sqFinal);
+       // StoreGoodValues(yStepEnd, hStepLastActive, errmaxSqLastActive, progressedLane, yFinal, hFinal, errmax_sqFinal);
+
+       StoreGoodValues(yStepEnd,   hStepLastActive, errmaxSqLastActive, progressedLane &&  goodStep, yFinal, hFinal, errmax_sqFinal);  
+       StoreGoodValues(yStepStart, hStepLastActive, errmaxSqLastActive, progressedLane && !goodStep, yFinal, hFinal, errmax_sqFinal);
+       
        break;
     }
 
+    // vecCore::MaskedAssign( hStepLastGood,    goodStep, hStep );     // if( goodStep[i] ) hStepLastGood[i] = hStep[i]; 
+    // vecCore::MaskedAssign( errmaxSqLastGood, goodStep, errmax_sq ); // if( goodStep[i] ) errmaxSqLastGood[i] = errmax_sq[i]; 
+    
     // Refill StepStart using values from StepEnd -- for successful lanes
     for( unsigned int i=0; i<Nvar; i++)
        vecCore::MaskedAssign( yStepStart[i], goodStep, yStepEnd[i] );
@@ -923,7 +987,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     // Interim Report of problem lanes -- For debugging only !!
     Bool_v problemLanes = stepSizeUnderflow;
     if (!vecCore::MaskEmpty(problemLanes)) {
-      std::cerr << "GVIntegratorDriver::OneStep:" << std::endl
+      std::cerr << "RollingIntegrationDriver::KeepStepping:" << std::endl
                 << "  Stepsize underflow in Stepper ( Report 1 - in loop )" << std::endl;
       Bool_v problemLanes = stepSizeUnderflow && !finishedLane;
 
@@ -934,8 +998,26 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     // if( someDone && ! alreadySomeDone ) {  alreadySomeDone = true; }
     alreadySomeDone = someDone;
 
-  } while (itersLeft > 0 && (!vecCore::MaskFull(finishedLane))
+    toContinue = itersLeft > 0 && (!vecCore::MaskFull(finishedLane));
+       
+    if( !toContinue ){
+#ifdef DRIVER_PRINT_PROGRESS            
+       std::cout << "WARNING> RollingIntegrationDriver::KeepStepping: exiting at the Bottom of while." << std::endl;
+       // FormattedReporter::FullReport(yStepStart, charge, dydx, hStep, yStepEnd, yerr, errmax_sq, Active, goodStep);
+#endif       
+       // vecCore::MaskedAssign( errmax_sqFinal, Active /* && progressed */ , errmax_sq );
+       // vecCore::MaskedAssign( hFinal,         Active /* && progressed */ , hStep );
+       // fellThrough= true;
+    }
+    
+  } while ( toContinue // itersLeft > 0 && (!vecCore::MaskFull(finishedLane))
            );
+
+  bool fellThrough= !toContinue;
+  
+  if( !toContinue ) 
+     std::cout << "WARNING> RollingIntegrationDriver::KeepStepping: exiting at the Bottom of while." << std::endl;
+  
   // Only ensure that
   //   - iteration don't exceed max
   //   - some work remains to be done
@@ -946,38 +1028,45 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   // Store exactly one time, here!
 
   // Original code - from Simple
-  // StoreGoodValues(yStepEnd, hStep, errmaxSqFallThru, finishedLane, yFinal, hFinal, errmax_sqFinal);
+  // StoreGoodValues(yStepEnd, hStep, errmaxSqBreakOut, finishedLane, yFinal, hFinal, errmax_sqFinal);
   // Q> - Can shortcut this, but using yFinal[] instead of yStepEnd[] in code above.  Worthwhile or bad ? TODO
 
-  // Try 2:   2019.05.07
-  //   Store unconditionally - intermediate state must be starting point for next trial step !!
-  // StoreGoodValues(yStepEnd, hStep, errmaxSqFallThru, Bool_v(true), yFinal, hFinal, errmax_sqFinal);
-  //   WRONG: it also stores the result of failed steps.
-  
   // Try 3:   2019.05.08
   // cout << " Store Good Values calls - version 3:   2019.05.08" << std::endl;  
-  // StoreGoodValues(yStepEnd, hStep, errmaxSqFallThru, progressedLane, yFinal, hFinal, errmax_sqFinal);
+  // StoreGoodValues(yStepEnd, hStep, errmaxSqBreakOut, progressedLane, yFinal, hFinal, errmax_sqFinal);
 
-#if 1
-  // Try 4:   2019.05.09  11:20
-  cout << " Store Good Values calls - version 4:   2019.05.09  11:20" << std::endl;
-  StoreGoodValues(yStepEnd,   hStep, errmaxSqFallThru, progressedLane &&  goodStep, yFinal, hFinal, errmax_sqFinal);
-  StoreGoodValues(yStepStart, hStep, errmaxSqFallThru, progressedLane && !goodStep, yFinal, hFinal, errmax_sqFinal);
-#else
-  // Try 5:   2019.05.09   14:40
-  cout << " Store Good Values calls - version 5:   2019.05.09  14:40" << std::endl;
-  StoreGoodValues(yStepEnd,   hStep,         errmaxSqFallThru, progressedLane &&  goodStep, yFinal, hFinal, errmax_sqFinal);  
-  StoreGoodValues(yStepStart, hStepLastGood, errmaxSqLastGood, progressedLane && !goodStep, yFinal, hFinal, errmax_sqFinal);  
+  if( fellThrough )
+  {
+#ifdef DRIVER_PRINT_PROGRESS     
+     cout << "RiD::KeepStepping> Fell through while loop" << endl;
+     cout << " Store Good Values calls - version 7 (fall through):   2019.05.13  17:45" << std::endl;
 #endif
-  
-  if( 1 ) { 
-     cout << " Check LastGood values vs. hstep-last/FallThru" << std::endl;
-     ReportRowOfDoubles("hStep =", hStep );
-     ReportRowOfDoubles("hStepLastGood = ", hStepLastGood );
-     ReportRowOfDoubles("errmaxSqFallThru = ", errmaxSqFallThru );                      
-     ReportRowOfDoubles("errmaxSqLastGood = ", errmaxSqLastGood );
+     // Try 7:   2019.05.09   17:45
+     // Following is good, and equivalent with code used (below)
+     // StoreGoodValues(yStepEnd,   hStepLastActive, errmaxSqLastActive, progressedLane &&  goodStep, yFinal, hFinal, errmax_sqFinal);  
+     // StoreGoodValues(yStepStart, hStepLastActive, errmaxSqLastActive, progressedLane && !goodStep, yFinal, hFinal, errmax_sqFinal);
+
+     StoreGoodValues(yStepStart, hStepLastActive, errmaxSqLastActive, progressedLane, yFinal, hFinal, errmax_sqFinal);
+     // Due to copy  yStepStart <- yStepEnd  for all lanes with goodStep, we can just use yStepStart here ...
+
+     // Ideas -- 
+     // StoreGoodValues(yStepEnd,   hStep,           errmaxSq,           progressedLane &&  Active, yFinal, hFinal, errmax_sqFinal);
+     // StoreGoodValues(yStepEnd,   hStepLastActive, errmaxSqLastActive, progressedLane && !Active, yFinal, hFinal, errmax_sqFinal);
+     //-// StoreGoodValues(yStepStart, hStepLastGood, errmaxSqLastGood, progressedLane && !goodStep, yFinal, hFinal, errmax_sqFinal);
   }
   
+#ifdef DRIVER_PRINT_PROGRESS  
+  if( 1 ) { 
+     cout << " Check LastGood values vs. hstep-last/BreakOut" << std::endl;
+     ReportRowOfDoubles("hStep =", hStep );
+     // ReportRowOfDoubles("hStepLastGood = ", hStepLastGood );
+     // ReportRowOfDoubles("errmaxSqFallThru = ", errmaxSqFallThru );
+     ReportRowOfDoubles("errmaxSqBreakOut = ", errmaxSqBreakOut );
+     // ReportRowOfDoubles("errmaxSqFallThru = ", errmaxSqBreakOut ); // Old Name - for comparing printouts
+     // ReportRowOfDoubles("errmaxSqLastGood = ", errmaxSqLastGood );
+  }
+#endif
+
 #ifdef DRIVER_DIAGNOSTICS  
   if (!vecCore::MaskEmpty(UnderflowOccurred)) {
     // Real_v xnewB       = x + hnew;
@@ -993,7 +1082,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     cout << "RollingIntDrv: KeepStepping - Loop done at iter = " << iter
          << " with hdid = " << hdid
          << "  last h = " << hStep
-         << "  last good h = " << hStepLastGood
+       //   << "  last good h = " << hStepLastGood
          << " from htry= " << htry
          << std::endl;
 #endif
@@ -1243,7 +1332,7 @@ int RollingIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::InitializeLanes(
     bool      badStepSize[],  // Output
     int     & numBadSize ) const
 // Converts input scalar stream to acceptable form of Vc vectors
-// for vector processing in OneStep
+// for vector processing in KeepStepping
 {
   using vecCore::Set;
   using FormattedReporter::ReportArray;
@@ -1627,7 +1716,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack
     }
 #endif
     // if( h > fMinimumStep ) { QuickAdvance .. } else { .. below  //  ( Sequential code  )
-    // if (useOneStep) {
+    // if (useKeepStepping) {
     // GetStepper()
     fpStepper ->RightHandSideInl( y, chargeLane, dydx ); // TODO: change to inline
     //---------****************-----------------------

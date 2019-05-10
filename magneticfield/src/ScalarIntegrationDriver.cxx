@@ -22,7 +22,7 @@
 //  The (default) maximum number of steps is Base
 //  divided by the order of Stepper
 //
-const int ScalarIntegrationDriver::fMaxStepBase = 250; // Was 5000
+const int ScalarIntegrationDriver::fMaxStepBase = 2500; // Was 250 recently.  5000 long ago
 
 #define CHECK_ONE_LANE   1
 //  Allow / enable checking of derived quantities by conditional printing 
