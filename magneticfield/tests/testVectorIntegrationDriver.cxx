@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
   int stepper_no     = 5;    // Choose stepper no., for refernce see above
   double step_len_mm = 200.; // meant as millimeter;  //Step length
   double z_field_in  = DBL_MAX;
-  int    trackToPrint = 7;   // If # < vecLength, print that track in vector mode
+  int    trackToPrint = 11;   // If # < vecLength, print that track in vector mode
   
   double x_field = 0., // Uniform Magnetic Field (x,y,z)
       y_field    = 0., //  Tesla // *tesla ;
@@ -239,9 +239,15 @@ int main(int argc, char *argv[])
   using StepperType = CashKarp<GvEquationType, Nposmom>;
   auto myStepper    = new StepperType(gvEquation);
 
+  // FlexIntegrationDriver *vectorDriver;
+// #define SIMPLE_DRIVER   1
+#ifdef SIMPLE_DRIVER  
   using DriverType = SimpleIntegrationDriver<StepperType, Nposmom>;
+#else  
+  using DriverType = RollingIntegrationDriver<StepperType, Nposmom>;
+#endif  
   // using DriverType = OldIntegrationDriver<StepperType, Nposmom>;
-  // using DriverType = RollingIntegrationDriver<StepperType, Nposmom>;
+  
   auto vectorDriver =
       new DriverType(hminimum, myStepper, epsTol,  Nposmom );
   if( verbose ) { cout << " Vector Driver created." << endl; } 
@@ -582,7 +588,7 @@ int main(int argc, char *argv[])
 
   cout << " Scalar Stepper function calls are: " << refScalarDriver->fStepperCalls << " and OneGoodStep calls are "
        << refScalarDriver->fNoTotalSteps << endl;
-  cout << " Vector Stepper function calls are: " << vectorDriver->GetNumberOfStepperCalls() << " and OneStep calls are "
+  cout << " Vector Stepper function calls are: " << vectorDriver->GetNumberOfStepperCalls() << " and Driver (OneGoodStep/KeepStepping) steps are "
        << vectorDriver->GetNumberOfTotalSteps() << endl;
 
   //========================End testing IntegrationDriver=======================

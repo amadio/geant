@@ -26,6 +26,8 @@
 #include "base/AlignedBase.h"
 #include "Geant/FieldTrack.h"
 
+#include "Geant/AuxVecMethods.h"
+
 #include "base/Vector.h"
 
 // Adding because adding scalar stepper for new constructor (KeepStepping)
@@ -185,7 +187,7 @@ protected:
   void ReportResults(const Real_v hFinal, const Real_v errmaxSqFinal, const Real_v yOutput[]) const;
 
   template <class Real_v>
-  Real_v PowerIf(const Real_v value, double exponent, vecCore::Mask_v<Real_v> condition = true) const;
+  Real_v PowerSameIf(const Real_v value, double exponent, vecCore::Mask_v<Real_v> condition = true) const;
   // Return the power in each 'lane':
   //  if( condition[i] ) { value[i]^exponent[i] } else { 1.0 }
 
@@ -372,35 +374,6 @@ void SimpleIntegrationDriverWithMaxPrints<T_Stepper, Nvar>::ReportResults(const 
     ReportRowOfDoubles(varName, yOutput[i]);
     // ReportRowOfDoubles( "yOut- 0/F", yOut[i] );
   }
-}
-
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-inline Real_v SimpleIntegrationDriverWithMaxPrints<T_Stepper, Nvar>::PowerIf(const Real_v value, double exponent,
-                                                                vecCore::Mask_v<Real_v> condition) const
-{
-  using vecCore::Get;
-  using vecCore::Set;
-  using vecCore::math::Exp;
-  using vecCore::math::Log;
-
-  Real_v result(1.0);
-
-  bool allNeeded = vecCore::MaskFull(condition);
-  if (allNeeded) // All of the steps failed
-  {
-    result = Exp(exponent * Log(value));
-  } else {
-    // Do expensive 'pow' only for continuing ('condition') lanes
-    for (size_t i = 0; i < vecCore::VectorSize<Real_v>(); ++i) {
-      if (vecCore::Get(condition, i)) {
-        double redFactor = Math::Pow(Get(value, i), exponent);
-        vecCore::Set(result, i, redFactor);
-      }
-    }
-  }
-
-  return result;
 }
 
 /*****
@@ -818,7 +791,7 @@ void SimpleIntegrationDriverWithMaxPrints<T_Stepper, Nvar>::OneGoodStep(const Re
       break;
     }
 
-    Real_v errPower = PowerIf<Real_v>(errmax_sq, 0.5 * fPowerShrink, !laneDone);
+    Real_v errPower = PowerSameIf<Real_v>(errmax_sq, 0.5 * fPowerShrink, !laneDone);
     Real_v hReduced = h * Max(Real_v(0.1), fSafetyFactor * errPower);
 
     Real_v hnew = vecCore::Blend(finished, Real_v(0.0), hReduced);
@@ -936,7 +909,7 @@ void SimpleIntegrationDriverWithMaxPrints<T_Stepper, Nvar>::OneGoodStep(const Re
   // Check against fErrcon to avoid calling power ... saves work if any are 'over' max
   Bool_v underThresh = errmax_sqFinal <= fErrcon * fErrcon;
 
-  Real_v errStretch1raw  = fSafetyFactor * PowerIf(errmax_sqFinal, 0.5 * fPowerGrow, !underThresh);
+  Real_v errStretch1raw  = fSafetyFactor * PowerSameIf(errmax_sqFinal, 0.5 * fPowerGrow, !underThresh);
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
   Real_v errStretch =
     vecCore::Blend( underThresh, Real_v(fMaxSteppingIncrease), errStretch1raw );
