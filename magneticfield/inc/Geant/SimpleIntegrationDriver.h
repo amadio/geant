@@ -440,16 +440,16 @@ SimpleIntegrationDriver<T_Stepper, Nvar>::
 
 template <class T_Stepper, unsigned int Nvar>
 template <class Real_v>
-void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[],
-                                                           const Real_v dydx[],
-                                                           const Real_v charge,
-                                                           Real_v &x, // InOut
-                                                           Real_v htry,
-                                                           double eps_rel_max,
+void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v   yStart[],
+                                                           const Real_v   dydx[],
+                                                           const Real_v   charge,
+                                                           Real_v       & x,       // InOut  - ToDo: rename to xCurrent
+                                                           Real_v         htry,
+                                                           double         eps_rel_max,
                                                            // const Real_v  eps_rel_max,
-                                                           Real_v yFinal[], // Out-values
-                                                           Real_v &hdid,    // Out - achieved length
-                                                           Real_v &hnext)   // Out - proposed next integration length
+                                                           Real_v         yFinal[], // Out-values
+                                                           Real_v       & hdid,    // Out - achieved length
+                                                           Real_v       & hnext)   // Out - proposed next integration length
    const
 // This version:  J. Apostolakis,  13 November 2017.
 //   Lanes are integrated until all have either,
@@ -556,7 +556,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 #endif    
     itersLeft--;
     iter++;
-    if (partDebug) cout << " OneGoodStep - iteration = " << iter << endl;
+    if (partDebug) cout << " OneGoodStep - iteration = " << iter << "             "
+                        << " ( total iterations = " <<  (tot_no_trials + iter) << " ) "
+                        << endl;
     // #ifdef STORE_ONCE
     vecCore::MaskedAssign(h, finished, Real_v(0.0)); // Set h = 0.0 for finished lanes -- ensure no change !
                                                      // #endif
@@ -680,7 +682,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
       break;
     }
 
-    Real_v errPower = PowerIf<Real_v>(errmax_sq, 0.5 * kPowerShrink, !laneDone);
+    Real_v errPower = PowerSameIf<Real_v>(errmax_sq, fHalfPowerShrink, !laneDone);    
     Real_v hReduced = h * Max(Real_v(0.1), kSafetyFactor * errPower);
 
     Real_v hnew = vecCore::Blend(finished, Real_v(0.0), hReduced);
@@ -788,8 +790,9 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
   static const Real_v kErrCon2_v     = fErrcon * fErrcon;  
   static constexpr auto tPowerGrow_s = .5 * kPowerGrow;
   Bool_v underThresh                 = errmax_sqFinal <= kErrCon2_v;  
-  Real_v errStretch1raw              = fSafetyFactor * PowerIf(errmax_sqFinal, tPowerGrow_s, !underThresh);
-  // Real_v errStretch1raw           = fSafetyFactor * PowerIf(errmax_sqFinal, 0.5 * GetPowerGrow(), !underThresh);
+  Real_v errStretch1raw              = fSafetyFactor * PowerSameIf(errmax_sqFinal, tPowerGrow_s, !underThresh);
+  // Real_v errStretch1raw           = fSafetyFactor * PowerSameIf(errmax_sqFinal, 0.5 * GetPowerGrow(), !underThresh);  
+
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
   Real_v errStretch =
     vecCore::Blend( underThresh, Real_v(fMaxSteppingIncrease), errStretch1raw );
@@ -860,10 +863,12 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v yStart[]
 #ifdef DRIVER_PRINT_PROGRESS  
   bool OGSreport = true;
   if (partDebug && OGSreport) {
+    ReportRowOfDoubles("x: Updated =", x );
+     
     ReportRowOfDoubles("OGS: errmax2", errmax_sqFinal);
     ReportRowOfSquareRoots("OGS: errmax    ", errmax_sqFinal);
-    ReportRowOfDoubles("OGS: h-did     ", hdid);
     ReportRowOfDoubles("OGS: x (new)   ", x);
+    ReportRowOfDoubles("OGS: h-did     ", hdid);
     ReportRowOfDoubles("OGS: h-next    ", hnext);
     ReportRowOfDoubles("OGS: facStretch", errStretch);
 
@@ -1435,6 +1440,13 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
       cout << "##-------------------------------------------------------------------------------" << endl;
       cout << "### Accurate Advance ---- After return from OneGood Step" << endl;
       ReportRowOfDoubles("charge", chargeLane);
+      ReportRowOfDoubles("hTry (after)", hTry);      
+      // ReportRowOfDoubles("h-ask", h);
+      ReportRowOfDoubles("h-did", hdid);
+      ReportRowOfDoubles("hNext", hnext);
+      cout << "##-------------------------------------------------------------------------------" << endl;
+      ReportRowOfDoubles("x", x);
+      ReportRowOfDoubles("xExpectEnd/x2", x2);
       cout << "##-------------------------------------------------------------------------------" << endl;
       // ReportManyRowsOfDoubles("yStart/True", yStart, Nvar);
       ReportManyRowsOfDoubles("yStepStart", y, Nvar);
@@ -1447,13 +1459,6 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance(const FieldTrack 
       // Real_v momTrueStart = GetMomentumMag(yStart); // True initial momentum magnitude
       // ReportRowsOfPositionsMomenta("yNext", yNext, Nvar, momTrueStart);  // Check vs true initial mag.
       // cout << "##-------------------------------------------------------------------------------" << endl;      
-      // ReportRowOfDoubles("h-ask", h);
-      ReportRowOfDoubles("hTry (after)", hTry);
-      ReportRowOfDoubles("h-did", hdid);
-      ReportRowOfDoubles("hNext", hnext);
-      ReportRowOfDoubles("x", x);
-      ReportRowOfDoubles("xExpectEnd/x2", x2);
-      cout << "##-------------------------------------------------------------------------------" << endl;
       // ReportManyRowsOfDoubles( "yNext", yNext, Nvar);
     }
 #endif

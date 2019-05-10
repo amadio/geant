@@ -29,6 +29,7 @@
 #include "base/Vector.h"
 
 #include "Geant/math_wrappers.h"
+#include "Geant/AuxVecMethods.h"
 
 #include "FieldTrack.h"
 
@@ -249,13 +250,6 @@ protected:
                          const Real_v errmaxSqFinal,
                          const Real_v yOutput[] ) const;
 
-    template <class Real_v>
-     Real_v PowerIf( const Real_v            value,
-                     double                  exponent,
-                     vecCore::Mask_v<Real_v> condition = true ) const;
-    // Return the power in each 'lane':
-    //  if( condition[i] ) { value[i]^exponent[i] } else { 1.0 }
-    
   public: // For now
     template <class Real_v>    
      bool TestInitializeLanes(); // (int numTracks)
@@ -449,44 +443,6 @@ OldIntegrationDriver<T_Stepper, Nvar>::
       // ReportRowOfDoubles( "yOut- 0/F", yOut[i] );
    }
    
-}
-
-template <class T_Stepper, unsigned int Nvar>
-template <class Real_v>
-inline
-Real_v
-OldIntegrationDriver<T_Stepper, Nvar>::
-PowerIf( const Real_v            value,
-         double                  exponent,
-         vecCore::Mask_v<Real_v> condition )
-   const
-{
-   using vecCore::Get;
-   using vecCore::Set;   
-   using vecCore::math::Exp;
-   using vecCore::math::Log;
-
-   Real_v result(1.0);
-
-   bool allNeeded = vecCore::MaskFull( condition );
-   if(  allNeeded ) // All of the steps failed
-   { 
-      result = Exp( exponent * Log(value) );
-   }
-   else
-   {
-      // Do expensive 'pow' only for continuing ('condition') lanes
-      for (size_t i = 0; i < vecCore::VectorSize<Real_v>(); ++i)
-      {
-         if ( vecCore::Get(condition, i) )
-         {
-            double redFactor= std::pow( Get(value, i), exponent);
-            vecCore::Set( result, i, redFactor );
-         }
-      }
-   }
-  
-   return result;
 }
 
 
@@ -878,7 +834,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
         break;
      } 
 
-     Real_v errPower = PowerIf<Real_v>( errmax_sq, 0.5*fPowerShrink, ! laneDone);
+     Real_v errPower = PowerSameIf<Real_v>( errmax_sq, 0.5*fPowerShrink, ! laneDone);
      Real_v hReduced = h * Max( Real_v(0.1), fSafetyFactor * errPower );
 
      Real_v hnew = vecCore::Blend(   finished, Real_v(0.0), hReduced );     
@@ -967,7 +923,7 @@ OldIntegrationDriver<T_Stepper, Nvar>
   
   // Check against fErrcon to avoid calling power ... saves work if any are 'over' max
   Bool_v  underThresh = errmax_sqFinal <= fErrcon*fErrcon;
-  Real_v  errStretch = fSafetyFactor * PowerIf(errmax_sqFinal, 0.5*fPowerGrow, !underThresh );
+  Real_v  errStretch = fSafetyFactor * PowerSameIf(errmax_sqFinal, 0.5*fPowerGrow, !underThresh );
   // Note:  lanes with 'false' argument (i.e. underThresh=true) will have value 1.0
   // Overwriting them!
   vecCore::MaskedAssign( errStretch, underThresh, Real_v(fMaxSteppingIncrease) );
