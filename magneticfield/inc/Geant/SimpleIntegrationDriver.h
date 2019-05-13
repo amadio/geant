@@ -496,7 +496,10 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v   yStart
   using PrintDriverProgress::ReportConditionLanes;
    
   // if (partDebug) { cout << "\n" << endl; }
-
+  
+  static  std::atomic<unsigned int> numCalls(0);
+  int  currentCallNo= numCalls++;
+  
   const Real_v xStart(x);
   Real_v xnew;
   Real_v yerr[Nvar], ytemp[Nvar];
@@ -521,7 +524,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v   yStart
      cout << endl;
   }
 #endif
-  if( partDebug ) { std::cout << "SID: OneGoodStep called." << std::endl; }
+  if( partDebug ) { std::cout << "SID: OneGoodStep called.   Call number " << currentCallNo << std::endl; }
   
   // int finishedArr[vecCore::VectorSize<Real_v>()] = {0,0,0,0};
   Bool_v finished = (htry <= 0.); //  Allows h <=0 as signal lane is empty. // Was = false;
@@ -537,7 +540,7 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v   yStart
   int itersLeft     = max_trials;
 
   // ReportManyRowsOfDoubles( "yStart",  yStart, Nvar );
-  Real_v magmomInit_sq = yStart[3] * yStart[3] + yStart[4] * yStart[4] + yStart[5] * yStart[5];
+  // Real_v magmomInit_sq = yStart[3] * yStart[3] + yStart[4] * yStart[4] + yStart[5] * yStart[5];
 
   do {
     Real_v errmax_sq = 0.0;
@@ -584,13 +587,26 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v   yStart
 #endif
 
     ErrorEstimatorSixVec fErrorEstimator( eps_rel_max, GetMinimumStep() );
+    Real_v magmom_sq = yStart[3] * yStart[3] + yStart[4] * yStart[4] + yStart[5] * yStart[5];
 #ifdef CHECK_ONE_LANE
     Real_v errpos_sq = 0.0; // square of displacement error
     Real_v errmom_sq = 0.0; // square of momentum vector difference
     Real_v epsPosition = 0.0; 
-    errmax_sq = fErrorEstimator.EstimateError( yerr, h, magmomInit_sq, epsPosition,  errpos_sq, errmom_sq );
+    // errmax_sq = fErrorEstimator.EstimateError( yerr, h, magmomInit_sq, epsPosition,  errpos_sq, errmom_sq );
+    errmax_sq = fErrorEstimator.EstimateError( yerr, h, magmom_sq, epsPosition,  errpos_sq, errmom_sq );
+    if( 0 ) { // printLane ) {    
+       std::cout << "Check after EstimateError:  errmom_sq= " << std::sqrt( vecCore::Get(errmom_sq, laneToCheck ));
+       std::cout << " Current mom^2= " << vecCore::Get( magmom_sq, laneToCheck ) ;
+       // std::cout << " Initial mom^2= " << vecCore::Get( magmomInit_sq, laneToCheck ) ;
+       std::cout << "  yErr: ";
+       for( unsigned int ii=0; ii<Nvar; ii++) 
+          std::cout << "[" << ii << "] = " << vecCore::Get( yerr[ii], laneToCheck ) << " ";
+       std::cout << std::endl;
+    }
 #else
-    errmax_sq = fErrorEstimator.EstimateError( yerr, h, magmomInit_sq );
+    // errmax_sq = fErrorEstimator.EstimateError( yerr, h, magmomInit_sq );
+    errmax_sq = fErrorEstimator.EstimateError( yerr, h, magmom_sq);
+    // errmax_sq = fErrorEstimator.EstimateError( yerr, h, yStepEnd );    
 #endif
 
 #ifdef DRIVER_PRINT_PROGRESS    
@@ -642,6 +658,12 @@ void SimpleIntegrationDriver<T_Stepper, Nvar>::OneGoodStep(const Real_v   yStart
                        epsPosition, errpos_sq, errmom_sq, errmax_sq, laneDone,
                        allDone, iter, tot_no_trials, laneToCheck, trackToPrint,
                        "SimpleID" );  // "SimpleIntDrv" );
+       std::cout << " Track to check " << trackToPrint << " laneToCheck = " << laneToCheck << std::endl;       
+       ReportRowOfSquareRoots("ErrPos", errpos_sq );
+       ReportRowOfSquareRoots("ErrMom", errmom_sq );
+       ReportRowOfSquareRoots("ErrMax", errmax_sq );
+       ReportManyRowsOfDoubles("yErr", yerr, Nvar);
+       
        if( 1 ) {
           std::cout << "SID: Status after stepper call ----------------------------------------------" << std::endl;
           FormattedReporter::FullReport(yStart, charge, dydx, h /*hStep*/, ytemp /*yStepEnd*/,
