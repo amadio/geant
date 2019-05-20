@@ -78,6 +78,7 @@ public:
   }
 
   void SetCurveLength(double len) { fDistanceAlongCurve = len; }
+  void ResetCurveLength() { fDistanceAlongCurve = 0.0; }
   double GetCurveLength() const { return fDistanceAlongCurve; }
 
 private:

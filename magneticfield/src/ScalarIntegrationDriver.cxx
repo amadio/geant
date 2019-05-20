@@ -22,7 +22,7 @@
 //  The (default) maximum number of steps is Base
 //  divided by the order of Stepper
 //
-const int ScalarIntegrationDriver::fMaxStepBase = 2500; // Was 250 recently.  5000 long ago
+const int ScalarIntegrationDriver::fMaxStepBase = 250; // Last change: 2019.05.14 for testing // Was 250 recently.  5000 long ago
 
 #define CHECK_ONE_LANE   1
 //  Allow / enable checking of derived quantities by conditional printing 
@@ -76,6 +76,7 @@ ScalarIntegrationDriver::ScalarIntegrationDriver(double    hminimum,
 
   RenewStepperAndAdjust(pStepper);
   fMaxNoSteps = fMaxStepBase / fpStepper->IntegratorOrder();
+  std::cout << "*Scalar* IntegrationDriver (c-tor) > Set fMaxNoSteps = " << fMaxNoSteps << std::endl;  
 #ifdef GUDEBUG_FIELD
   fVerboseLevel = 2;
 #endif
@@ -116,7 +117,8 @@ ScalarIntegrationDriver::ScalarIntegrationDriver(const ScalarIntegrationDriver &
 
   RenewStepperAndAdjust(fpStepper);
   fMaxNoSteps = fMaxStepBase / fpStepper->IntegratorOrder();
-
+  std::cout << "*Scalar* IntegrationDriver (copy c-tor) > Set fMaxNoSteps = " << fMaxNoSteps << std::endl;
+  
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {
     std::cout << "MagIntDriver version: Accur-Adv: "
               << "invE_nS, QuickAdv-2sqrt with Statistics " << (statsEnabled ? " enabled " : " disabled ") << std::endl;

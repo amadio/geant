@@ -151,6 +151,29 @@ inline void ReportRowOfBools(std::string varName, const vecCore::Mask_v<Real_v> 
 
 // ---------------------------------------------
 
+template <typename Real_v>
+inline void ReportRowOfInts(std::string varName, const vecCore::Index_v<Real_v> &var, int widthName = -1,
+                             int widthVal = -1)
+{
+  using std::cout;
+
+  if (widthName < 0) {
+    widthName = sDefaultNameLength;
+  }
+  if (widthVal < 0) {
+    widthVal = sDefaultVarSize;
+  }
+
+  cout << std::setw(widthName) << varName << " : ";
+  for (size_t i = 0; i < vecCore::VectorSize<Real_v>(); ++i) {
+    cout << " " << std::setw(widthVal) << vecCore::Get(var, i) << " | ";
+  }
+  cout << std::endl;
+}
+
+// ---------------------------------------------
+
+
 // ===============  Selective Reporting / Printing ==================
 
 template <typename Real_v>
@@ -225,7 +248,7 @@ void
                   const char *methodName)
 {
    using std::cout;
-   using std::setw;   
+   using std::setw;
    bool  laneIsDone = vecCore::Get( lanesDone , lanePrint );
    int   prec = 10; // precision
    int   wd = prec + 5;
@@ -262,9 +285,9 @@ void
              << " errMax^2 = "    << setw( wd2) << errMax2;     // vecCore::Get( errmax_sq ,   lanePrint );
    if( printValues ) 
       cout
-             << " error-x/p = "   << setw( wd2) << sqrt( errPosLane2 ) // vecCore::Get( errPosSq ,    lanePrint ) )
-             << " "               << setw( wd2) << sqrt( errMomLane2 ) // vecCore::Get( errMomSq ,    lanePrint ) ) // << " "
-             << " errMax = "      << setw( wd2) << sqrt( errMax2 )  ; // vecCore::Get( errmax_sq ,   lanePrint ) );
+             << " error-x/p = "   << setw( wd2) << sqrt( errPosLane2 ) // Get( errPosSq ,    lanePrint ) )
+             << " "               << setw( wd2) << sqrt( errMomLane2 ) // Get( errMomSq ,    lanePrint ) ) // << " "
+             << " errMax = "      << setw( wd2) << sqrt( errMax2 )  ;  // Get( errmax_sq ,   lanePrint ) );
 
    cout << " lane done = "   << laneIsDone;
 

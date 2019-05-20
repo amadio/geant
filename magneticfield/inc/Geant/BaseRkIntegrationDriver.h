@@ -63,7 +63,8 @@ public:
   virtual ~BaseRkIntegrationDriver();
 
   // Setting parameters ( few now )
-  void SetMaxNoSteps(int val) { fMaxNoSteps = val; }
+  unsigned int  GetMaxNoSteps() const { return fMaxNoSteps; }   
+  void SetMaxNoSteps(unsigned int val) { fMaxNoSteps = val; }
   unsigned long IncrementStepperCalls() const { return ++fStepperCalls; } // mutable ..
   unsigned long GetNumberOfStepperCalls()    { return fStepperCalls; }
 
@@ -150,8 +151,8 @@ protected:
   const int fMinNoVars; // Minimum number for TemplateFieldTrack<Real_v>
   const int fNoVars;    // Full number of variable
 
-  unsigned long fMaxNoSteps;
-  static constexpr int fMaxStepBase = 250;
+  unsigned int fMaxNoSteps;
+  static constexpr unsigned int fMaxStepBase = 250;
 
   static constexpr double kSafetyFactor= 0.9; // -> Failed to compile on clang 9.1 2017.12.05
   // const double  kSafetyFactor      = 0.9;
