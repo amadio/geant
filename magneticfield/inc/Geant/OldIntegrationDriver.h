@@ -1324,13 +1324,13 @@ OldIntegrationDriver< /*Real_v,*/ T_Stepper, Nvar>
 //
 {
    if( partDebug) 
-      std::cout<<"----Storage position (out-arr): "<< indOut << std::endl;
-
-   // int     indOut = indexArr[currIndex]; // might be sent directly to StoreOutput as well
-   // (void)nTracks;
+    std::cout << "----Storage position (out-arr): " << indOut
+              << " (ntracks= " << nTracks << ")" << std::endl;
+   (void) nTracks; // To enable its use in asserts above without warnings (in non-debug builds)
+   
    assert( 0 <= indOut && indOut < nTracks && "Track Index is Out of Range"  );
    assert( 0 <= currIndex && ((unsigned long)currIndex < vecCore::VectorSize<Real_v>() ) && "Lane Index is Out of Range" ) ;
-
+   
    double hOriginal = hstep [indOut];
    
    if (hOriginal >= 0.0)     

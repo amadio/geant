@@ -30,8 +30,8 @@ class TrialStats {
    unsigned int GetNoKeepSteps( unsigned int i ) const { return vecCore::Get( fNumKeepSteps, i ); } 
    
    //  Reset the count of selected lanes - after updating totals for lane
-   void fSumAndReset(vecCore::Mask_v<Real_v> resetLane );
-   void fSumAndResetLane(unsigned int i);
+   void SumAndReset(vecCore::Mask_v<Real_v> resetLane );
+   void SumAndResetLane(unsigned int i);
    // void fSumAndReset();
    
    //  Reset the count of selected lanes - no update of totals
@@ -48,15 +48,21 @@ class TrialStats {
    vecCore::Index_v<Real_v> GetSumBadSteps()  const { return fSumBadSteps;  }
    vecCore::Index_v<Real_v> GetSumKeepSteps() const { return fSumKeepSteps; } 
    
-   void PrintSums() const;
-   //  Prints only the Sum statistics
    void PrintStats( bool full = false ) const;
    //  Prints the current statistics - and optionally the Sums
+
+   void PrintSums() const;
+   //  Prints only the Sum statistics - per Lane
+   void PrintSummary() const;
+   //  Print Grand Totals
+   
    // void PrintAllStats() const;
    
    void PrintLaneStats( unsigned int lane ) const;
    
-  public:
+ private:
+   // STATE
+   // 1 - current counters
    vecCore::Index_v<Real_v> fNumTotalSteps= vecCore::Index_v<Real_v>(0);
    vecCore::Index_v<Real_v> fNumGoodSteps = vecCore::Index_v<Real_v>(0);   
    vecCore::Index_v<Real_v> fNumBadSteps  = vecCore::Index_v<Real_v>(0);
@@ -67,8 +73,9 @@ class TrialStats {
    // Extension idea: count 'initial' bad steps - ones at start of integration
    //  2019.05.15
    // vecCore::Index_v<Real_v> fNumInitialBadSteps = vecCore::Index_v<Real_v>(0);   
-   
+
    // Additional capability:  sums
+   // 2 - Sum counters
    vecCore::Index_v<Real_v> fSumTotalSteps= vecCore::Index_v<Real_v>(0);
    vecCore::Index_v<Real_v> fSumBadSteps  = vecCore::Index_v<Real_v>(0);
    vecCore::Index_v<Real_v> fSumGoodSteps = vecCore::Index_v<Real_v>(0);
@@ -89,11 +96,16 @@ void TrialStats<Real_v>::Update(vecCore::Mask_v<Real_v> active,
 template <typename Real_v>
 void TrialStats<Real_v>::ResetLane(unsigned int i)
 {
+   fSumTotalSteps +=  fNumTotalSteps;
+   fSumGoodSteps  +=  fNumGoodSteps;
+   fSumBadSteps   +=  fNumBadSteps;
+   fSumKeepSteps  +=  fNumKeepSteps;
    assert( i <= vecCore::VectorSize<Real_v>() );
+
    vecCore::Set( fNumTotalSteps, i, 0 );
    vecCore::Set( fNumBadSteps,   i, 0 );
    vecCore::Set( fNumGoodSteps,  i, 0 );
-   vecCore::Set( fNumKeepSteps,  i, 0 );   
+   vecCore::Set( fNumKeepSteps,  i, 0 );
 }
 
 template <typename Real_v>
@@ -106,7 +118,7 @@ void TrialStats<Real_v>::Reset(vecCore::Mask_v<Real_v> changeMask )
 }
 
 template <typename Real_v>
-void TrialStats<Real_v>::fSumAndReset(vecCore::Mask_v<Real_v> changeMask )
+void TrialStats<Real_v>::SumAndReset(vecCore::Mask_v<Real_v> changeMask )
 {
    vecCore::MaskedAssign( fSumTotalSteps,  changeMask, fSumTotalSteps + fNumTotalSteps );
    vecCore::MaskedAssign( fSumBadSteps,    changeMask, fSumBadSteps   + fNumBadSteps );
@@ -117,14 +129,14 @@ void TrialStats<Real_v>::fSumAndReset(vecCore::Mask_v<Real_v> changeMask )
 }
 
 template <typename Real_v>
-void TrialStats<Real_v>::fSumAndResetLane(unsigned int i)
+void TrialStats<Real_v>::SumAndResetLane(unsigned int i)
 {
    assert( i <= vecCore::VectorSize<Real_v>() );
    vecCore::Mask_v<Real_v> changeMask= vecCore::Mask_v<Real_v>(false);
 
    Set( changeMask, i, true );
    
-   fSumAndReset( changeMask );
+   SumAndReset( changeMask );
 }
 
 template <typename Real_v>
@@ -154,10 +166,27 @@ void TrialStats<Real_v>::FullReset()
 template <typename Real_v>
 void TrialStats<Real_v>::PrintSums() const
 {
-   FormattedReporter::ReportRowOfInts<Real_v>(  "fSum Total Steps",  fSumTotalSteps );
-   FormattedReporter::ReportRowOfInts<Real_v>(  "fSum Good  Steps",  fSumGoodSteps  );
-   FormattedReporter::ReportRowOfInts<Real_v>(  "fSum Bad   Steps",  fSumBadSteps  );
-   FormattedReporter::ReportRowOfInts<Real_v>(  "fSum Keep  Steps",  fSumKeepSteps );
+   FormattedReporter::ReportRowOfInts<Real_v>(  "Sum Total Steps",  fSumTotalSteps );
+   FormattedReporter::ReportRowOfInts<Real_v>(  "Sum Good  Steps",  fSumGoodSteps  );
+   FormattedReporter::ReportRowOfInts<Real_v>(  "Sum Bad   Steps",  fSumBadSteps  );
+   FormattedReporter::ReportRowOfInts<Real_v>(  "Sum Keep  Steps",  fSumKeepSteps );
+}
+
+template <typename Real_v>
+void TrialStats<Real_v>::PrintSummary() const
+{
+   constexpr unsigned int VecSize = vecCore::VectorSize<Real_v>();   
+   unsigned long  GrandTotalSteps(0UL), GrandTotalGood(0UL), GrandTotalBad(0UL), GrandTotalKeep(0UL);
+   for (unsigned int i = 0; i < VecSize; ++i) {
+      GrandTotalSteps += vecCore::Get( fSumTotalSteps, i );
+      GrandTotalGood  += vecCore::Get( fSumGoodSteps , i );
+      GrandTotalBad   += vecCore::Get( fSumBadSteps,   i );
+      GrandTotalKeep  += vecCore::Get( fSumKeepSteps,  i );
+   }
+   std::cout << "GrandSums:  Total step = " << fGrandSumTotalSteps
+      " Good  Steps= " <<  fGrandSumGoodSteps 
+      " Bad   Steps= " <<  fGrandSumBadSteps  
+      " Keep  Steps= " <<  fGrandSumKeepSteps << G4endl;
 }
 
 template <typename Real_v>
@@ -170,7 +199,7 @@ void TrialStats<Real_v>::PrintStats( bool full ) const
 
    if( full )
    {
-      PrintSums();
+      // PrintSums();
    }
 }
 

@@ -71,6 +71,7 @@ ScalarIntegrationDriver::ScalarIntegrationDriver(double    hminimum,
 #ifdef GVFLD_STATS
   statsEnabled = true;
 #endif
+  fPrintDerived= false;
 
   fErrZeroStepCount = 0; // Counter for reporting zero step
 
@@ -230,45 +231,35 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
   }
 
   bool lastStep = false;
-  nstp          = 1;
+  nstp          = 0;
 
   // fpStepper->InitializeCharge( charge );   // May be added
   // OLD: fpStepper->GetEquationOfMotion()->InitializeCharge( charge );
 
-  double StartPosAr[3];
-  // ThreeVector StartPos( y[0], y[1], y[2] );
+
   do {
 #ifdef GVFLD_STATS
     gHistStepsLin->Fill(h);
     if (h > 0) gHistStepsLog->Fill(log(h));
 #endif
 
-    // StartPos= ThreeVector( y[0], y[1], y[2] );
-    StartPosAr[0] = y[0];
-    StartPosAr[1] = y[1];
-    StartPosAr[2] = y[2];
+    ThreeVector StartPos( y[0], y[1], y[2] );    
+    // double StartPosAr[3] = { y[0], y[1], y[2] };
 #ifdef GUDEBUG_FIELD
     double xSubStepStart = x;
     for (i = 0; i < nvar; i++) {
       ySubStepStart[i] = y[i];
     }
-// yFldTrkStart.LoadFromArray(y, fNoIntegrationVariables);
-// yFldTrkStart.SetCurveLength(x);
 #endif
 
-    // Old method - inline call to Equation of Motion
-    //   fpStepper->RightHandSide( y, dydx );
-    // New method allows to cache field, or state (eg momentum magnitude)
-    // fpStepper->ComputeRightHandSide( y, charge, dydx );
-
-    // Back to simple, old method   - JA. 16 Oct 2015
     fpStepper->RightHandSideVIS(y, charge, dydx); // TODO: change to inline
     fNoTotalSteps++;
 
-// #ifdef CHECK_DYDX    
-    std::cout << "ScalarDriver::AccurateAdv>  RHS called with q= " << charge
-              << " at Position = " << y[0] << " y= " << y[1] << " z= " << y[2]
-              << " with Momentum = " << y[3] << " y= " << y[4] << " z= " << y[5] << " ";
+#ifdef CHECK_DYDX
+    if( partDebug )    
+       std::cout << "ScalarDriver::AccurateAdv>  RHS called with q= " << charge
+                 << " at Position = " << y[0] << " y= " << y[1] << " z= " << y[2]
+                 << " with Momentum = " << y[3] << " y= " << y[4] << " z= " << y[5] << " ";
           
     vecgeom::Vector3D<double> Bfield;
     double dydxAgn[ScalarFieldTrack::ncompSVEC];
@@ -276,11 +267,14 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
     using geant::units::tesla;
 
     equationPtr->EvaluateRhsReturnB(y, charge, dydxAgn, Bfield);
+
+    if( partDebug )
+    {     
           // (const double y[], double dydx[], double charge,
-    std::cout << " from B-field,  Bx= " << Bfield.x() / tesla << " By= " << Bfield.y() / tesla
-              << " Bz= " << Bfield.z() / tesla << " ";
-    std::cout << " gives Derivs dydx= :  x = " << dydx[0] << " y = " << dydx[1] << " z = " << dydx[2]        
-              << " px= " << dydx[3] << " py= " << dydx[4] << " pz= " << dydx[5] << std::endl;
+       std::cout << " from B-field,  Bx= " << Bfield.x() / tesla << " By= " << Bfield.y() / tesla
+                 << " Bz= " << Bfield.z() / tesla << " ";
+       std::cout << " gives Derivs dydx= :  x = " << dydx[0] << " y = " << dydx[1] << " z = " << dydx[2]        
+                 << " px= " << dydx[3] << " py= " << dydx[4] << " pz= " << dydx[5] << std::endl;
 /***                                                                                   
     std::cout << " Cross check: ";                                                                               
     std::cout << "   Derivs  dydx= :  x = " << dydx[0] << " y = " << dydx[1] << " z = " << dydx[2]        
@@ -288,80 +282,27 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
     std::cout << "   D/again dydx= :  x = " << dydxAgn[0] << " y = " << dydxAgn[1] << " z = " << dydxAgn[2]        
               << " px= " << dydxAgn[3] << " py= " << dydxAgn[4] << " pz= " << dydxAgn[5] << std::endl;
 ***/
-    std::cout << "   -diff   dydx= :  x = " << dydx[0] - dydxAgn[0] << " y = " << dydx[1] - dydxAgn[1]
-              << " z = " << dydx[2] - dydxAgn[2]
-              << " px= " << dydx[3] - dydxAgn[3]
-              << " py= " << dydx[4]-dydxAgn[4] << " pz= " << dydx[5]-dydxAgn[5] << std::endl;
-// #endif // of CHECK_DYDX
-
-    // Perform the Integration
-    //
-    if ( true )
-    // if ( h > fMinimumStep) //  Changed 2019.03.04 => emulate Vector mode
-    {
-      // std::cout << "Calling       OneGoodStep " << std::endl;
-      OneGoodStep(y, charge, dydx, x, h, fEpsilonRelMax, hdid, hnext);
-      // std::cout << "Returned from OneGoodStep" << std::endl;
-
-      //--------------------------------------
-      lastStepSucceeded = (hdid == h);
-#ifdef GUDEBUG_FIELD
-      if (dbg > 2) {
-        PrintStatus(ySubStepStart, xSubStepStart, y, x, h, nstp); // Only
-      }
-#endif
-    } else {
-      ScalarFieldTrack yFldTrk(ThreeVector(0, 0, 0), ThreeVector(0, 0, 0), charge);
-      // double dchord_step;
-      double dyerr_len_sq, dyerr_mom_rel_sq; // What to do with these ?
-      yFldTrk.LoadFromArray(y, fNoIntegrationVariables);
-      yFldTrk.SetCurveLength(x);
-
-      QuickAdvance(yFldTrk, dydx, h, /*dchord_step,*/ dyerr_len_sq, dyerr_mom_rel_sq);
-      //----------------------------------------------------------------
-
-      yFldTrk.DumpToArray(y);
-
-#ifdef GVFLD_STATS
-      fNoSmallSteps++;
-      fDyerrPosMaxSq = std::max(fDyerrPosMaxSq, dyerr_len_sq);
-      fDyerrDirMaxSq = std::max(fDyerrDirMaxSq, dyerr_mom_rel_sq);
-
-      fDyerrPos_smTot += std::sqrt(dyerr_len_sq);
-      fSumH_sm += h; // Length total for 'small' steps
-      if (nstp <= 1) {
-        fNoInitialSmallSteps++;
-      }
-#endif
-#ifdef GUDEBUG_FIELD
-      if (dbg > 1) {
-        if (fNoSmallSteps < 2) {
-          PrintStatus(ySubStepStart, x1, y, x, h, -nstp);
-        }
-        std::cout << "Another sub-min step, no " << fNoSmallSteps << " of " << fNoTotalSteps << " this time " << nstp
-                  << std::endl;
-        PrintStatus(ySubStepStart, x1, y, x, h, nstp); // Only this
-        std::cout << " dyerr= " << dyerr_len << " relative = " << dyerr_len / h << " epsilon= " << fEpsilonRelMax
-                  << " hstep= " << hstep << " h= " << h << " hmin= " << fMinimumStep << std::endl;
-      }
-#endif
-      if (h == 0.0) {
-        std::cerr << "ERROR in G4UIntegationDriver::AccurateAdvance: integration failure. " << std::endl;
-        std::cerr << "Integration Step became Zero!" << std::endl;
-        exit(1);
-      }
-      double dyerr_sq = std::min(dyerr_len_sq / (h * h), dyerr_mom_rel_sq);
-      double dyerr    = std::sqrt(dyerr_sq);
-      // dyerr = dyerr_len / h;
-      hdid = h;
-      x += hdid;
-
-      // Compute suggested new step
-      hnext = ComputeNewStepSize(dyerr * fInvEpsilonRelMax, h);
-
-      // .. hnext= ComputeNewStepSize_WithinLimits( dyerr/fEpsilonRelMax, h);
-      lastStepSucceeded = (dyerr <= fEpsilonRelMax);
+       std::cout << "   -diff   dydx= :  x = " << dydx[0] - dydxAgn[0] << " y = " << dydx[1] - dydxAgn[1]
+                 << " z = " << dydx[2] - dydxAgn[2]
+                 << " px= " << dydx[3] - dydxAgn[3]
+                 << " py= " << dydx[4]-dydxAgn[4] << " pz= " << dydx[5]-dydxAgn[5] << std::endl;
     }
+#endif // of CHECK_DYDX
+
+    // if ( h > fMinimumStep)
+    // Changed 2019.03.04 : Only 'regular' steps with Runge-Kutta and error control are used.
+    //                      This is in order to emulate Vector mode exactly.
+    // I.e. suppressed 'quick advance' that accepted any estimated error in those small steps
+    
+    // Perform one step of Integration - with error control
+    //
+    OneGoodStep(y, charge, dydx, x, h, fEpsilonRelMax, hdid, hnext);
+    
+    //--------------------------------------
+    lastStepSucceeded = (hdid == h);
+#ifdef GUDEBUG_FIELD
+    if (dbg > 2) { PrintStatus(ySubStepStart, xSubStepStart, y, x, h, nstp); }
+#endif
 
     if (lastStepSucceeded) {
       noFullIntegr++;
@@ -373,11 +314,8 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
 
 #ifdef GUDEBUG_FIELD
     if ((dbg > 0) && (dbg <= 2) && (nstp > nStpPr)) {
-      if (nstp == nStpPr) {
-        std::cout << "***** Many steps ****" << std::endl;
-      }
-      std::cout << "MagIntDrv: ";
-      std::cout << "hdid=" << std::setw(12) << hdid << " "
+      if (nstp == nStpPr) { std::cout << "***** Many steps ****" << std::endl;  }
+      std::cout << "MagIntDrv: " << "hdid=" << std::setw(12) << hdid << " "
                 << "hnext=" << std::setw(12) << hnext << " "
                 << "hstep=" << std::setw(12) << hstep << " (requested) " << std::endl;
       PrintStatus(ystart, x1, y, x, h, (nstp == nStpPr) ? -nstp : nstp);
@@ -385,10 +323,12 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
 #endif
 
     // Check the endpoint
+    /***
     const double edx     = y[0] - StartPosAr[0];
     const double edy     = y[1] - StartPosAr[1];
-    const double edz     = y[2] - StartPosAr[2];
-    double endPointDist2 = edx * edx + edy * edy + edz * edz; // (EndPos-StartPos).Mag();
+    const double edz     = y[2] - StartPosAr[2];  ***/
+    double endPointDist2 = // edx * edx + edy * edy + edz * edz;
+                            (EndPos-StartPos).Mag2();
     if (endPointDist2 >= hdid * hdid * (1. + 2. * perMillion)) {
       double endPointDist = std::sqrt(endPointDist2);
       fNoBadSteps++;
@@ -396,14 +336,17 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
       // Issue a warning only for gross differences -
       // we understand how small difference occur.
       if (endPointDist >= hdid * (1. + perThousand)) {
+        int prdbg= 0;
 #ifdef GUDEBUG_FIELD
-        if (dbg) {
-          WarnEndPointTooFar(endPointDist, hdid, fEpsilonRelMax, dbg);
-          std::cerr << "  Total steps:  bad " << fNoBadSteps << " good " << noGoodSteps << " hdid= " << hdid
-                    << std::endl;
+        prdbg= dbg;
+#endif        
+        WarnEndPointTooFar(endPointDist, hdid, fEpsilonRelMax, prdbg);
+        std::cerr << "  Total steps:  bad " << fNoBadSteps << " good " << noGoodSteps << " hdid= " << hdid
+                  << std::endl;
+        if (prdbg) {
           PrintStatus(ystart, x1, y, x, hstep, no_warnings ? nstp : -nstp);
         }
-#endif
+// #endif
         no_warnings++;
       }
     } else {
@@ -456,7 +399,9 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
 #endif
       }
     }
-  } while (((nstp++) <= fMaxNoSteps) && (x < x2) && (!lastStep));
+  } while (((++nstp) < fMaxNoSteps )
+           && (x < x2)
+           && (!lastStep));
   // Have we reached the end ?
   // --> a better test might be x-x2 > an_epsilon
 
@@ -660,10 +605,9 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     errmom_sq *= inv_eps_vel_sq;
     errmax_sq = std::max(errpos_sq, errmom_sq); // Square of maximum error
 
-// #ifdef GUDEBUG_FIELD
+#ifdef GUDEBUG_FIELD
     if( fPrintDerived 
        || fVerboseLevel>2)
-    // if(fVerboseLevel>2)       
     {
        int op= std::cout.precision(8); 
        std::cout << "ScalarIntDrv: 1-good-step - track-num=" << this->GetTrackNumber() << " iter = " << iter << " " << std::endl
@@ -680,7 +624,7 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
        std::cout.precision(op);
        PrintStatus(y, x, ytemp, x + h, h, iter);
     }
-// #endif
+#endif
 
 #ifdef CHECK_ONE_LANE
     // std::cout << "ScalarIntDrv> print 'Derived' quantities = " << fPrintDerived << std::endl;
@@ -753,21 +697,25 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
 #endif
 
   // Compute size of next Step
-  if( fPrintDerived ) { std::cout << " errmax / fErrcon = " << std::sqrt( errmax_sq ) / fErrcon << " "; }
+  // if( fPrintDerived ) { std::cout << " errmax / fErrcon = " << std::sqrt( errmax_sq ) / fErrcon << " "; }
+
+  // fPrintDerived= false;
   
   if (errmax_sq > fErrcon * fErrcon) {
     double growthFac = GetSafety() * Math::Pow(errmax_sq, 0.5 * GetPowerGrow());     
     hnext = h * growthFac; // GetSafety() * h * Math::Pow(errmax_sq, 0.5 * GetPowerGrow());
-    if( fPrintDerived ) { std::cout << " hnext = " << hnext << "  ( formula - grow  )   stretch-factor = " << growthFac << " "; }
+    // if( fPrintDerived ) { std::cout << " hnext = " << hnext << "  ( formula - grow  )   stretch-factor = " << growthFac << " "; }
   } else {
     hnext = fMaxSteppingIncrease * h; // No more than a factor of 5 increase
-    if( fPrintDerived ) { std::cout << " hnext = " << hnext << "  (else MaxIncrease )  "; }
+    // if( fPrintDerived ) { std::cout << " hnext = " << hnext << "  (else MaxIncrease )  "; }
   }
   x += (hdid = h);
 
-  if( fPrintDerived ) { std::cout << " [ errCon = " << fErrcon << " ]  "
-                                  << " errmax / errcon = " << std::sqrt( errmax_sq ) / fErrcon << "  " 
-                                  << "xEnd = " << x << " hdid = " << hdid  << std::endl; }
+  if( false ) { // fPrintDerived ) {
+     std::cout << " [ errCon = " << fErrcon << " ]  "
+               << " errmax / errcon = " << std::sqrt( errmax_sq ) / fErrcon << "  " 
+               << "xEnd = " << x << " hdid = " << hdid  << std::endl;
+  }
   
   for (int k = 0; k < fNoIntegrationVariables; k++) {
     y[k] = ytemp[k];

@@ -2,6 +2,10 @@
 #include <cstdlib>
 #include <iomanip>
 
+#include <iostream>
+#include <string>
+#include <sstream>
+
 // #include "Geant/IntegrationDriverConstants.h"  // For ReportOneLane
 
 //  Auxiliary methods - should be encapsulated into a separate helper class
@@ -252,19 +256,20 @@ void
    bool  laneIsDone = vecCore::Get( lanesDone , lanePrint );
    int   prec = 10; // precision
    int   wd = prec + 5;
-   int   oldPrec= cout.precision(prec);
+   // int   oldPrec= cout.precision(prec);
    bool  printSquares = false; // Old version - true
    bool  printValues  = true; 
 
+   std::stringstream ostr;
    // const int trackToPrint = IntegrationDriverConstants::GetInstance()->GetTrackToCheck();   
    
-   cout << std::setw(12) << methodName << " - ReportOneLane : "
+   ostr << std::setw(12) << methodName << " - ReportOneLane : "
         << " trk# "     << setw(3) << trackNum  /* trackToPrint */ << " "
         << " lane: "    << setw(3) << lanePrint << " > "
         << " iter = "   << setw(3) << iter << " #call= " << setw(5) << noCall;
    prec=6;
    wd = prec + 5;
-   cout << std::setprecision( prec )
+   ostr << std::setprecision( prec )
         << " h = "          << setw( wd ) << vecCore::Get( hStep ,       lanePrint )
         << " xStepStart = " << setw( wd ) << vecCore::Get( xStepStart ,  lanePrint )      
         << " Eps/x = "      << setw( wd ) << vecCore::Get( epsPosition , lanePrint );
@@ -276,31 +281,32 @@ void
    int   prec2 = 9; // precision
    int   wd2 = prec2 + 5;
 
-   cout.precision( prec2 );
+   ostr.precision( prec2 );
             
    if( printSquares ) 
-      cout
+      ostr
              << " errSq: x,p = "  << setw( wd2) << errPosLane2  // vecCore::Get( errPosSq ,    lanePrint )
              << " "               << setw( wd2) << errMomLane2  // vecCore::Get( errMomSq ,    lanePrint ) // << " "
              << " errMax^2 = "    << setw( wd2) << errMax2;     // vecCore::Get( errmax_sq ,   lanePrint );
    if( printValues ) 
-      cout
+      ostr
              << " error-x/p = "   << setw( wd2) << sqrt( errPosLane2 ) // Get( errPosSq ,    lanePrint ) )
              << " "               << setw( wd2) << sqrt( errMomLane2 ) // Get( errMomSq ,    lanePrint ) ) // << " "
              << " errMax = "      << setw( wd2) << sqrt( errMax2 )  ;  // Get( errmax_sq ,   lanePrint ) );
 
-   cout << " lane done = "   << laneIsDone;
+   ostr << " lane done = "   << laneIsDone;
 
    if( allDone >= 0 )
-      cout << " allDone = "     << allDone;
+      ostr << " allDone = "     << allDone;
              
-   cout << std::endl;
+   ostr << std::endl;
 
-   if( laneIsDone  ) cout << std::endl;
+   if( laneIsDone  ) ostr << std::endl;
 
-   cout.precision(oldPrec);
-   
-   // if( allDone ) cout << std::endl;
+   // ostr.precision(oldPrec);
+
+   cout << ostr.str(); 
+   // if( allDone ) ostr << std::endl;
    // **> Old mode - that printed all updates - not just ones in which this lane was active.
 }
 

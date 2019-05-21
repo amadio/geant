@@ -54,11 +54,11 @@ public:
   template <typename T>
   using Vector3D = vecgeom::Vector3D<T>;
 
-  BaseRkIntegrationDriver(double     hminimum, // same
-                          T_Stepper *pStepper,
-                          double     maxRelativeEpsilon,
-                          int        numberOfComponents = 6,
-                          int        statsVerbosity = 1);
+  BaseRkIntegrationDriver(double        hminimum, // same
+                          T_Stepper   * pStepper,
+                          double        maxRelativeEpsilon,
+                          unsigned int  numberOfComponents = 6,
+                          int           statsVerbosity = 1);
 
   virtual ~BaseRkIntegrationDriver();
 
@@ -213,7 +213,7 @@ template <class T_Stepper, unsigned int Nvar>
 BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hminimum,
                                                                   T_Stepper *pStepper,
                                                                   double     maxRelativeEpsilon,
-                                                                  int        numComponents,
+                                                                  unsigned int numComponents,
                                                                   int        statisticsVerbose)
     :
       FlexIntegrationDriver( maxRelativeEpsilon ),
@@ -233,7 +233,12 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
   assert(pStepper != nullptr);
   assert(Nvar <= (unsigned int)numComponents); // Ensure that arrays are large enough for Integr.
-
+  if( Nvar > numComponents ) {
+     std::cerr << " BaseRkIntegrationDriver c-tor:  Incompatibilitye between Nvar= " << Nvar
+               << "  and the number of components " << numComponents << std::endl;
+     exit(1);
+  }
+     
   // fpStepper = pStepper;
 
   SetMaxNoSteps( fMaxStepBase / pStepper->GetIntegratorOrder() );
