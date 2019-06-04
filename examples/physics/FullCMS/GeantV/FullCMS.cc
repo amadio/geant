@@ -159,10 +159,10 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"verbose-tracking", required_argument, 0, 'z'},
 
                                   {"field-Map", required_argument, 0, 'E'},
-                                  {"field-uniform", required_argument, 0, 'F'},                                  
+                                  {"field-uniform", required_argument, 0, 'U'},
+                                  {"field-vector", required_argument, 0, 'F'},
                                   {"field-use-RK", required_argument, 0, 'G'},
                                   {"field-eps-RK", required_argument, 0, 'I'},
-                                  {"field-vector", required_argument, 0, 'F'},
                                   {"field-basketized", required_argument, 0, 'J'},                          
                                   
                                   {"help", no_argument, 0, 'h'},
@@ -320,17 +320,12 @@ void GetArguments(int argc, char *argv[])
         }
       }
       break;
-    /****
-    case 'G':
-      parFieldUseRK = (int)strtol(optarg, NULL, 10);
-      break;
-     ****/
-    case 'H':
-      parFieldEpsRK = strtod(optarg, NULL);
-      break;
     case 'G':
       parUseRungeKutta = (int)strtol(optarg, NULL, 10);
-      break;            
+      break;
+    case 'I':
+      parFieldEpsRK = strtod(optarg, NULL);
+      break;
     case 'J':
       parFieldBasketized = (int)strtol(optarg, NULL, 10);
       break;

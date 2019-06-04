@@ -44,7 +44,7 @@ public:                                                 // with description
   virtual void StepWithoutErrorEstimate(const double y[], ThreeVector Bfld, double charge, double h, double yout[]) = 0;
   // Performs a 'dump' Step without error calculation.
 
-  double DistChord(double charge) const;
+  double DistChord() const;
   // Estimate maximum distance of curved solution and chord ...
 
 protected: // with description

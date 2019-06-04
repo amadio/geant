@@ -34,7 +34,7 @@ public:                                                // with description
                                 double yout[]) override final;
   // Performs a 'dump' Step without error calculation.
 
-  double DistChord(double charge) const override final;
+  double DistChord() const override final;
   // Estimate maximum distance of curved solution and chord ...
 
 private:

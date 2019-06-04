@@ -73,11 +73,17 @@ protected:
   void PrintStats() const;
 
   VECCORE_ATT_HOST_DEVICE
-  void CheckVsScalar(const vecgeom::Vector3D<double> &startPosition, const vecgeom::Vector3D<double> &startDirection,
-                     double charge, double startMomentum, double stepSize, const vecgeom::Vector3D<double> &endPosition,
-                     const vecgeom::Vector3D<double> &endDirection, double curvature,
+  bool CheckVsScalar(const vecgeom::Vector3D<double> &startPosition,
+                     const vecgeom::Vector3D<double> &startDirection,
+                     double charge,
+                     double startMomentum,
+                     double stepSize,
+                     const vecgeom::Vector3D<double> &endPosition,
+                     const vecgeom::Vector3D<double> &endDirection,
+                     double curvature,
                      int index, // For reporting
-                     TaskData *td, bool checkVsHelix = true);
+                     TaskData *td,
+                     bool checkVsHelix = true);
 
 private:
   FieldPropagationHandler(const FieldPropagationHandler &) = delete;

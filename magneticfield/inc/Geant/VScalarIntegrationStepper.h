@@ -53,7 +53,7 @@ public:
   //       yout[] = output values of integration
   //       yerr[] = estimate of integration error
 
-  virtual double DistChord(double charge) const = 0;
+  virtual double DistChord() const = 0;
   // Estimate the maximum sagital distance (distance of a chord from the true path)
   //  over the last segment integrated.
 

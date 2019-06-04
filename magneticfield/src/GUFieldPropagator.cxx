@@ -11,7 +11,8 @@
 #include "Geant/VScalarIntegrationStepper.h"
 #include "Geant/ScalarIntegrationDriver.h"
 
-#include "Geant/GUTCashKarpRKF45.h" //  ie ScalarCashKarp
+#include "Geant/GUTCashKarpRKF45.h"     //  ie Scalar Cash-Karp
+#include "Geant/GUTDormandPrinceRK45.h" //  ie Scalar DoPri5
 
 #include "Geant/MagFieldEquation.h"
 #include "Geant/CashKarp.h"
@@ -23,7 +24,7 @@
 
 using ThreeVector = vecgeom::Vector3D<double>;
 
-#define USE_FLEXIBLE_FOR_SCALAR 1
+// #define USE_FLEXIBLE_FOR_SCALAR 1
 
 FlexIntegrationDriver *GUFieldPropagator::fVectorDriver = nullptr;
 double GUFieldPropagator::fEpsilon                      = 1.0e-4;
@@ -119,8 +120,9 @@ GUFieldPropagator::GUFieldPropagator(FieldType *magField, double eps, double hmi
 
   // auto stepper = new StepperType<ScalarEquationType,Nposmom>(gvEquation);
   auto scalarStepper = new // ScalarCashKarp
-      GUTCashKarpRKF45<ScalarEquationType, Nposmom>(pEquation);
-  auto scalarDriver = new ScalarIntegrationDriver(hminimum, scalarStepper, Nposmom, statVerbose);
+            //  GUTCashKarpRKF45<ScalarEquationType, Nposmom>(pEquation);
+            GUTDormandPrinceRK45<ScalarEquationType, Nposmom>(pEquation);
+  auto scalarDriver = new ScalarIntegrationDriver(hminimum, scalarStepper, eps, Nposmom, statVerbose);
   fScalarDriver     = scalarDriver;
   // #else
   //    fScalarDriver= nullptr;
@@ -178,9 +180,7 @@ bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector con
   // Checks ...
   assert(fVectorDriver && "Vector Driver is not SET");
   if (verbose || step == 0.0) {
-    if( step == 0.0) {
-       std::cout << "ZERO step requested in GUFieldPropagator::DoStep" << std::endl;
-    }
+    if( step == 0.0) { std::cout << "ZERO step requested in GUFieldPropagator::DoStep" << std::endl; }
     std::cout << methodName << " Dump of arguments: " << std::endl;
     std::cout << "   Step       = " << step << std::endl;
     std::cout << "   yTrackInFT = " << yTrackInFT << std::endl;
@@ -201,7 +201,7 @@ bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector con
   }
 
   // Harnessing the vector driver to integrate just a single track -- MIS-USE
-  fVectorDriver->AccurateAdvance(&yTrackInFT, &step, &chargeFlt, fEpsilon, &yTrackOutFT, 1, &okFlex);
+  fVectorDriver->AccurateAdvance(&yTrackInFT, &step, &chargeFlt, fEpsilon, &yTrackOutFT, 1, &okFlex);  
 #endif
   if (verbose) std::cout << " Results:  good = " << okFlex << " track out= " << yTrackOutFT << std::endl;
   // #endif
@@ -228,7 +228,8 @@ bool GUFieldPropagator::DoStep(ThreeVector const &startPosition, ThreeVector con
 
   assert(fScalarDriver);
   // Simple call
-  goodAdvance  = fScalarDriver->AccurateAdvance(yTrackIn, step, fEpsilon, yTrackOut); // , hInitial );
+  goodAdvance  = fScalarDriver->AccurateAdvance(yTrackIn, step, /* fEpsilon, */
+                                                yTrackOut); // , hInitial );
   endPosition  = yTrackOut.GetPosition();
   endDirection = yTrackOut.GetMomentumDirection();
 #endif

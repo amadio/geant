@@ -24,7 +24,7 @@
 //
 const int ScalarIntegrationDriver::fMaxStepBase = 250; // Last change: 2019.05.14 for testing // Was 250 recently.  5000 long ago
 
-#define CHECK_ONE_LANE   1
+// #define CHECK_ONE_LANE   1
 //  Allow / enable checking of derived quantities by conditional printing 
 
 // #ifndef G4NO_FIELD_STATISTICS
@@ -67,6 +67,8 @@ ScalarIntegrationDriver::ScalarIntegrationDriver(double    hminimum,
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
   // is required. For proper time of flight and spin,  fMinNoVars must be 12
   assert(pStepper != nullptr);
+  assert(epsRelMax < 0.1 );
+  if(epsRelMax >= 0.1 ) { std::cerr << "Relative error epsRelMax must be < 0.1  - given " << epsRelMax << std::endl; exit(101); }
   bool statsEnabled = false;
 #ifdef GVFLD_STATS
   statsEnabled = true;
@@ -167,15 +169,15 @@ bool ScalarIntegrationDriver::AccurateAdvance(const ScalarFieldTrack &yInput, do
   int nstp, i, no_warnings = 0;
   double x, hnext, hdid, h;
   double charge = yInput.GetCharge();
-// std::cout << methodName << " > Charge= " << charge << std::endl;
 
 #ifdef GUDEBUG_FIELD
   static int dbg    = 1;
   static int nStpPr = 50; // For debug printing of long integrations
   double ySubStepStart[ScalarFieldTrack::ncompSVEC];
-// ScalarFieldTrack  yFldTrkStart(y_current);
-// std::cout << " AccurateAdvance called with hstep= " << hstep
-// << " hinitial = " << hinitial  << std::endl;
+  // ScalarFieldTrack  yFldTrkStart(y_current);
+  // std::cout << methodName << " ( epsMax= " << fEpsilonRelMax << " ) "
+  //        << " called -- Args: > hstep = " << hstep << "   charge= " << charge
+  //        << "   hinitial = " << hinitial << std::endl;
 #endif
 
   double y[ScalarFieldTrack::ncompSVEC], dydx[ScalarFieldTrack::ncompSVEC];
@@ -663,7 +665,7 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
     // Step failed; compute the size of retrial Step.
     htemp = fSafetyFactor * h * Math::Pow(errmax_sq, 0.5 * fPowerShrink);
 
-    if( fPrintDerived ) { std::cout << " htemp = " << htemp << " pow-shrink = " << fPowerShrink; }
+    // if( fPrintDerived ) { std::cout << " htemp = " << htemp << " pow-shrink = " << fPowerShrink; }
     
     if (htemp >= 0.1 * h) {
       h = htemp;
@@ -675,7 +677,7 @@ void ScalarIntegrationDriver::OneGoodStep(double y[], // InOut
 
     xnew = x + h;
 
-    if( fPrintDerived ) { std::cout << " h (new) = " << h << " xnew = " << xnew << std::endl; }
+    // if( fPrintDerived ) { std::cout << " h (new) = " << h << " xnew = " << xnew << std::endl; }
     
     if (xnew == x) {
       std::cerr << "GVIntegratorDriver::OneGoodStep:" << std::endl << "  Stepsize underflow in Stepper " << std::endl;

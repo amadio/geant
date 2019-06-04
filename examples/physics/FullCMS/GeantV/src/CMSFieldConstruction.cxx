@@ -13,9 +13,15 @@ bool CMSFieldConstruction::CreateFieldAndSolver( bool           useRungeKutta,
   const char* methodName= "CMSFieldConstruction::CratedFieldAndSolver";
   // template using geant::UserFieldConstruction::CreateSolverForField<>;
   
-  int stepperTypeId =   4;  //  Default: 5 - Cash Karp 4/5 order, 6 stage method
-  // 3, 4 = Bogacki Shampine (3rd order, 4 stage FSAL method) 
-  // 7    = Dormand Prince 5th order 7 stage FSAL method   ( = DoPri5 )
+  int stepperTypeId =   10;
+  // Choices:  ( see FieldPrpagationFactory )
+  // a) Using default Integration Driver  ( for now Simple Integration Driver )
+  //  4 = Bogacki Shampine (3rd order, 4 stage FSAL method)
+  //  6    = Cash Karp 4/5 order, 6 stage method  
+  //  7    = Dormand Prince 5th order 7 stage method   ( = DoPri5 ) without FSAL (for now)
+  // b) Using other Integration Driver - together with Dormand Prince stepper
+  // 10    = Rolling Driver + Dormand Prince 5th order 7 stage method   ( = DoPri5 ) without FSAL (for now)  
+  // 
   geant::Print("CMSFieldConstruction::CreateFieldAndSolver", " Called with Arg: useRungeKutta= ");
   if (useRungeKutta) {
     printf("On");

@@ -205,7 +205,7 @@ FieldPropagatorFactory::GetStepperTypeId( int stepperTypeNo )
 //______________________________________________________________________________
 template <typename Field_t> // , typename Equation_t>
 inline ScalarIntegrationDriver *FieldPropagatorFactory::CreateScalarDriver(Field_t &gvField,
-                                                                           double /*relEpsilonTolerance*/,
+                                                                           double relEpsilonTolerance,
                                                                            double minStepSize)
 {
   const char *methodName  = "FieldPropagatorFactory::CreateScalarDriver";
@@ -218,7 +218,7 @@ inline ScalarIntegrationDriver *FieldPropagatorFactory::CreateScalarDriver(Field
   auto                                                                  // VScalarIntegrationStepper*
       aStepper = StepperFactory::CreateStepper<Equation_t>(gvEquation); // Default stepper
 
-  auto scalarDriver = new ScalarIntegrationDriver(minStepSize, aStepper, NumVar, statisticsVerbosity);
+  auto scalarDriver = new ScalarIntegrationDriver(minStepSize, aStepper, relEpsilonTolerance, NumVar, statisticsVerbosity);
 
   if (fVerboseConstruct) {
     std::cout << methodName << ": Parameters for RK integration in magnetic field: "; //  << endl;
@@ -291,6 +291,15 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
   
   const char *methodName = "FieldPropagatorFactory::CreateFlexibleDriver";
 
+  std::cout << methodName << " - called with stepperTypeID = " << stepperTypeId;
+  stepperTypeId = kDormandPrince45StepperRollingDriver;
+
+  std::cout << " -- overrode to use " << stepperTypeId 
+            << " ( = " << kDormandPrince45StepperRollingDriver << " ) "
+            << " ,  i.e.  Rolling Driver with Dormand Prince 4/5 " 
+            << std::endl;
+  assert( stepperTypeId == kDormandPrince45StepperRollingDriver );
+  
   // New flexible (scalar + vector) versions of field, equation, ...
 
   auto gvEquation  = new Equation_t(&gvField);
@@ -300,7 +309,7 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
 
   // using StepperTypeBS234 = BogackiShampine23RK<Equation_t, Nposmom>;  
   // StepperTypeBS234*    myStepperBS234  = nullptr;
-  
+
   switch ( stepperTypeId )
   {
      case kDormandPrince45Stepper:
@@ -348,7 +357,7 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
                                   (minStepSize, myStepperDoPri5, relEpsilonTolerance, Nposmom);
            cout << methodName << ": created Dormand Prince 4/5 (7 stage) stepper with    Rolling driver." << endl;                      
         break;
-        
+
     case kUndefinedStepperType:
         std::cerr << methodName << " FATAL ERROR : Stepper type is explitictly undefined." << std::endl;
        // Old: "- using DormandPrince (default.)" << std::endl;

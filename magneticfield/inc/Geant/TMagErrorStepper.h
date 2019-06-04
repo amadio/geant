@@ -52,7 +52,7 @@ public: // with description
   // Integrates ODE starting values y[0 to 6].
   // Outputs yout[] and its estimated error yerr[].
 
-  double DistChord(double charge) const;
+  double DistChord() const;
 
   template <class T_Stepper_, class T_Equation_, int Nvar_>
   friend std::ostream &operator<<(std::ostream &os, const TMagErrorStepper<T_Stepper_, T_Equation_, Nvar_> &);
@@ -231,7 +231,7 @@ void TMagErrorStepper<T_Stepper, T_Equation, Nvar>::StepWithErrorEstimate(const 
 
 // #ifdef OPT_CHORD_FUNCTIONALITY
 template <class T_Stepper, class T_Equation, unsigned int Nvar>
-double TMagErrorStepper<T_Stepper, T_Equation, Nvar>::DistChord(double /*charge*/) const
+double TMagErrorStepper<T_Stepper, T_Equation, Nvar>::DistChord() const
 {
   // Estimate the maximum distance from the curve to the chord
   //

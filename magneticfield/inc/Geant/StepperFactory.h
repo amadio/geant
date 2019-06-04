@@ -19,6 +19,7 @@
 #include "Geant/TSimpleRunge.h"
 #include "Geant/TClassicalRK4.h"
 #include "Geant/GUTCashKarpRKF45.h"
+#include "Geant/GUTDormandPrinceRK45.h"
 
 // namespace vecFieldPropagation {
 
@@ -54,6 +55,7 @@ VScalarIntegrationStepper *StepperFactory::CreateStepper(EquationType *equation,
   const char *const NameSimpleRunge   = "TSimpleRunge";
   const char *const NameClassicalRK4  = "TClassicalRK4";
   const char *const NameCashKarpRKF45 = "TCashKarpRKF45";
+  const char *const NameDormandPrinceRK45 = "TDormandPrinceRK45";  
 
   int MaxStepperCode = 5;
 
@@ -80,6 +82,12 @@ VScalarIntegrationStepper *StepperFactory::CreateStepper(EquationType *equation,
                             << Nposmom << ">." << std::endl;
     stepperName = NameCashKarpRKF45;
     break;
+  case 6:
+    stepper     = new GUTDormandPrinceRK45<EquationType, Nposmom>(equation);
+    if( verbose ) std::cout << "StepperFactory: Created a stepper of type GUTDormandPrinceRK45 <Equation, N="
+                            << Nposmom << ">." << std::endl;
+    stepperName = NameDormandPrinceRK45;
+    break;    
   default:
     stepper = (VScalarIntegrationStepper *)0;
     std::cerr << " ERROR> StepperFactory: No stepper selected. " << std::endl;

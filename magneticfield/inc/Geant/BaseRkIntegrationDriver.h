@@ -154,11 +154,13 @@ protected:
   unsigned int fMaxNoSteps;
   static constexpr unsigned int fMaxStepBase = 250;
 
-  static constexpr double kSafetyFactor= 0.9; // -> Failed to compile on clang 9.1 2017.12.05
+  static constexpr double kSafetyFactor= 0.9; // -> Failed to compile on clang of Xcode 10.1 2019.06.19 (in Debug mode only!!)
   // const double  kSafetyFactor      = 0.9;
   const unsigned int fStepperOrder = 0; //  the Integrator order of the (RK or other) stepper
-  const double kPowerShrink;        //  exponent for shrinking
-  const double kPowerGrow;          //  exponent for growth
+  static constexpr double kPowerShrink  = -1.0 / T_Stepper::kOrderMethod; // was T_Stepper::GetIntegratorOrder();
+  static constexpr double kPowerGrow    = -1.0 / (1.0 + T_Stepper::kOrderMethod) ; //  was  GetIntegratorOrder());
+   // const double kPowerShrink;        //  exponent for shrinking
+   // const double kPowerGrow;          //  exponent for growth
   /*const*/ double fErrcon;
   // Parameters used to grow and shrink trial stepsize.
 
@@ -221,9 +223,9 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
       fSmallestFraction( std::min(1.0e-8, 0.01 * maxRelativeEpsilon )),
       // fNoIntegrationVariables(numComponents),  // ==> Nvar
       fMinNoVars(6), fNoVars(Nvar), // Was fNoVars(std::max((int)Nvar, std::max((int)fMinNoVars, (int)numComponents))),
-      fStepperOrder( pStepper->GetIntegratorOrder() ),
-      kPowerShrink(-1.0 / fStepperOrder),       //  exponent for shrinking
-      kPowerGrow(-1.0 / (1.0 + fStepperOrder)), //  exponent for growth
+      fStepperOrder( T_Stepper::kOrderMethod ), // ( pStepper->GetIntegratorOrder() ),
+      // kPowerShrink(-1.0 / fStepperOrder),       //  exponent for shrinking
+      // kPowerGrow(-1.0 / (1.0 + fStepperOrder)), //  exponent for growth
       // - fErrcon(0.0),
       fStatisticsVerboseLevel(statisticsVerbose),
       fVerboseLevel(0)
@@ -234,11 +236,20 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
   assert(pStepper != nullptr);
   assert(Nvar <= (unsigned int)numComponents); // Ensure that arrays are large enough for Integr.
   if( Nvar > numComponents ) {
-     std::cerr << " BaseRkIntegrationDriver c-tor:  Incompatibilitye between Nvar= " << Nvar
+     std::cerr << " BaseRkIntegrationDriver c-tor:  Incompatibility between Nvar= " << Nvar
                << "  and the number of components " << numComponents << std::endl;
      exit(1);
   }
-     
+
+  assert( T_Stepper::kOrderMethod == pStepper->GetIntegratorOrder() );
+  if( T_Stepper::kOrderMethod != pStepper->GetIntegratorOrder() ){
+     std::cerr << " BaseRkIntegrationDriver c-tor:  Incompatibility between "
+               << " Stepper::kOrderMethod = " << T_Stepper::kOrderMethod
+               << " and  pStepper->GetIntegratorOrder() = " << pStepper->GetIntegratorOrder()
+               << std::endl;
+     exit(1);
+  }
+  
   // fpStepper = pStepper;
 
   SetMaxNoSteps( fMaxStepBase / pStepper->GetIntegratorOrder() );
@@ -252,9 +263,14 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(double     hmi
 #endif
 
   if (fVerboseLevel) {
-    std::cout << "SiD:ctor> Stepper Order= " << pStepper->GetIntegratorOrder() << " > Powers used: "
-              << " shrink = " << kPowerShrink << "  grow = " << kPowerGrow << std::endl;
-              << " shrink = " << fPowerShrink << "  grow = " << fPowerGrow << std::endl;
+    std::cout << "BaseRkIntegrationDriver:ctor> Stepper Order= " << pStepper->GetIntegratorOrder()
+              // << std::endl
+              << " > Powers used: "
+              << " shrink = " << kPowerShrink << "  grow = " << kPowerGrow
+              << " ( from 'k' constants ) " << std::endl
+              << "                                              "
+              << " shrink = " << GetPowerShrink() << "  grow = " << GetPowerGrow()
+              << " ( from methods ) " << std::endl;
   }
   if ((fVerboseLevel > 0) || (fStatisticsVerboseLevel > 1)) {
     std::cout << "BaseRkIntegrationDriver constructor called.";
@@ -293,7 +309,7 @@ inline void BaseRkIntegrationDriver<T_Stepper, Nvar>::CheckParameters()
   using std::cerr;
   using std::endl;
 
-  double checkPowerShrink = -0.5 / fStepperOrder;
+  double checkPowerShrink = -1.0 / fStepperOrder;
 
   double diffShrink = kPowerShrink - checkPowerShrink;
   if (std::fabs(diffShrink) // checkPowerShrink - kPowerShrink)
@@ -306,7 +322,7 @@ inline void BaseRkIntegrationDriver<T_Stepper, Nvar>::CheckParameters()
   }
   assert(std::fabs(checkPowerShrink - kPowerShrink) < perMillion * std::fabs(kPowerShrink));
 
-  double checkPowerGrow = -0.5 / (1.0 + fStepperOrder);
+  double checkPowerGrow = -1.0 / (1.0 + fStepperOrder);
   assert(std::fabs(checkPowerGrow - kPowerGrow) < perMillion * std::fabs(kPowerGrow));
 
   if (std::fabs(checkPowerGrow - kPowerGrow) >= perMillion * std::fabs(kPowerGrow)) {
@@ -327,8 +343,9 @@ BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver(
     const BaseRkIntegrationDriver</*Real_v,*/ T_Stepper, Nvar> &right)
     : fMinimumStep(right.fMinimumStep), fSmallestFraction(right.fSmallestFraction),
       // fNoIntegrationVariables( right.fNoIntegrationVariables ),
-      fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)), kPowerShrink(right.kPowerShrink),
-      kPowerGrow(right.kPowerGrow), fErrcon(right.fErrcon),
+      fMinNoVars(right.fMinNoVars), fNoVars(std::max((int)Nvar, fMinNoVars)),
+      // kPowerShrink(right.kPowerShrink), kPowerGrow(right.kPowerGrow),
+      fErrcon(right.fErrcon),
       // fSurfaceTolerance( right.fSurfaceTolerance ),
       fStatisticsVerboseLevel(right.fStatisticsVerboseLevel),
       /* fDyerr_max(0.0), fDyerr_mx2(0.0),
@@ -381,7 +398,7 @@ Real_v BaseRkIntegrationDriver</*Real_v,*/ T_Stepper, Nvar>::
   using Bool_v = vecCore::Mask_v<Real_v>;
 
   Bool_v goodStep = (errMaxNorm <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, kPowerShrink, kPowerGrow);
+  Real_v powerUse = vecCore::Blend(goodStep, kPowerGrow, kPowerShrink);
   Real_v stretch  = kSafetyFactor * vecgeom::Pow(errMaxNorm, powerUse);
   Real_v hNew     = stretch * hStepCurrent;
   return hNew;
@@ -404,9 +421,8 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
   using Bool_v = vecCore::Mask_v<Real_v>;
 
   Bool_v goodStep = (errMaxSquare <= 1.0);
-
-  Real_v powerUse = vecCore::Blend(goodStep, Real_v(0.5*kPowerShrink), Real_v(0.5*kPowerGrow) );
-  Real_v stretch = kSafetyFactor * vecgeom::Pow(errMaxSquare, powerUse);
+  Real_v powerUse = vecCore::Blend(goodStep, Real_v(0.5*kPowerGrow), Real_v(0.5*kPowerShrink) );
+  Real_v stretch = kSafetyFactor * Math::Pow(errMaxSquare, powerUse);
 
   Real_v stemp;
   stemp   = vecCore::math::Max(stretch, Real_v(fMaxSteppingDecrease));
@@ -422,8 +438,10 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
   std::cout << "-ComputeNewStepLengthWithinLimits2 End   of Info ------" << std::endl;  
 #if 0
     // Draft improved version which does not use Power if under/over-flow ... 
-    Bool_v  overflow = (errMaxNorm > fErrcon);
-    Bool_v underflow = (errMaxNorm < fErrMin);   // Needs definition of fErrMin
+    Bool_v  overflow = (errMaxSquare > fErrcon * fErrcon);
+    Bool_v underflow = (errMaxSquare < fErrMin * fErrMin );   // Needs definition of fErrMin
+    // Bool_v  overflow = (errMaxNorm > fErrcon);
+    // Bool_v underflow = (errMaxNorm < fErrMin);   // Needs definition of fErrMin
 
     Bool_v unconstrained = ! ( overflow || underflow );
     // ... More code needed here
@@ -434,7 +452,7 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
     if (errMaxNorm > 1.0 )
     {
       // Step failed; compute the size of retrial Step.
-      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxNorm,0.5*kPowerShrink) ;
+      hnew = kSafetyFactor * hstepCurrent * Math::Pow(errMaxSquare,kPowerShrink) ;
       hnew = std::min( hnew, fMaxSteppingDecrease * hstepCurrent );
                            // reduce stepsize, but no more
                            // than this factor (value= 1/10)
@@ -474,7 +492,7 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
   using Bool_v = vecCore::Mask_v<Real_v>;
   // std::cout << " ComputeNewStepLengthWithinLimits3 called." << std::endl;
   Bool_v goodStep = (errMaxSquare <= 1.0);
-  Real_v powerUse = vecCore::Blend(goodStep, Real_v(0.5*fPowerGrow), Real_v(0.5*fPowerShrink) );
+  Real_v powerUse = vecCore::Blend(goodStep, Real_v(0.5*kPowerGrow), Real_v(0.5*kPowerShrink) );
   // std::cout << " isNeeded (inp) = " << isNeeded << std::endl;
   isNeeded = isNeeded && ( hStepCurrent != 0.0 );
   // std::cout << " isNeeded (use) = " << isNeeded << std::endl;
@@ -483,7 +501,7 @@ Real_v BaseRkIntegrationDriver<T_Stepper, Nvar>::
   
   // stretchFactor = fSafetyFactor * Math::Pow(errMaxSquare, powerUse);
   stretchFactor = 1.0;  
-  stretchFactor = fSafetyFactor * PowerDiffIf( errMaxSquare, powerUse, isNeeded );
+  stretchFactor = kSafetyFactor * PowerDiffIf( errMaxSquare, powerUse, isNeeded );
 
   Real_v stemp;
   stemp         = vecCore::math::Max(stretchFactor, Real_v(fMaxSteppingDecrease));

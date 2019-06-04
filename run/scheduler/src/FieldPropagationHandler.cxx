@@ -12,6 +12,8 @@
 #include "Geant/Track.h"
 
 #include <sstream>
+#include <ostream>
+#include <iomanip>
 #include "base/SOA3D.h"
 // #include "SOA6D.h"
 #include "Geant/VectorTypes.h" // Defines geant::Double_v etc
@@ -28,7 +30,7 @@
 using Double_v = geant::Double_v;
 
 // #define CHECK_VS_RK   1
-//#define CHECK_VS_HELIX 1
+// #define CHECK_VS_HELIX 1
 
 // #define REPORT_AND_CHECK 1
 
@@ -681,38 +683,43 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 
     if (vectorDriver) {
       // Integrate using Runge Kutta method
-       vectorDriver->AccurateAdvance(fldTracksIn, steps, fltCharge, /* fEpsTol, */ fldTracksOut, nTracks, succeeded);
-       // Must ensure that the requested maximum relative error is passed to vectorDriver on creation instead 2019.04.15
-       
+      vectorDriver->AccurateAdvance(fldTracksIn, steps, fltCharge, /* fEpsTol, */ fldTracksOut, nTracks, succeeded);
+      // Must ensure that the requested maximum relative error is passed to vectorDriver on creation instead 2019.04.15
+
 #ifdef STATS_METHODS
-    numTot += nTracks;
-    numVecRK += nTracks;
-    numRK += nTracks;
+      numTot += nTracks;
+      numVecRK += nTracks;
+      numRK += nTracks;
 #endif  
       
 #ifdef CHECK_VS_SCALAR
       bool checkVsScalar = true;
-#ifdef CHECK_VS_HELIX
-      const char *diffBanner = "Differences between vector RK vs scalar Helix method:";
-#else
-      const char *diffBanner = "Differences between vector RK vs scalar RK method:";
-#endif
       bool bannerUsed = false;
+      bool allAgreed = true;
+#ifdef CHECK_VS_HELIX
+      const char *bannerDiff = "Differences between vector RK vs scalar Helix method:";
+#else
+      const char *bannerDiff = "Differences between vector RK vs scalar RK method:";
+#endif
 #endif
 
       // Store revised positions and location in original tracks
       for (int itr = 0; itr < nTracks; ++itr) {
         Track &track                    = *tracks[itr];
-        FieldTrack &fldTrackEnd         = fldTracksOut[itr];
+        const FieldTrack & fldTrackEnd  = fldTracksOut[itr];
         Vector3D<double> startPosition  = {track.X(), track.Y(), track.Z()};
         Vector3D<double> startDirection = {track.Dx(), track.Dy(), track.Dz()};
         Vector3D<double> endPosition    = {fldTrackEnd[0], fldTrackEnd[1], fldTrackEnd[2]};
 
-        const double pmag_inv    = 1.0 / track.P();
-        ThreeVector endDirVector = pmag_inv * ThreeVector(fldTrackEnd[3], fldTrackEnd[4], fldTrackEnd[5]);
+        // const double pmag_inv    = 1.0 / track.P();
+        ThreeVector endMomentumVec = { fldTrackEnd[3], fldTrackEnd[4], fldTrackEnd[5] };
+        const double pmag_inv    = 1.0 / endMomentumVec.Mag();
+        ThreeVector endDirVector = pmag_inv * endMomentumVec;
+              //  ThreeVector(fldTrackEnd[3], fldTrackEnd[4], fldTrackEnd[5]);
 
 #ifdef CHECK_VS_SCALAR
         double posShift = (startPosition - endPosition).Mag();
+        bool   difFound = false;
 
         // ---- Perform checks
         ThreeVector endPositionScalar(0., 0., 0.), endDirScalar(0., 0., 0.);
@@ -721,26 +728,45 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 
         double posErr = (endPositionScalar - endPosition).Mag();
         double dirErr = (endDirScalar - endDirVector).Mag();
-        if (posErr > 1.e-3 * posShift || dirErr > 1.e-6) {
-          std::cout << "*** position/direction shift scalar RK vs. vector RK :" << posErr << " / " << dirErr << "\n";
+        if (posErr > 1.e-3 * posShift ) {
+          difFound = true;
+          std::cout << "*** position  difference in scalar RK vs. vector RK :" << posErr << std::endl;
         }
+        if (dirErr > 1.e-6) {
+          difFound = true;           
+          std::cout << "*** direction difference in scalar RK vs. vector RK :" << dirErr << std::endl;
+        }        
 
-        if (magDiff > perMillion) {
+        double   endMomentumMag= endMomentumVec.Mag();
+        double startMomentumMag= track.P();
+        double magDiff= std::fabs(endMomentumMag - startMomentumMag) / startMomentumMag;
+
+        // double pMag2End = endMomentumVec.Mag2(); // (pX * pX + pY * pY + pZ * pZ);
+        // double relDiff  = pMag2End * pmag_inv * pmag_inv - 1.0;
+        
+        if (magDiff > units::perMillion) {
+          difFound = true;                      
           if (!bannerUsed) {
-            std::cerr << diffBanner << std::endl;
+            std::cerr << bannerDiff << std::endl;
             bannerUsed = true;
           }
+          int prec= std::cerr.precision();
           std::cerr << "Track " << itr << " has momentum magnitude difference " << magDiff
-                    << "  Momentum magnitude @ end = " << std::sqrt(pMag2End) << " vs. start = " << track.P()
-                    << std::endl;
-          assert(pMag2End > 0.0 && fabs(magDiff) < 0.003 && "ERROR in direction normal.");
+                    << "  Momentum magnitude @ end = " << std::setprecision(10) << endMomentumMag
+                    << " vs. start = " << startMomentumMag  /* track.P() */ << std::endl;
+          std::cerr.precision(prec);
+          assert(endMomentumMag > 0.0 && fabs(magDiff) < 0.001 && "ERROR in direction normal.");
         }
 #endif
 
 #ifdef DEBUG_FIELD
         // ---- Start verbose print (of selected events/tracks)
         // int maxPartNo = 2, maxEvSlot = 3;
-        bool printTrack = false; // = (track.Particle() < maxPartNo) && (track.EventSlot() < maxEvSlot );
+        // bool printTrack = (track.Particle() < maxPartNo) && (track.EventSlot() < maxEvSlot );
+        //ol printTrack = false;
+        bool printTrack = true; // = (track.Particle() < maxPartNo) && (track.EventSlot() < maxEvSlot );
+        if( ! difFound ) cout << " Vector == Scalar ";
+        // if( difFound )           
         if (printTrack) {
           // Select a few tracks to print ...
 
@@ -748,7 +774,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
                  track.Event(), track.Particle(), startPosition.x(), startPosition.y(), startPosition.z(),
                  startDirection.x(), startDirection.y(), startDirection.z());
           double angle = std::acos(endDirVector.Dot(startDirection));
-          printf(" s= %10.6f ang= %7.5f ", *stepSize / units::mm, angle);
+          printf(" s= %10.6f ang= %7.5f ", stepSize[itr] / units::mm, angle);
           printf("End> Pos= %9.6f %9.6f %9.6f  Mom= %9.6f %9.6f %9.6f\n", endPosition.x(), endPosition.y(),
                  endPosition.z(), endDirVector.x(), endDirVector.y(), endDirVector.z());
         }
@@ -758,10 +784,34 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 #ifdef CHECK_VS_SCALAR
         // ---- Perform checks
         if (checkVsScalar) {
-          bool checkVsHelix = true;
+          bool checkVsHelix = false;
+          static std::atomic<unsigned int> numCall(0);
           double curv       = Curvature(track);
-          CheckVsScalar(startPosition, startDirection, track.Charge(), track.P(), stepSize[itr], endPosition,
-                        endDirVector, curv, itr, td, checkVsHelix);
+
+          numCall++;
+          if( difFound || ( numCall % 100 == 0) )
+             std::cout << " Calling CheckVsScalar # " << numCall
+                       << " - param:  checksVsHelix " << checkVsHelix << std::endl;
+          bool differs= 
+            CheckVsScalar(startPosition, startDirection, track.Charge(), track.P(), stepSize[itr], endPosition,
+                          endDirVector, curv, itr, td, checkVsHelix);
+
+          if( differs ) {
+             if( ! ( difFound || ( numCall % 100 == 0 ) ) ) {
+                std::cout << " That was CheckVsScalar # " << numCall
+                          << " - param:  checksVsHelix " << checkVsHelix << std::endl;
+             }
+
+             // Print the track
+             printf(" FPH::PiV(V)/rk: ev= %3d trk= %3d Start> Pos= %8.5f %8.5f %8.5f  Mom= %8.5f %8.5f %8.5f ",
+                    track.Event(), track.Particle(), startPosition.x(), startPosition.y(), startPosition.z(),
+                    startDirection.x(), startDirection.y(), startDirection.z());
+             double angle = std::acos(endDirVector.Dot(startDirection));
+             printf(" s= %12.9f ang= %7.5f ", *stepSize / units::mm, angle);
+             printf("End> Pos= %12.9f %12.9f %12.9f  Mom= %12.9f %12.9f %12.9f\n", endPosition.x(), endPosition.y(),
+                    endPosition.z(), endDirVector.x(), endDirVector.y(), endDirVector.z());
+          }
+          allAgreed = allAgreed && !differs;
         }
 #endif
         // Update the state of this track
@@ -904,12 +954,17 @@ void FieldPropagationHandler::PrintStats() const
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-void FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &startPosition,
-                                            const vecgeom::Vector3D<double> &startDirection, double charge,
-                                            double momentum, // starting magnitude
-                                            double stepSize, const vecgeom::Vector3D<double> &endPosition,
-                                            const vecgeom::Vector3D<double> &endDirection, double curvature, int index,
-                                            TaskData *td, bool checkVsHelix)
+bool FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &startPosition,
+                                            const vecgeom::Vector3D<double> &startDirection,
+                                            double     charge,
+                                            double     momentum, // starting magnitude
+                                            double     stepSize,
+                                            const vecgeom::Vector3D<double> &endPosition,
+                                            const vecgeom::Vector3D<double> &endDirection,
+                                            double     curvature,
+                                            int        index,
+                                            TaskData * td,
+                                            bool       checkVsHelix)
 {
   using ThreeVector            = vecgeom::Vector3D<double>;
   constexpr double toKiloGauss = 1.0 / units::kilogauss;
@@ -921,6 +976,10 @@ void FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &sta
   // Check against 'scalar' propagation of the same track
   ThreeVector EndPositionScalar(0., 0., 0.), EndDirScalar(0., 0., 0.);
 
+#ifdef STATS_METHODS
+  static  std::atomic<unsigned int> numCallsCheckVS(0);
+  int numCall= numCallsCheckVS++;
+#endif
   vecgeom::Vector3D<double> BfieldInitial;
   double bmag;
   FieldLookup::GetFieldValue(startPosition, BfieldInitial, bmag);
@@ -939,15 +998,14 @@ void FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &sta
   //      checking direction
   ThreeVector diffDir     = endDirection - EndDirScalar;
   double diffDirMag       = diffDir.Mag();
-  const double maxDiffMom = 1.0e-4; // 1.5 * fEpsTol; // 10.0 * units::perMillion;
+  const double maxDiffMom = 1.0e-9; // 1.5 * fEpsTol; // 10.0 * units::perMillion;
   if (diffDirMag > maxDiffMom) {
     differs = true;
-    // if (!bannerUsed) { std::cerr << diffBanner << std::endl; bannerUsed = true; }
+    // if (!bannerUsed) { std::cerr << bannerDiff << std::endl; bannerUsed = true; }
     std::ostringstream strDiff;
     strDiff // std::cerr
-        << "Track [" << index << "] : direction differs "
-        << " by " << diffDir << "  ( mag = " << diffDirMag
-        << " ) "
+       << "Track [" << index << "] ( call # " << numCall << " ) : direction differs "
+        << " by vector " << diffDir << " , mag = " << diffDirMag << "  "
         // << " Direction vector = " << endDirection << "  scalar = " << EndDirScalar
         << " stepSize = " << stepSize << " curv = " << curvature << " B-field = " << BfieldInitial
         << " kilo-Gauss "
@@ -964,7 +1022,7 @@ void FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &sta
 
     if (diffDirMag > relativeDiffMax * magChangeDirScalar && (diffDirMag > 1.e-9) && (magChangeDirScalar > 1.e-10)) {
       differs = true;
-      // if (!bannerUsed) { std::cerr << diffBanner << std::endl; bannerUsed = true; }
+      // if (!bannerUsed) { std::cerr << bannerDiff << std::endl; bannerUsed = true; }
       std::ostringstream strDiff;
       strDiff // std::cerr
           << "Track [" << index << "] : direction CHANGE  has high RELATIVE difference "
@@ -982,7 +1040,7 @@ void FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &sta
   const double maxDiffPos = 1.5 * fEpsTol; // * distanceAlongPath
   if (diffPos.Mag() > maxDiffPos) {
     differs = true;
-    // if (!bannerUsed) { std::cerr << diffBanner << std::endl; bannerUsed = true; }
+    // if (!bannerUsed) { std::cerr << bannerDiff << std::endl; bannerUsed = true; }
     std::cerr << "Track [" << index << "] : position diff " << diffPos << " mag= " << diffPos.Mag()
               << " "
               // << " Pos: vec = " << endPosition << " scalar = " << EndPositionScalar
@@ -992,17 +1050,27 @@ void FieldPropagationHandler::CheckVsScalar(const vecgeom::Vector3D<double> &sta
   }
 
   if (differs) {
-    printf(" FPH::PiV-Start:  Start> Pos= %9.6f %9.6f %9.6f  Mom= %9.6f %9.6f %9.6f\n", startPosition.x(),
+    printf(" FPH::PiV-Start:  Start> Pos= %12.9f %12.9f %12.9f  Mom= %12.9f %12.9f %12.9f\n", startPosition.x(),
            startPosition.y(), startPosition.z(), startDirection.x(), startDirection.y(), startDirection.z());
-    printf(" FPH::PiV/Vector:   End> Pos= %9.6f %9.6f %9.6f  Mom= %9.6f %9.6f %9.6f  Delta-p: %6.2g %6.2g %6.2g \n",
+    printf(" FPH::PiV/Vector:   End> Pos= %12.9f %12.9f %12.9f  Mom= %12.9f %12.9f %12.9f  Delta-p: %6.2g %6.2g %6.2g \n",
            endPosition.x(), endPosition.y(), endPosition.z(), endDirection.x(), endDirection.y(), endDirection.z(),
            endDirection.x() - startDirection.x(), endDirection.y() - startDirection.y(),
            endDirection.z() - startDirection.z());
-    printf(" FPH::PiV-1/chk:    End> Pos= %9.6f %9.6f %9.6f  Mom= %9.6f %9.6f %9.6f  Delta-p: %6.2g %6.2g %6.2g \n",
+    printf(" FPH::PiV-1/chk:    End> Pos= %12.9f %12.9f %12.9f  Mom= %12.9f %12.9f %12.9f  Delta-p: %6.2g %6.2g %6.2g \n",
            EndPositionScalar.x(), EndPositionScalar.y(), EndPositionScalar.z(), EndDirScalar.x(), EndDirScalar.y(),
            EndDirScalar.z(), EndDirScalar.x() - startDirection.x(), EndDirScalar.y() - startDirection.y(),
            EndDirScalar.z() - startDirection.z());
+    auto diffPos = endPosition  - EndPositionScalar;
+    auto diffDir = endDirection - EndDirScalar;
+    double  ampFac= 1000.0;
+    printf(" FPH::PiV-1/diff: d/End> Pos= %12.9f %12.9f %12.9f d/Mom= %12.9f %12.9f %12.9f  ( amplified by %9.4f )\n",
+           ampFac * diffPos.x(), ampFac * diffPos.y(), ampFac * diffPos.z(),
+           ampFac * diffDir.x(), ampFac * diffDir.y(), ampFac * diffDir.z(),
+           ampFac
+       );
   }
+
+  return differs;
 }
 
 } // namespace GEANT_IMPL_NAMESPACE

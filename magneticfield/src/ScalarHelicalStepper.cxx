@@ -204,7 +204,7 @@ void VScalarHelicalStepper::StepWithErrorEstimate(const double yInput[],
   return;
 }
 
-double VScalarHelicalStepper::DistChord(double /*charge*/) const
+double VScalarHelicalStepper::DistChord() const
 {
   // Check whether h/R >  pi  !!
   // Method DistLine is good only for <  pi

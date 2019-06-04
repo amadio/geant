@@ -37,14 +37,14 @@ public:
   using Double_v        = geant::Double_v;
   using ThreeVectorSimd = Vector3D<Double_v>;
 
-  static constexpr unsigned int sOrderMethod = 4;
+  static constexpr unsigned int kOrderMethod = 4;
   static constexpr unsigned int sNstore // How many variables the full state entails
       = Nvar > 6 ? Nvar : 6;            // = std::max( 6, Nvar );
                                         // (GUIntegrationNms::NumVarBase > Nvar) ? GUIntegrationNms::NumVarBase : Nvar;
   // std::max( GUIntegrationNms::NumVarBase,  Nvar);
   // static const double IntegratorCorrection = 1./((1<<4)-1);
-  inline int GetIntegratorOrder() { return sOrderMethod; }
-  inline double IntegratorCorrection() { return 1. / ((1 << sOrderMethod) - 1); }
+  inline int    GetIntegratorOrder() { return kOrderMethod; }
+  inline double    IntegratorCorrection() { return 1. / ((1 << kOrderMethod) - 1); }
 
 public:
   inline DormandPrince5RK(T_Equation *EqRhs, unsigned int numStateVariables = 0);

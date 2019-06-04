@@ -320,10 +320,11 @@ int main(int argc, char *argv[])
   FieldTrack yInput[nTracks], yOutput[nTracks];
 
   // std::fill_n(hstep, nTracks, 20);
-  double hstep[nTracks] = {  0.001,  0.01,    0.1,    1.00,   2.0,    4.0,     8.0,     16.0,
-                              32.0,   64.0,   200.0,  600.,  2000.0, 10000.,  30000.0,  100000.0};
-  // double hstep[nTracks] = {11.0,       20.0,  33.0,  44.44, 55.555, 66.6666, 77.77777, 88.888888,
-  //                       99.9999999, 101.0, 111.0, 122.0, 133.0,  144.0,   155.0,    166.0};  
+  // double hstep[nTracks] = {  0.001,  0.01,    0.1,    1.00,   2.0,    4.0,     8.0,     16.0,
+  //                             32.0,   64.0,   200.0,  600.,  2000.0, 10000.,  30000.0,  100000.0};
+  // double hstep[nTracks] = {11.0,       20.0,  33.0,  44.44, 55.555, 66.6666, 77.77777, 88.888888,  
+  double hstep[nTracks] = {  0.001,  0.01,    0.1,    1.00,   2.0,    4.0,     8.0,     16.0,  
+                         99.9999999, 101.0, 111.0, 122.0, 133.0,  144.0,   155.0,    166.0};  
   // double hstep[] = { 11.0, 200.0, 330.0, 444.40, 555.55, 666.666, 777.7777, 888.88888, 999.999999, 100.0, 11.0, 12.0,
   // 13.0, 14.0, 15.3, 16.9 };
 
@@ -392,9 +393,10 @@ int main(int argc, char *argv[])
       yScalTrackIn= ScalarFieldTrack (startPosition, startMomentum, charge[i]);
       yScalTrackOut= ScalarFieldTrack(startPosition, startMomentum, charge[i]); // yStart
 
+#ifdef CHECK_ONE_LANE      
       refScalarDriver->SetPrintDerived(i==trackToCheck);
       refScalarDriver->SetTrackNumber(i);  // For info only
-      
+#endif      
       refScalarDriver->AccurateAdvance(yScalTrackIn, hstep[i], /* epsTol, */  yScalTrackOut);
       // ************  ***************
 
