@@ -157,7 +157,8 @@ int main(int argc, char *args[])
   const double epsTol = (epsTolInp < 0.0) ? epsTolDef : epsTolInp;
   cout << "#  Driver parameters:  eps_tol= " << epsTol << "  h_min= " << hminimum << endl;
 
-  auto integrDriver = new ScalarIntegrationDriver(hminimum, myStepper, Nposmom, statisticsVerbosity);
+  auto integrDriver = new ScalarIntegrationDriver(hminimum, myStepper, epsTol,
+                                                  Nposmom, statisticsVerbosity);
   // myStepper->InitializeCharge( particleCharge );
   // integrDriver->InitializeCharge( particleCharge );
 
@@ -341,7 +342,8 @@ int main(int argc, char *args[])
     {
       total_step += step_len;
 
-      goodAdvance = integrDriver->AccurateAdvance(yTrackIn, total_step, epsTol, yTrackOut); // , hInitial );
+      goodAdvance = integrDriver->AccurateAdvance(yTrackIn, total_step, /* epsTol, */
+                                                  yTrackOut); // , hInitial );
       // *****************************
 
       ThreeVector PositionOut = yTrackOut.GetPosition();

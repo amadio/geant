@@ -17,6 +17,7 @@
 #include "Geant/CashKarp.h"
 #include "Geant/FlexIntegrationDriver.h"
 #include "Geant/SimpleIntegrationDriver.h"
+#include "Geant/RollingIntegrationDriver.h"
 
 // template <class Equation, unsigned int> using ScalarCashKarp= GUTCashKarpRKF45;
 
@@ -134,7 +135,8 @@ GUFieldPropagator::GUFieldPropagator(FieldType *magField, double eps, double hmi
     auto myFlexStepper     = new FlexStepperType(gvEquation);
     int statsVerbose       = 1;
     auto flexDriver =
-        new SimpleIntegrationDriver<FlexStepperType, Nposmom>(hminimum, myFlexStepper, Nposmom, statsVerbose);
+       // new SimpleIntegrationDriver<FlexStepperType, Nposmom>(hminimum, myFlexStepper, Nposmom, statsVerbose);
+          new RollingIntegrationDriver<FlexStepperType, Nposmom>(hminimum, myFlexStepper, Nposmom, statsVerbose);
     fVectorDriver = flexDriver;
   }
 
