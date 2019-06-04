@@ -49,7 +49,7 @@ public:
   Event() : fNtracks(0), fNdone(0), fNmax(0), fLock(), fNfilled(0), fNdispatched(0) {}
 
   /** @brief Event destructor */
-  ~Event() {}
+  virtual ~Event() {}
 
   /* @brief Function for accounting adding a new track */
   int AddTrack();
@@ -199,6 +199,9 @@ public:
 
   /** @brief Print function */
   void Print(const char *option = "") const;
+
+  /** @brief For external use */
+  virtual void FinalActions() {}
 };
 
 } // GEANT_IMPL_NAMESPACE

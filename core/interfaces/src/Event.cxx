@@ -60,6 +60,7 @@ bool Event::StopTrack(RunManager *runmgr, TaskData *td)
     fTransported = true;
     // Notify run manager that event is transported
     runmgr->EventTransported(this, td);
+    FinalActions();
     return false;
   }
   if (!fPrioritize) {
