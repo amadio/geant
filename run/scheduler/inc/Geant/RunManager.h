@@ -15,7 +15,10 @@ class TGeoMaterial;
 #include "TGeoExtension.h"
 #endif
 
-using namespace veccore;
+// part of the work around bitset moving from veccore to vecgeom
+namespace veccore {}
+namespace vecgeom {}
+
 class PhysicsInterface;
 
 GEANT_DEVICE_DECLARE_CONV(Geant, class, Propagator);
