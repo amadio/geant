@@ -15,7 +15,6 @@ class TGeoMaterial;
 #include "TGeoExtension.h"
 #endif
 
-using namespace veccore;
 class PhysicsInterface;
 
 GEANT_DEVICE_DECLARE_CONV(Geant, class, Propagator);
@@ -34,14 +33,8 @@ class PrimaryGenerator;
 class MCTruthMgr;
 class EventSet;
 
-// Work around bitset moving from veccore to vecgeom
-namespace bitsetworkaround {
-  using namespace veccore;
-  using namespace vecgeom;
-}
-
 class RunManager {
-  using BitSet = bitsetworkaround::BitSet;
+  using BitSet = vecgeom::BitSet;
 
 private:
   bool fInitialized    = false;
