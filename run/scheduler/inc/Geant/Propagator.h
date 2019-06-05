@@ -25,8 +25,6 @@ class TStopwatch;
 #else
 #include "base/Stopwatch.h"
 #endif
-#include "base/BitSet.h"
-using veccore::BitSet;
 
 #include "GeantConfig.h"
 #include "Geant/Track.h"

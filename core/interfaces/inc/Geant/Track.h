@@ -29,11 +29,6 @@
 #define GEANT_ALIGN_PADDING 64
 #endif
 
-#ifndef VECCORE_BITSET_H
-#include "base/BitSet.h"
-typedef veccore::BitSet BitSet;
-#endif
-
 #ifndef VECCORE_CUDA
 #ifdef GEANT_USE_NUMA
 #include "Geant/NumaAllocator.h"
