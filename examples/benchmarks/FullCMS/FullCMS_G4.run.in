@@ -15,7 +15,7 @@ FIELD_USE_RK=1
 
 ### Configuration
 CONFIG_THREADS=1
-CONFIG_EVENTS=1
+CONFIG_EVENTS=10
 CONFIG_PRIMARIES=10
 CONFIG_PERFORMANCE=1
 
@@ -118,7 +118,7 @@ awk -f - extracted_realtimes <<-EOF >> ${BENCH_OUTPUT}
     percent = 100.*sigma/average;
 }
 END {
-    printf "Run time for %d measurements = %.3f +/- %.3f (%.1f%)\n", $TRIES, average, sigma, percent;
+    printf "Run time for %d measurements = %.3f +/- %.3f (%.1f%%)\n", $TRIES, average, sigma, percent;
 }
 EOF
 
