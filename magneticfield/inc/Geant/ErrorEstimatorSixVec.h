@@ -29,10 +29,10 @@ class ErrorEstimatorSixVec {
     } 
 
     template <class Real_v>
-      Real_v EstimateError( const Real_v yError[fNoComponents],
-                            const Real_v hStep,
+      Real_v EstimateError( const Real_v   yError[fNoComponents],
+                            const Real_v & hStep,
                             // const Real_v yValue[fNoComponents],
-                            const Real_v magMomentumSq //   Initial momentum square (used for rel. error)
+                            const Real_v & magMomentumSq //   Initial momentum square (used for rel. error)
          ) const;
     //  Returns the Maximum Square Error: the maximum between 
     //    - position relative error square (magnitude^2): (momentum error vec)^2 / (initial momentum)^2
@@ -42,9 +42,9 @@ class ErrorEstimatorSixVec {
 
     template <class Real_v>
       Real_v EstimateError( const Real_v   yError[fNoComponents],
-                            const Real_v   hStep,
+                            const Real_v & hStep,
                             //nst Real_v   yValue[fNoComponents],
-                            const Real_v   magMomentumSq, // Initial momentum square (used for rel. error)
+                            const Real_v & magMomentumSq, // Initial momentum square (used for rel. error)
                             Real_v       & epsPosition, 
                             Real_v       & errpos_sq,
                             Real_v       & errmom_sq                            
@@ -52,9 +52,9 @@ class ErrorEstimatorSixVec {
     //  Same as above, but returns intermediate values
    
     template <class Real_v>
-      Real_v EstimateErrorWithFinalP( const Real_v yError[fNoComponents],
-                                      const Real_v hStep,
-                                      const Real_v yValue[fNoComponents] // Use it for momentum square (used for rel. error)
+      Real_v EstimateErrorWithFinalP( const Real_v   yError[fNoComponents],
+                                      const Real_v & hStep,
+                                      const Real_v   yValue[fNoComponents] // Use it for momentum square (used for rel. error)
          ) const;
     // Same as above, but use final momentum value as divisor for momentum relative error
      
@@ -73,8 +73,8 @@ class ErrorEstimatorSixVec {
 template <class Real_v> 
    Real_v ErrorEstimatorSixVec::EstimateError(
              const Real_v   yEstError[fNoComponents],
-             const Real_v   hStep,
-             const Real_v   magInitMomentumSq, // (Initial) momentum square (used for rel. error)
+             const Real_v & hStep,
+             const Real_v & magInitMomentumSq, // (Initial) momentum square (used for rel. error)
              Real_v       & epsPosition, 
              Real_v       & errpos_sq,
              Real_v       & errmom_sq
@@ -106,9 +106,9 @@ template <class Real_v>
 
 template <class Real_v> 
    Real_v ErrorEstimatorSixVec::EstimateError(
-             const Real_v yEstError[fNoComponents],
-             const Real_v hStep,
-             const Real_v magInitMomentumSq  //   (Initial) momentum square (used for rel. error)
+             const Real_v   yEstError[fNoComponents],
+             const Real_v & hStep,
+             const Real_v   magInitMomentumSq  //   (Initial) momentum square (used for rel. error)
       ) const
 {
    Real_v epsPosition=0.0, errpos_sq=0.0, errmom_sq= 0.0;
@@ -117,9 +117,9 @@ template <class Real_v>
 
 template <class Real_v> 
    Real_v ErrorEstimatorSixVec::EstimateErrorWithFinalP(
-             const Real_v yEstError[fNoComponents],
-             const Real_v hStep,
-             const Real_v yValues[fNoComponents]
+             const Real_v   yEstError[fNoComponents],
+             const Real_v & hStep,
+             const Real_v   yValues[fNoComponents]
       ) const
 {
     Real_v magmom_sq = yValues[3] * yValues[3] + yValues[4] * yValues[4] + yValues[5] * yValues[5];
