@@ -108,7 +108,7 @@ template <class Real_v>
    Real_v ErrorEstimatorSixVec::EstimateError(
              const Real_v   yEstError[fNoComponents],
              const Real_v & hStep,
-             const Real_v   magInitMomentumSq  //   (Initial) momentum square (used for rel. error)
+             const Real_v & magInitMomentumSq  //   (Initial) momentum square (used for rel. error)
       ) const
 {
    Real_v epsPosition=0.0, errpos_sq=0.0, errmom_sq= 0.0;

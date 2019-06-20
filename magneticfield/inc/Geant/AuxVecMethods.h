@@ -4,12 +4,12 @@
 #define AuxVecMethods_Def
 
 template <class Real_v>
-Real_v PowerSameIf(const Real_v inpValue, double exponent, vecCore::Mask_v<Real_v> condition = true); // const
+Real_v PowerSameIf(const Real_v & inpValue, double exponent, const vecCore::Mask_v<Real_v> & condition = true);
   // Return the power in each 'lane':
   //  if( condition[i] ) { inpValue[i]^exponent[i] } else { 1.0 }
 
 template <class Real_v>
-Real_v PowerDiffIf(const Real_v inpValue, const Real_v exponent, vecCore::Mask_v<Real_v> condition = true);
+Real_v PowerDiffIf(const Real_v & inpValue, const Real_v & exponent, const vecCore::Mask_v<Real_v> & condition = true);
 // Same - but with varying exponent 
   // Return the power in each 'lane':
   //  if( condition[i] ) { inpValue[i]^exponent[i] } else { 1.0 }
@@ -17,9 +17,9 @@ Real_v PowerDiffIf(const Real_v inpValue, const Real_v exponent, vecCore::Mask_v
 // Definitions
 // ===========---------------------------------------------------
 template <class Real_v>
-inline Real_v PowerSameIf(const Real_v inpValue,
-                          double       exponent,
-                          vecCore::Mask_v<Real_v> condition) // const
+inline Real_v PowerSameIf(const Real_v                  & inpValue,
+                          double                        & exponent,
+                          const vecCore::Mask_v<Real_v> & condition)
 {
   using vecCore::Get;
   using vecCore::Set;
@@ -31,11 +31,9 @@ inline Real_v PowerSameIf(const Real_v inpValue,
   bool allNeeded = vecCore::MaskFull(condition);
   if (allNeeded) // All of the steps failed
   {
-     // std::cout << " PowerSameIf: all Needed " << std::endl;
      result = Math::Pow( inpValue, Real_v(exponent) ); //
              // Exp(exponent * Log(inpValue));
   } else {
-     // std::cout << " PowerSameIf: selection branch  " << std::endl;     
      // Do expensive 'pow' only for continuing ('condition') lanes
      for (size_t i = 0; i < vecCore::VectorSize<Real_v>(); ++i) {
         if (vecCore::Get(condition, i)) {
@@ -50,9 +48,9 @@ inline Real_v PowerSameIf(const Real_v inpValue,
 // ===========---------------------------------------------------
 
 template <class Real_v>
-inline Real_v PowerDiffIf(const Real_v inpValue,
-                          const Real_v exponent,
-                          vecCore::Mask_v<Real_v> condition) // const
+inline Real_v PowerDiffIf(const Real_v                  & inpValue,
+                          const Real_v                  & exponent,
+                          const vecCore::Mask_v<Real_v> & condition) // const
 {
   using vecCore::Get;
   using vecCore::Set;
@@ -86,7 +84,7 @@ inline Real_v PowerDiffIf(const Real_v inpValue,
 
 
 template <class Real_v>
-inline int countMaskTrue( vecCore::Mask_v<Real_v> flagLane )
+inline int countMaskTrue( vecCore::Mask_v<Real_v> & flagLane )
 {
    // using Bool_v = vecCore::Mask_v<Real_v>;
 
