@@ -28,6 +28,16 @@
 #ifndef RollingIntegrationDriver_Def
 #define RollingIntegrationDriver_Def
 
+// ----  Flags for debugging and diagnostics only - off in benchmarks!
+// #define  DRIVER_PRINT_PROGRESS  1
+// #define  DRIVER_DIAGNOSTICS       1
+// #define  DRIVER_PRINT_STATISTICS  1
+
+#define CONST_DEBUG    1
+//  Define to turn 'partDebug' into compile time constant
+
+#include <atomic>
+
 // #include "Geant/TemplateFieldTrack.h"
 #include "base/AlignedBase.h"
 #include "base/Vector.h"
@@ -36,14 +46,10 @@
 
 #include "Geant/FieldTrack.h"
 
-// #include "TemplateVScalarIntegrationStepper.h"
-// #include "IntegrationStepper.h"
-
-
-// Adding because adding scalar stepper for new constructor (KeepStepping)
+// To use scalar stepper for new constructor (KeepStepping)
 // #include "Geant/VScalarIntegrationStepper.h"
 
-// Adding to send in scalar driver to deal with 1/2 remaining lanes
+// To use specific scalar driver to deal with 1/2 remaining lanes
 // #include "Geant/ScalarIntegrationDriver.h"
 // #include "Geant/ScalarFieldTrack.h"
 
@@ -51,11 +57,6 @@
 
 #include "Geant/BaseRkIntegrationDriver.h"
 #include "Geant/AuxVecMethods.h"
-
-// ----  Flags for debugging and diagnostics only - off in benchmarks!
-// #define  DRIVER_PRINT_PROGRESS  1
-// #define  DRIVER_DIAGNOSTICS       1
-// #define  DRIVER_PRINT_STATISTICS  1
 
 #include "ErrorEstimatorSixVec.h"
     
@@ -68,10 +69,7 @@
 // #define CHECK_ONE_LANE 1
 //  Define to check a single lane
 
-#define CONST_DEBUG    1
-//  Define to turn 'partDebug' into compile time constant
-
-#ifdef CHECK_ONE_LANE
+#ifdef   CHECK_ONE_LANE
 #include "IntegrationDriverConstants.h"
 #endif
 
@@ -201,8 +199,13 @@ protected:
   //    - succeeded[nTracks]  success flag
 
   void CheckParameters()     { BaseRkIntegrationDriver<T_Stepper, Nvar>::CheckParameters(); }
+#ifdef DRIVER_PRINT_STATISTICS
   int  IncrementStepperCalls() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::IncrementStepperCalls() ; }
-  int  IncrementNumberSteps()  { return ++fNoTotalSteps; }
+  int  IncrementNumberSteps() const { return ++fNoTotalSteps; } // mutable member
+#else
+  int  IncrementStepperCalls() const { return 0; }
+  int  IncrementNumberSteps() const { return 0; }
+#endif
 
   template <class Real_v>  
     Real_v ComputeNewStepLengthWithinLimits2( Real_v errMaxSq, Real_v hStepCurrent) const
@@ -281,8 +284,8 @@ public:
 
   // Accessors.
   unsigned int GetStepperOrder() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetStepperOrder(); }
-  unsigned long GetNumberOfStepperCalls() { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetNumberOfStepperCalls(); }
-  unsigned long GetNumberOfTotalSteps()   { return fNoTotalSteps; } 
+  unsigned long GetNumberOfStepperCalls() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetNumberOfStepperCalls(); }
+  unsigned long GetNumberOfTotalSteps() const  { return fNoTotalSteps; } 
      // BaseRkIntegrationDriver<T_Stepper,Nvar>::GetNumberOfTotalSteps(); }
 
   double GetMinimumStep() const { return BaseRkIntegrationDriver<T_Stepper,Nvar>::GetMinimumStep(); }
@@ -405,8 +408,6 @@ private:
   // static constexpr double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
   const double fSmallestFraction = 1.0e-7; // Expected value: larger than 1e-12 to 5e-15;
    
-  // int fStatisticsVerboseLevel         = 0;
-  mutable std::atomic<unsigned long> fStepperCalls;
   // ---------------------------------------------------------------
   //  STATE
   // public:
@@ -420,8 +421,10 @@ private:
 #endif  
   // ---
 
-  mutable unsigned long fNoTotalSteps = 0; // , fNoBadSteps = 0, fNoSmallSteps = 0, fNoInitialSmallSteps = 0;
-
+  mutable std::atomic<unsigned long> fNoTotalSteps; // (0UL);
+  // mutable unsigned long fNoTotalSteps;
+  // Eventually can make this per thread value (in Task Data)
+   
   int fVerboseLevel; // Verbosity level for printing (debug, ..)
                      // Could be varied during tracking - to help identify issues
 
@@ -508,7 +511,8 @@ RollingIntegrationDriver<T_Stepper, Nvar>::
                                                numComponents,
                                                false),  // statistics Verbosity
       // fEpsilonRelMax( epsRelMax ),
-      fErrorEstimator( epsRelMax, hMinimumStep )
+      fErrorEstimator( epsRelMax, hMinimumStep ),
+      fNoTotalSteps( 0UL )
       // , fHalfPowerShrink( 0.5 * BaseRkIntegrationDriver<T_Stepper, Nvar>::GetPowerShrink() )
 {
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
@@ -561,7 +565,8 @@ template <class T_Stepper, unsigned int Nvar>
 RollingIntegrationDriver<T_Stepper, Nvar>::RollingIntegrationDriver(
     const RollingIntegrationDriver<T_Stepper, Nvar> &right)
     :
-   BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver( right ) 
+   BaseRkIntegrationDriver<T_Stepper, Nvar>::BaseRkIntegrationDriver( right )
+   , fNoTotalSteps( 0UL )
    // , fStatisticsVerboseLevel(right.fStatisticsVerboseLevel)
 {
   // In order to accomodate "Laboratory Time", which is [7], fMinNoVars=8
@@ -1641,12 +1646,11 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance
   // std::fill_n( badStepSize,  nTracks, false);
 #ifdef DRIVER_PRINT_PROGRESS    
   if (partDebug) ReportArray(methodName, "hstep", hstep, nTracks);
-#endif
-
   static  std::atomic<unsigned int> numCallsRidAccAdv(0);
   int  currentCallNo= numCallsRidAccAdv++;  
   if (partDebug)
     { cout << "-RiD::AccAdv call # " << currentCallNo << "  - vector width = " << VecSize << endl; }
+#endif
   
   Bool_v /*lastStepOK,*/ succeededLane(false), isLastStepLane(false);
   Bool_v laneUnemployed(false); // set true when there is a return statement
@@ -1803,7 +1807,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance
 #endif
 
     // lastStepOK = (hdid == h);
-    fNoTotalSteps++;
+    IncrementNumberSteps();   // fNoTotalSteps++;
 
 #ifdef DRIVER_PRINT_PROGRESS      
     bool reportMove = true;

@@ -23,6 +23,8 @@
 #define SimpleIntegrationDriver_Def
 
 // #include "Geant/TemplateFieldTrack.h"
+#include <atomic>
+
 #include "base/AlignedBase.h"
 #include "Geant/FieldTrack.h"
 

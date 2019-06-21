@@ -65,8 +65,8 @@ public:
   // Setting parameters ( few now )
   unsigned int  GetMaxNoSteps() const { return fMaxNoSteps; }   
   void SetMaxNoSteps(unsigned int val) { fMaxNoSteps = val; }
-  unsigned long IncrementStepperCalls() const { return ++fStepperCalls; } // mutable ..
-  unsigned long GetNumberOfStepperCalls()    { return fStepperCalls; }
+  unsigned long GetNumberOfStepperCalls() const { return fStepperCalls; }
+  unsigned long IncrementStepperCalls()   const { return ++fStepperCalls; } // mutable ..
 
   template <typename Real_v>
   Real_v ComputeNewStepSize( Real_v errMaxNorm,   // max error  (normalised)
