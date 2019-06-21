@@ -697,11 +697,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   Bool_v goodStep(false);
   Bool_v UnderflowOccurred(false);
   
-  // Informational - expect to suppress completely  2019.05.14
-  Real_v errmaxSqFallThru(0.0);  
-  Real_v errmaxSqBreakOut(0.0);
-  
-  bool   alreadySomeDone= false;
+  //  bool   alreadySomeDone= false;  // for choice 2 criterion
   //  bool   doneExtraIteration= false;
   
   // for (iter = 0; iter < max_trials; iter++)
@@ -902,7 +898,6 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
        // Go one more step after 'some' are done ... ( current heuristic )
        enoughFinished = someDone;  // Choice 1 - some is enough
        // enoughFinished = alreadySomeDone;  // Choice 2 - ( allready + 1 )
-       // enoughFinished = allDone || (someDone && alreadySomeDone);   // Old code - 2.5 ==> basically its #3
        // enoughFinished = (someDone && alreadySomeDone); // Choice 3 - some Now + allready
 
        // Future idea - Count how many are done.
@@ -927,7 +922,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
                  << " composed using : " 
                  << " someDone= " <<  someDone
                  << " allDone= " << allDone
-                 << " alreadySomeDone = " << alreadySomeDone << " (from last iteration) "
+             //  << " alreadySomeDone = " << alreadySomeDone << " (from last iteration) "
                  << " mustFinishAllStill = " << mustFinishAllStill       
                  << std::endl;
     }
@@ -994,7 +989,6 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
        if (partDebug) cout << "RID: Enough Finished (Store and Report OFF ) - just breaking." << endl;
        // StoreGoodValues(yStepEnd, hStep, errmax_sq, goodStep, yFinal, hFinal, errmax_sqFinal);
        //   Why store here too ??? - store only after loop exit !     2019.01.07   ( TBC )
-       errmaxSqBreakOut = errmax_sq;
 
        // std::cout << "** Exiting loop - Report of status -------------------------------------- " << std::endl;
        // FormattedReporter::FullReport(yStepStart, charge, dydx, hStep, yStepEnd, yerr, errmax_sq, Active, goodStep);
@@ -1061,8 +1055,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     hStep = Min( hnew, xEnd - x ); // Ensure not to go past end
 
     // Refinement of criterion v2 - take one more step if only one is finished ... ?
-    // if( someDone && ! alreadySomeDone ) {  alreadySomeDone = true; }
-    alreadySomeDone = someDone;
+    // alreadySomeDone = someDone;  // This must be used if choice 2 is enabled
 
     toContinue = itersLeft > 0 && (!vecCore::MaskFull(finishedLane));
        
@@ -1071,7 +1064,6 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
        std::cout << "WARNING> RollingIntegrationDriver::KeepStepping: exiting at the Bottom of while." << std::endl;
        // FormattedReporter::FullReport(yStepStart, charge, dydx, hStep, yStepEnd, yerr, errmax_sq, Active, goodStep);
 #endif       
-       errmaxSqFallThru= errmax_sq;  // Just for info -- no longer relevant
     }
     
   } while ( toContinue // itersLeft > 0 && (!vecCore::MaskFull(finishedLane))
@@ -1591,9 +1583,7 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance
                                                             FieldTrack yOutput[],
                                                             bool       stillOK[],
                                                             int        nTracks
-#ifdef TRACK_STATS                                                            
-                                                            , TrialStats<double> trackStats[nTracks]
-#endif
+                                                            // , TrialStats<double> trackStats[nTracks]
                                                              ) const
 {
   // Built on original AccurateAdvance. Takes buffer stream of nTracks
@@ -1724,9 +1714,9 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::AccurateAdvance
   x = x1;
 
   TrialStats<Real_v> laneStats;
-#ifndef TRACK_STATS  
-  TrialStats<double> trackStats[nTracks];   // To store them for more examination ... ? 
-#endif
+  // #ifndef TRACK_STATS  
+  // TrialStats<double> trackStats[nTracks];   // To store them for more examination ... ? 
+  // #endif
 
   while (    ! vecCore::MaskFull( laneUnemployed )
          &&

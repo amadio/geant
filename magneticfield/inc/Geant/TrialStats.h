@@ -137,7 +137,7 @@ void TrialStats<Real_v>::CheckSums() const
       std::cerr << "TS::Update>  Error in lane Sums: Differences in " << !checkLaneSum << std::endl;
       std::cout << "TS::Update>  Error in lane Sums: Differences: " << std::endl;      
       FormattedReporter::ReportRowOfBools<Real_v>(  "TS::Update>  Check: ", checkLaneSum );
-      FormattedReporter::ReportRowOfInts<Real_v>(   "TS::Upd> Diff S-exp=", bigSum - fNumUpdateCalls );
+      FormattedReporter::ReportRowOfInts<Real_v>(   "TS::Upd> Diff S-exp=", bigSum - Index_v(fNumUpdateCalls) );
    }
    
 }
