@@ -100,10 +100,9 @@ void G4ScalarRZMagFieldFromMap::
   double a4 = (radius - radiusLow) * (z - zLow);
 
   unsigned long minSzUL= std::min( std::min( fBr.size(), fBphi.size()) , fBz.size() );
-  int minSize= minSzUL;
 
   assert( 0 <= i1 );
-  assert( i4 <= minSize ) ;
+  assert( i4 <= (int) minSzUL ) ;
   assert( 0. <= a1  && a1 * kAInverse <= 1.0 );
   assert( 0. <= a2  && a2 * kAInverse <= 1.0 );
   assert( 0. <= a3  && a3 * kAInverse <= 1.0 );

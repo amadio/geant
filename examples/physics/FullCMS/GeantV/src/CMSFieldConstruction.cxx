@@ -76,8 +76,10 @@ bool CMSFieldConstruction::CreateFieldAndSolver( bool           useRungeKutta,
   if (fieldPP ) *fieldPP = fieldPtr;
 
   // fpField = fieldPtr; // UserFieldConstruction::SetField( fieldPtr );
-
-  geant::Print("CMSFieldConstruction::CreateFieldAndSolver", "CMSmagfield created.");
+  if( rtv == 0 )
+     geant::Print("CMSFieldConstruction::CreateFieldAndSolver", "CMSmagfield created.");
+  else
+     geant::Print("CMSFieldConstruction::CreateFieldAndSolver", "CMSmagfield created - method returned non-Zero.");  
 
   if (useRungeKutta) {
     printf("%s", "CMSFieldConstruction - Configured field propagation for Runge Kutta.");
