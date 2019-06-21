@@ -1070,7 +1070,9 @@ public:
   GEANT_FORCE_INLINE
   void Normalize()
   {
-    double norm = 1. / Math::Sqrt(fXdir * fXdir + fYdir * fYdir + fZdir * fZdir + kTiny);
+    double mag2 = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
+    assert ( mag2 > 0.0 );
+    double norm = 1. / Math::Sqrt( mag2 + kTiny );
     fXdir *= norm;
     fYdir *= norm;
     fZdir *= norm;
