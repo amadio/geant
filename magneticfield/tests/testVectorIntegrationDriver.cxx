@@ -25,7 +25,6 @@ using geant::units::degree;
 // #include "IntegrationStepper.h"
 
 #include "Geant/CashKarp.h"
-#include "Geant/OldIntegrationDriver.h"
 #include "Geant/SimpleIntegrationDriver.h"
 #include "Geant/RollingIntegrationDriver.h"
 
@@ -246,7 +245,6 @@ int main(int argc, char *argv[])
 #else  
   using DriverType = RollingIntegrationDriver<StepperType, Nposmom>;
 #endif  
-  // using DriverType = OldIntegrationDriver<StepperType, Nposmom>;
   
   auto vectorDriver =
       new DriverType(hminimum, myStepper, epsTol,  Nposmom );
