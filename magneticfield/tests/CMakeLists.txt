@@ -49,7 +49,8 @@ message(STATUS "Created target for testVectorMagFieldEquation")
 #message(STATUS "Created target for testScalarCashKarp")
 
 ## Test newest Cash Karp, that can integrate scalar or Double_v
-add_executable(testFlexibleCashKarp testFlexibleCashKarp.cxx)
+add_executable(testFlexibleCashKarp testFlexibleCashKarp.cxx
+                                    ${CMAKE_SOURCE_DIR}/magneticfield/tests/SimpleCMSMagField/src/RZMagFieldFromMap.cxx )  
 target_link_libraries(testFlexibleCashKarp Vmagfield Geant_v ${VECGEOM_LIBRARIES} ${Vc_LIBRARIES} -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 message(STATUS "Created target for testFlexibleCashKarp")
 ## --------  End of Stepper Tests
