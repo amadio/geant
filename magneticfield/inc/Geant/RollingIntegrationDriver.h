@@ -1055,18 +1055,6 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
     
     hStep = Min( hnew, xEnd - x ); // Ensure not to go past end
 
-// #ifdef DRIVER_DIAGNOSTICS      
-    // Interim Report of problem lanes -- For debugging only !!
-    Bool_v problemLanes = stepSizeUnderflow;
-    if (!vecCore::MaskEmpty(problemLanes)) {
-      std::cerr << "RollingIntegrationDriver::KeepStepping:" << std::endl
-                << "  Stepsize underflow in Stepper ( Report 1 - in loop )" << std::endl;
-      Bool_v problemLanes = stepSizeUnderflow && !finishedLane;
-
-      ReportConditionLanes(problemLanes, x, xnew, hStep, htry);
-    }
-// #endif
-    
     // Refinement of criterion v2 - take one more step if only one is finished ... ?
     // if( someDone && ! alreadySomeDone ) {  alreadySomeDone = true; }
     alreadySomeDone = someDone;
@@ -1078,10 +1066,6 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
        std::cout << "WARNING> RollingIntegrationDriver::KeepStepping: exiting at the Bottom of while." << std::endl;
        // FormattedReporter::FullReport(yStepStart, charge, dydx, hStep, yStepEnd, yerr, errmax_sq, Active, goodStep);
 #endif       
-       // vecCore::MaskedAssign( errmax_sqFinal, Active /* && progressed */ , errmax_sq );
-       // vecCore::MaskedAssign( hFinal,         Active /* && progressed */ , hStep );
-       // fellThrough= true;
-
        errmaxSqFallThru= errmax_sq;  // Just for info -- no longer relevant
     }
     
@@ -1090,9 +1074,6 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 
   bool fellThrough= !toContinue;
   
-  if( !toContinue && partDebug ) 
-     std::cout << "WARNING> RollingIntegrationDriver::KeepStepping: exiting at the Bottom of while." << std::endl;
-  
   // Only ensure that
   //   - iteration don't exceed max
   //   - some work remains to be done
@@ -1100,54 +1081,17 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
   
   tot_no_trials += iter;
 
-  // Store exactly one time, here!
-
-  // Original code - from Simple
-  // StoreGoodValues(yStepEnd, hStep, errmaxSqBreakOut, finishedLane, yFinal, hFinal, errmax_sqFinal);
-  // Q> - Can shortcut this, but using yFinal[] instead of yStepEnd[] in code above.  Worthwhile or bad ? TODO
-
   if( fellThrough )
   {
-#ifdef DRIVER_PRINT_PROGRESS
-     if (partDebug) {          
-        cout << "-RiD::KeepStepping> Fell through while loop" << endl;
-        cout << " Store Good Values calls - version 7 (fall through):   2019.05.13  17:45" << std::endl;
-        ReportRowOfDoubles("errmaxSqFallThru = ", errmaxSqFallThru );
-     }
-#endif
      // Try 7:   2019.05.09   17:45
      StoreGoodValues(yStepStart, hStepLastActive, errmaxSqLastActive, progressedLane, yFinal, hFinal, errmax_sqFinal);
      // Due to copy  yStepStart <- yStepEnd  for all lanes with goodStep, we can just use yStepStart here ...
-
-     // Ideas --  old
-     // StoreGoodValues(yStepStart, hStepLastGood, errmaxSqLastGood, progressedLane && !goodStep, yFinal, hFinal, errmax_sqFinal);
-  } else {
-#ifdef DRIVER_PRINT_PROGRESS
-     if (partDebug) {     
-        ReportRowOfDoubles("errmaxSqBreakOut = ", errmaxSqBreakOut );
-     }
-#endif     
   }
   
-#ifdef DRIVER_PRINT_PROGRESS  
-  if( partDebug ) { 
-     cout << " Check LastGood values vs. hstep-last/BreakOut" << std::endl;
-     ReportRowOfDoubles("hStep =", hStep );
-     // ReportRowOfDoubles("hStepLastGood = ", hStepLastGood );
-     // ReportRowOfDoubles("errmaxSqLastGood = ", errmaxSqLastGood );
-     
-     // template <class Real_v> using FormattedReporter::ReportRowOfInts<Real_v>;
-     cout << " Lane Step statistics." << std::endl;
-     laneStats.PrintStats(false);  // ToDo : false  +  end-of-job  PrintSums();
-  }
-#endif
-
 #ifdef DRIVER_DIAGNOSTICS  
   if (!vecCore::MaskEmpty(UnderflowOccurred)) {
-    // Real_v xnewB       = x + hnew;
-    int numUnderTot= countMaskTrue<Real_v>( UnderflowOccurred );
-    std::cerr << "WARNING > Check after iteration loop: found " << numUnderTot
-              << "underflow lanes." << std::endl;
+    std::cerr << "WARNING > Check after iteration loop: found underflow in " 
+              << countMaskTrue<Real_v>( UnderflowOccurred ) << " lanes." << std::endl;
     // ReportConditionLanes(UnderflowOccurred, x, xnewB, hStep, htry);
   }
 #endif
@@ -1155,11 +1099,9 @@ void RollingIntegrationDriver<T_Stepper, Nvar>::
 #ifdef DRIVER_PRINT_PROGRESS  
   if (partDebug)
     cout << "RollingIntDrv: KeepStepping - Loop done at iter = " << iter
-         << " with hdid = " << hdid
-         << "  last h = " << hStep
+         << " with hdid = " << hdid << "  last h = " << hStep
        //   << "  last good h = " << hStepLastGood
-         << " from htry= " << htry
-         << std::endl;
+         << " from htry= " << htry  << std::endl;
 #endif
   
   hStep = hFinal;

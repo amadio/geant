@@ -125,12 +125,14 @@ void TrialStats<Real_v>::Update(vecCore::Mask_v<Real_v> active,
 template <typename Real_v>
 void TrialStats<Real_v>::CheckSums() const
 {
+   using Index_v= vecCore::Index_v<Real_v>;
+   
    // Ensure that each lane has the same 'Grand total' 
    //     of active ('Total'=good+bad) + inactive ('keep') steps
    //     summed across the current buffer and the 'banked' sums.
    //
    auto  bigSum = fNumTotalSteps + fNumKeepSteps + fSumTotalSteps + fSumKeepSteps;
-   auto  checkLaneSum = ( bigSum == fNumUpdateCalls );
+   auto  checkLaneSum = ( bigSum == Index_v(fNumUpdateCalls) );
    if( ! vecCore::MaskFull (checkLaneSum ) ) {
       std::cerr << "TS::Update>  Error in lane Sums: Differences in " << !checkLaneSum << std::endl;
       std::cout << "TS::Update>  Error in lane Sums: Differences: " << std::endl;      

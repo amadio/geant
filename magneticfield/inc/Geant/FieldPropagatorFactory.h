@@ -32,7 +32,6 @@
 #include "Geant/FlexIntegrationDriver.h"
 #include "Geant/SimpleIntegrationDriver.h"
 
-#include "Geant/OldIntegrationDriver.h"
 #include "Geant/RollingIntegrationDriver.h"
 // #endif
 
@@ -251,7 +250,6 @@ template <typename Equation_t, typename Stepper_t>
   auto myStepper    = new Stepper_t(&equation);
 
   using DriverType  = SimpleIntegrationDriver<Stepper_t, Nposmom>;
-  // using DriverType = OldIntegrationDriver<StepperType, Nposmom>;
   // using DriverType = RollingIntegrationDriver<StepperType, Nposmom>;
   
   auto vectorDriver = new DriverType(minStepSize, myStepper, relEpsilonTolerance, Nposmom);
@@ -333,15 +331,6 @@ inline FlexIntegrationDriver* FieldPropagatorFactory::
                                      (minStepSize, myStepperCK5, relEpsilonTolerance, Nposmom );
         cout << methodName << ": created Cash Karp 4/5 (7 stage) stepper with Simple driver." << endl;        
         break;
-/******        
-       // Explicit request for alternative *Driver* type:  Old Driver (earlier iteration of Simple)
-     case kDormandPrince45StepperOldDriver:
-           myStepperDoPri5 = new StepperTypeDoPri457(gvEquation);
-           vectorDriver = new OldIntegrationDriver<StepperTypeDoPri457, Nposmom>
-                                  (minStepSize, myStepperDoPri5, relEpsilonTolerance, Nposmom);
-           cout << methodName << ": created Dormand Prince 4/5 (7 stage) stepper with Old Simple driver." << endl;
-        break;
-****/
        // Explicit request for alternative *Driver* type:   'Simple' Driver
      case kDormandPrince45StepperSimpleDriver:
            myStepperDoPri5 = new StepperTypeDoPri457(gvEquation);
