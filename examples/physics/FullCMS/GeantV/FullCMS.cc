@@ -34,7 +34,7 @@ geant::RunManager *RunManager();
 //
 // detector parameters
 std::string parDetGDMFile = ""; // i.e. default application values
-std::string parFieldFile = "";
+std::string parFieldFile  = "";
 //
 // primary generator parameters (primary particle gun)
 std::string parGunPrimaryParticleName = "";           // i.e. default application value
@@ -55,16 +55,15 @@ int parConfigVectorizedMSC      = 0;  // activate MSC basketizing
 int parConfigExternalLoop       = 0;  // activate external loop mode
 int parVerboseTracking          = 0;  // verbosity for *every* track
 
-int parConfigMonitoring         = 0;  // activate some monitoring
-int parConfigSingleTrackMode    = 0;  // activate single track mode
+int parConfigMonitoring      = 0; // activate some monitoring
+int parConfigSingleTrackMode = 0; // activate single track mode
 //
 // field configuration parameters
-int    parUseFieldMap     = 1;            // Activate magnetic field using field map
-int    parUseUniformField = 0;            // Activate uniform magnetic field
-double parFieldEpsRK      = 0.0003;       // Revised / reduced accuracy - vs. 0.0003 default
-int    parFieldBasketized = 0;            // basketize magnetic field
-int    parUseRungeKutta   = 0;
-float parFieldVector[3] = {0., 0., 2.}; // Constant field value
+int parFieldType        = 0;      // field type: 0-no field 1-constant field 2-field map
+double parFieldEpsRK    = 0.0003; // Revised / reduced accuracy - vs. 0.0003 default
+int parFieldBasketized  = 0;      // basketize magnetic field
+int parUseRungeKutta    = 0;
+float parFieldVector[3] = {0., 0., 38.}; // Constant field value [kiloGauss]
 
 //
 //
@@ -106,11 +105,11 @@ int main(int argc, char *argv[])
   cmsapp::CMSDetectorConstruction *det = new cmsapp::CMSDetectorConstruction(runMgr);
   SetupDetectorConstruction(det);
   runMgr->SetDetectorConstruction(det);
-  // 
+  //
   // Create field  construction  & Get field flags
   //  and activate integration of tracks in field
   SetupFieldConfig(runMgr);
-  
+
   //
   // Create primary generator
   cmsapp::CMSParticleGun *gun = new cmsapp::CMSParticleGun();
@@ -158,13 +157,12 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"config-single-track", required_argument, 0, 'y'},
                                   {"verbose-tracking", required_argument, 0, 'z'},
 
-                                  {"field-Map", required_argument, 0, 'E'},
-                                  {"field-uniform", required_argument, 0, 'U'},
+                                  {"field-type", required_argument, 0, 'E'},
                                   {"field-vector", required_argument, 0, 'F'},
                                   {"field-use-RK", required_argument, 0, 'G'},
                                   {"field-eps-RK", required_argument, 0, 'I'},
-                                  {"field-basketized", required_argument, 0, 'J'},                          
-                                  
+                                  {"field-basketized", required_argument, 0, 'J'},
+
                                   {"help", no_argument, 0, 'h'},
                                   {0, 0, 0, 0}};
 
@@ -248,7 +246,7 @@ void GetArguments(int argc, char *argv[])
     case 'f':
       parFieldFile = optarg;
       break;
-      
+
     //---- Run configuration
     case 'm':
       parConfigNumBufferedEvt = (int)strtol(optarg, NULL, 10);
@@ -288,16 +286,12 @@ void GetArguments(int argc, char *argv[])
       parConfigExternalLoop = (int)strtol(optarg, NULL, 10);
       break;
     case 'z':
-      parVerboseTracking    = (int)strtol(optarg, NULL, 10);
-      // std::cout << "  Argument read: VerboseTracking = " << parVerboseTracking << std::endl;      
-      break;      
+      parVerboseTracking = (int)strtol(optarg, NULL, 10);
+      // std::cout << "  Argument read: VerboseTracking = " << parVerboseTracking << std::endl;
+      break;
     //---- Field
     case 'E':
-      parUseFieldMap = (int)strtol(optarg, NULL, 10);
-      break;
-    case 'U':
-      parUseUniformField = (int)strtol(optarg, NULL, 10);
-      std::cout << " Recognised Uniform Field argument. " << std::endl;
+      parFieldType = (int)strtol(optarg, NULL, 10);
       break;
     case 'F': // field direction sub-optarg
       subopts = optarg;
@@ -346,11 +340,9 @@ geant::RunManager *RunManager()
   // create the GeantConfiguration object and the RunManager object
   geant::GeantConfig *runConfig = new geant::GeantConfig();
   std::cout << " Instantiation RunManager with : \n"
-            << "    # Threads     = " << parConfigNumThreads  << std::endl
+            << "    # Threads     = " << parConfigNumThreads << std::endl
             << "    # Propagators = " << parConfigNumPropagators << std::endl;
-  geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators,
-                                                        parConfigNumThreads,
-                                                        runConfig);
+  geant::RunManager *runManager = new geant::RunManager(parConfigNumPropagators, parConfigNumThreads, runConfig);
   //
   // Set parameters of the GeantConfig object:
   runConfig->fNtotal = parConfigNumRunEvt;
@@ -395,58 +387,53 @@ void SetupDetectorConstruction(cmsapp::CMSDetectorConstruction *det)
 
 void SetupFieldConfig(geant::RunManager *runMgr)
 {
-  geant::cxx::UserFieldConstruction *fieldCtion= nullptr;
-  auto config = runMgr->GetConfig();
-
-  std::cout << " -SetupFieldConfig() called with parameters : "
-            << " : UseUniformField = " << parUseUniformField 
-            << "   UseFieldMap = "     << parUseFieldMap << std::endl;
-
-  bool useUniformField = (parUseUniformField != 0);
-  bool useFieldMap =     (parUseFieldMap != 0);  
-
-  std::cout << " -SetupFieldConfig()  Debug: useFieldMap = " << useFieldMap << std::endl;
-  
-  bool fieldActive = useFieldMap || useUniformField;
-  
-  config->fUseRungeKutta = parUseFieldMap || ( parUseUniformField && parUseRungeKutta );
-     // Only Runge-Kutta can work with varying field (for now at least).
-
-  assert( ! ( useUniformField &&  useFieldMap ) );
-  
-  if ( useFieldMap )
-  {
-     std::cout << "Creating Field from sampled CMS field map ... " << std::endl;
-     auto cmsFieldCtion = new /* cmsapp:: */ CMSFieldConstruction();
-     if( parFieldFile!="") cmsFieldCtion->SetFileForField(parFieldFile);
-     fieldCtion = cmsFieldCtion;
+  geant::cxx::UserFieldConstruction *fieldCtion = nullptr;
+  auto config                                   = runMgr->GetConfig();
+  bool useField                                 = false;
+  std::cout << "=== Field type: ";
+  switch (parFieldType) {
+  case 0:
+    std::cout << "no magnetic field\n";
+    break;
+  case 1:
+    std::cout << "uniform magnetic field of (" << parFieldVector[0] << ", " << parFieldVector[1] << ", "
+              << parFieldVector[2] << ") kilogauss\n";
+    useField = true;
+    {
+      // fieldCtion = new CMSFieldConstruction(useUniformField);  // Default value
+      auto uniformFldCtion = new geant::UserFieldConstruction();
+      uniformFldCtion->UseConstantMagField(parFieldVector, "kilogauss");
+      fieldCtion = uniformFldCtion;
+    }
+    break;
+  case 2:
+    std::cout << "field from sampled CMS field map\n";
+    useField = true;
+    {
+      auto cmsFieldCtion = new CMSFieldConstruction();
+      if (parFieldFile != "") cmsFieldCtion->SetFileForField(parFieldFile);
+      fieldCtion = cmsFieldCtion;
+    }
+    break;
+  default:
+    std::cout << "Unknown field option. Defaulting to no field.\n";
+    parFieldType = 0;
   }
-  else if ( useUniformField )
-  {
-     std::cout << "Creating Unifom Field ... " << std::endl;     
-     // fieldCtion = new CMSFieldConstruction(useUniformField);  // Default value
-     auto uniformFldCtion= new geant::UserFieldConstruction();
-     float fieldValue[] = { 0.0, 0.0, 3.8 };
-     uniformFldCtion->UseConstantMagField( fieldValue, "tesla");
-     fieldCtion = uniformFldCtion;
-  } else {
-     std::cout << "No Magnetic Field set ... " << std::endl;
-  }
+
+  config->fUseRungeKutta = parUseRungeKutta;
+
   runMgr->SetUserFieldConstruction(fieldCtion);
 
-  if (fieldActive) {
+  if (useField) {
     // Create magnetic field and needed classes for trajectory integration
     config->fEpsilonRK          = parFieldEpsRK;
     config->fUseVectorizedField = parFieldBasketized;
-                                       
     if (parFieldBasketized == 2) config->fUseSDField = true;
-
-    printf("main: Created magnetic field and set up field-propagation.\n");
+    std::cout << "=== Created magnetic field and set up field-propagation.\n";
   } else {
     config->fUseVectorizedField = false;
-    printf("main: no magnetic field configured.\n");
-     
-    runMgr->SetUserFieldConstruction(nullptr);    
+    std::cout << "=== No magnetic field configured.\n";
+    runMgr->SetUserFieldConstruction(nullptr);
   }
 }
 

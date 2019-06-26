@@ -27,7 +27,7 @@ $EX_BUILD_DIR/bin/examples/FullCMS/GeantV/FullCMS \
   --config-tracks-per-basket               16           "# default number of tracks per basket" \
   --field-basketized                        1           "# use baskets and vectors for field propoagation " \
 "### magnetic field configuration:"\
-  --field-uniform                           1           "# enable Uniform magnetic field"  \
+  --field-type                              1           "# enable Uniform magnetic field"  \
   --field-use-RK                            0           "# enable Runge Kutta - 0 = off,  1 = on "
 
 ## --gun-set-primary-direction  x=0.1,y=0.9,z=0.1        "# primary particle direction(will be normalized)"\

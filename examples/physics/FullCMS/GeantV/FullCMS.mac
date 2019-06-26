@@ -7,15 +7,16 @@
 ###
 ./FullCMS \
 "### detector parameters:"\
-  --det-set-gdml                           cms2018.gdml "# gdml file "\
+  --det-set-gdml                 cms2018.gdml           "# gdml file "\
+  --det-set-field         cmsmagfield2015.txt           "# field map file"\
 "### primary particle generation parameters:"\
   --gun-set-primary-energy                 10           "# kinetic energy of the primary particle [in GeV]"\
   --gun-set-primary-type                   e-           "# primary particle name/type"\
   --gun-set-primary-per-event              16           "# number of primary particles per event"\
 "###  --gun-set-primary-direction  x=0.1,y=0.9,z=0.1"   "# primary particle direction(will be normalized)"\
-"### field configuration parameters:  (not activated)"\
-  --field-uniform                           1           "# choose uniform field"\
-  --field-vector                x=0.,y=0,z=40           "# constant field vector [kilogauss]"\
+"### field configuration parameters:"\
+  --field-type                              0           "# choose uniform field"\
+  --field-vector                 x=0,y=0,z=38           "# constant field vector [kilogauss]"\
   --field-use-RK                            1           "# use Runge-Kutta propagator"\
   --field-eps-RK                       0.0003           "# RK tolerance error"\
   --field-basketized                        0           "# basketized geometry"\

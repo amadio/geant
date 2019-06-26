@@ -25,6 +25,6 @@ $EX_BUILD_DIR/bin/examples/FullCMS/GeantV/FullCMS \
   --config-tracks-per-basket               16           "# default number of tracks per basket" \
   --field-basketized                        0           "# use baskets and vectors for field propoagation " \
 "### magnetic field configuration:"\
-  --field-active                            0           "# enable magnetic field"
+  --field-type                              0           "# enable magnetic field"
 
 ## --gun-set-primary-direction  x=0.1,y=0.9,z=0.1        "# primary particle direction(will be normalized)"\

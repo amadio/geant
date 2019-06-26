@@ -86,21 +86,23 @@ as default in the equivalent 'full-cms' Geant4 application.
 - MAGNETIC FIELD 
 -------------------------
 
-One can activate and set a constant magnetic field by first providing value 1 
+One can activate a given magnetic field type:
 
-  --field-active  1/0    
+  --field-type  0/1/2         ===> no field/ constant field / field map
 
 field activation input argument. Then one can set the constant field vector by using the 
       
-  --field-vector   x=<value>,y=<value>,z=<value>  
+  --field-vector   x=<value>,y=<value>,z=<value>  # kilogauss
+
+In case a field map is used, one has to specify the path to the field map file:
+
+  --det-set-field     path_to/cmsmagfield2015.txt
 
 An example is provided in the TestEm3_GV_magField.mac script file. Further options related to 
 magnetic field propagation:    
 
   --field-use-RK      1/0      ==>  do/don't use Runge-Kutta integration instead of helix
   --field-eps-RK      <value>  ==>  required accuracy in the field integration
-  --field-basketized  1/0      ==>  do/don/t basketize for magnetic field propagation
-
 
 -------------------------
 - RUN CONFIGURATION
@@ -149,6 +151,23 @@ The simulation can be executed in "performance" mode by setting the
 
 input argument to 1. User actions are not invoked (early returns) in this
 case. Therefore, there is no any scoring in this case.
+
+The application can be configured to run in single track mode. In this case, instead of
+basketizing tracks for every stage, each particle will execute all stages one
+after other, emulating Geant4 stepping.
+
+  --config-single-track    0           ==> flag to activate single track mode
+
+The application can run controlled by an event loop outside the GeantV framework
+
+  --config-external-loop   1           ==> flag to run the application in external loop mode
+
+Different simulation stages can run in basket or scalar mode
+  
+  --config-vectorized-geom    1/0      ==> flag to activate vectorized geometry
+  --config-vectorized-physics 1/0      ==> flag to activate vectorized physics
+  --config-vectorized-MSC     1/0      ==> flag to activate vectorized MSC
+  --field-basketized          1/0      ==> do/don't basketize for magnetic field propagation
 
 
 -------------------------
