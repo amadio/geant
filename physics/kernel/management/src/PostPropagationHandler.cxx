@@ -53,7 +53,10 @@ void PostPropagationHandler::DoIt(geant::Track *track, geant::Basket &output, ge
   // Particles have been propagated by the geometrical step and after the msc AlongStepDoIt this geometrical step
   // is converted back to true step length. Time and number of interaction left must be updated by using this true
   // path length (that have been written into fStep by msc).
-  track->IncreaseTime(track->TimeStep(track->GetStep()));
+  
+  // POSTPONE the time step to the stepping actions (AG June 28. 2019)
+  // track->IncreaseTime(track->TimeStep(track->GetStep()));
+  
   // NOTE: we should save the previous step length in the Track and update this in the process or
   // in the process manager per particle only for the discrete processes BUT FOR THAT WE NEED TO SAVE the previous
   // step and we do it in the next step

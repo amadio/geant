@@ -111,7 +111,10 @@ geant::Handler *PostPropagationVectorStage::Select(geant::Track *track, geant::T
     //
     // True path length is identical to the geometrical one so update time and number of interaction left
     // here based on fSnext
-    track->IncreaseTime(track->TimeStep(track->GetStep()));
+
+    // POSTPONE the time step to the stepping actions (AG June 28. 2019)
+    //track->IncreaseTime(track->TimeStep(track->GetStep()));
+
     // NOTE: we should save the previous step length in the Track and update this in the process or
     // in the process manager per particle only for the discrete processes BUT FOR THAT WE NEED TO SAVE the previous
     // step and we do it in the next step

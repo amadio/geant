@@ -31,7 +31,11 @@ void SteppingActionsHandler::DoIt(Track *track, Basket &output, TaskData *td)
 {
   // Invoke scalar handling. Users may change the fate of the track by changing the fStage field.
   // If track made too many steps, deposit all kinetic energy and kill it
-  if (track->Status() != kNew) track->IncrementNsteps();
+  if (track->Status() != kNew) {
+    track->IncrementNsteps();
+    // Update the track time with the time step
+    track->IncreaseTime(track->TimeStep(track->GetStep()));
+  }
   if (track->GetNsteps() > fPropagator->fConfig->fNstepsKillThr) {
     Error("SteppingActions",
           "track %d from event %d looping -> killing it. Momentum = %7.4g , type = %d, parent = %d  primary= %d",
