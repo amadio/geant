@@ -48,6 +48,9 @@ int parConfigNumRunEvt          = 10; // total number of events to be transporte
 int parConfigNumThreads         = 1;  // number of working threads
 int parConfigNumPropagators     = 1;  // number of propagators per working threads
 int parConfigNumTracksPerBasket = 16; // default number of tracks per basket
+int parConfigBsizeFLD           = 0;  // default basket size for field propagator
+int parConfigBsizeMSC           = 0;  // default basket size for MSC
+int parConfigBsizePHY           = 0;  // default basket size for physics
 int parConfigIsPerformance      = 0;  // run without any user actions
 int parConfigVectorizedGeom     = 0;  // activate geometry basketizing
 int parConfigVectorizedPhysics  = 0;  // activate physics basketizing
@@ -148,6 +151,9 @@ static struct option options[] = {{"gun-set-primary-energy", required_argument, 
                                   {"config-number-of-threads", required_argument, 0, 'p'},
                                   {"config-number-of-propagators", required_argument, 0, 'q'},
                                   {"config-tracks-per-basket", required_argument, 0, 'r'},
+                                  {"config-basket-fld", required_argument, 0, 'g'},
+                                  {"config-basket-msc", required_argument, 0, 'i'},
+                                  {"config-basket-phy", required_argument, 0, 'j'},
                                   {"config-run-performance", required_argument, 0, 's'},
                                   {"config-vectorized-geom", required_argument, 0, 't'},
                                   {"config-external-loop", required_argument, 0, 'u'},
@@ -248,6 +254,15 @@ void GetArguments(int argc, char *argv[])
       break;
 
     //---- Run configuration
+    case 'g':
+      parConfigBsizeFLD = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'i':
+      parConfigBsizeMSC = (int)strtol(optarg, NULL, 10);
+      break;
+    case 'j':
+      parConfigBsizePHY = (int)strtol(optarg, NULL, 10);
+      break;
     case 'm':
       parConfigNumBufferedEvt = (int)strtol(optarg, NULL, 10);
       break;
@@ -364,9 +379,11 @@ geant::RunManager *RunManager()
   if (parConfigVectorizedGeom == 2) runConfig->fUseSDGeom = true;
 
   runConfig->fUseVectorizedPhysics = parConfigVectorizedPhysics;
+  runConfig->fNvecPHY = parConfigBsizePHY;
   if (parConfigVectorizedPhysics == 2) runConfig->fUseSDPhysics = true;
 
   runConfig->fUseVectorizedMSC = parConfigVectorizedMSC;
+  runConfig->fNvecMSC = parConfigBsizeMSC;
   if (parConfigVectorizedMSC == 2) runConfig->fUseSDMSC = true;
 
   // create the real physics main manager/interface object and set it in the RunManager
@@ -428,6 +445,7 @@ void SetupFieldConfig(geant::RunManager *runMgr)
     // Create magnetic field and needed classes for trajectory integration
     config->fEpsilonRK          = parFieldEpsRK;
     config->fUseVectorizedField = parFieldBasketized;
+    config->fNvecFLD = parConfigBsizeFLD;
     if (parFieldBasketized == 2) config->fUseSDField = true;
     std::cout << "=== Created magnetic field and set up field-propagation.\n";
   } else {

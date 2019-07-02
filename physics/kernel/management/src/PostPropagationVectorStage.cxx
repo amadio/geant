@@ -59,7 +59,9 @@ geant::SimulationStage *PostPropagationVectorStage::Clone() const
 
 int PostPropagationVectorStage::CreateHandlers()
 {
-  int threshold = fPropagator->fConfig->fNperBasket;
+  int threshold    = fPropagator->fConfig->fNperBasket;
+  int mscthreshold = (fPropagator->fConfig->fNvecMSC > 0) ? fPropagator->fConfig->fNvecMSC : threshold;
+  geant::Print("", "=== using baskets of size %d for MSC", mscthreshold);
 
   auto &modelTable = geantphysics::EMModel::GetGlobalTable();
   int modelsAdded  = 0;
@@ -69,7 +71,7 @@ int PostPropagationVectorStage::CreateHandlers()
       fHandlersPerModel.push_back(nullptr);
       continue;
     }
-    auto handler = new PostPropagationVectorHandler(threshold, fPropagator, m);
+    auto handler = new PostPropagationVectorHandler(mscthreshold, fPropagator, m);
     handler->SetScalarDispatch(fPropagator->fConfig->fUseSDMSC);
     handler->SetMayBasketize(modelTable[m]->IsBasketizable());
     handler->SetLocal(bool(fLocalHandlers & geantphysics::kMSC));

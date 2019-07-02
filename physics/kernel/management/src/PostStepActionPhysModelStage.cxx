@@ -63,7 +63,9 @@ geant::SimulationStage *PostStepActionPhysModelStage::Clone() const
 
 int PostStepActionPhysModelStage::CreateHandlers()
 {
-  int threshold = fPropagator->fConfig->fNperBasket;
+  int threshold     = fPropagator->fConfig->fNperBasket;
+  int physthreshold = (fPropagator->fConfig->fNvecPHY > 0) ? fPropagator->fConfig->fNvecPHY : threshold;
+  geant::Print("", "=== using baskets of size %d for physics", physthreshold);
 
   auto &modelTable = geantphysics::EMModel::GetGlobalTable();
   int modelsAdded  = 0;
@@ -73,7 +75,7 @@ int PostStepActionPhysModelStage::CreateHandlers()
       fHandlersPerModel.push_back(nullptr);
       continue;
     }
-    auto handler = new PostStepActionPhysModelHandler(threshold, fPropagator, m);
+    auto handler = new PostStepActionPhysModelHandler(physthreshold, fPropagator, m);
     handler->SetMayBasketize(modelTable[m]->IsBasketizable());
     handler->SetScalarDispatch(fPropagator->fConfig->fUseSDPhysics);
     fHandlersPerModel.push_back(handler);

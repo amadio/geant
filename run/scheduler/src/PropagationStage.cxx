@@ -46,8 +46,10 @@ int PropagationStage::CreateHandlers()
 {
   // Create all volume handlers.
   int threshold                     = fPropagator->fConfig->fNperBasket;
+  int fldthreshold                  = (fPropagator->fConfig->fNvecFLD > 0) ? fPropagator->fConfig->fNvecFLD : threshold;
+  geant::Print("", "=== using baskets of size %d for field", fldthreshold);
   LinearPropagationHandler *hlinear = new LinearPropagationHandler(threshold, fPropagator);
-  FieldPropagationHandler *hfield   = new FieldPropagationHandler(threshold, fPropagator);
+  FieldPropagationHandler *hfield   = new FieldPropagationHandler(fldthreshold, fPropagator);
   hlinear->SetMayBasketize(false);
   hlinear->SetLocal(bool(fLocalHandlers & kLinearPropagator));
   if (fPropagator->fConfig->fUseSDField) Printf("=== Field propagation using scalar dispatch for baskets\n");

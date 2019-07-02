@@ -50,9 +50,10 @@ geant::SimulationStage *PostPropagationStage::Clone() const
 
 int PostPropagationStage::CreateHandlers()
 {
-  int threshold = fPropagator->fConfig->fNperBasket;
+  int threshold    = fPropagator->fConfig->fNperBasket;
+  int mscthreshold = (fPropagator->fConfig->fNvecMSC > 0) ? fPropagator->fConfig->fNvecMSC : threshold;
   // create the only one handler
-  auto h = AddHandler(new PostPropagationHandler(threshold, fPropagator));
+  auto h = AddHandler(new PostPropagationHandler(mscthreshold, fPropagator));
   h->SetScalarDispatch(fPropagator->fConfig->fUseSDMSC);
   // only one handler is created
   return 1;

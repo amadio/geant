@@ -51,9 +51,10 @@ geant::SimulationStage *PostStepActionStage::Clone() const
 
 int PostStepActionStage::CreateHandlers()
 {
-  int threshold = fPropagator->fConfig->fNperBasket;
+  int threshold     = fPropagator->fConfig->fNperBasket;
+  int physthreshold = (fPropagator->fConfig->fNvecPHY > 0) ? fPropagator->fConfig->fNvecPHY : threshold;
   // create the only one handler
-  AddHandler(new PostStepActionHandler(threshold, fPropagator));
+  AddHandler(new PostStepActionHandler(physthreshold, fPropagator));
   // only one handler is created
   return 1;
 }

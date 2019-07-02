@@ -35,3 +35,6 @@
   --config-single-track                     0           "# flag to activate single track mode"\
 "### basket related parameters:"\
   --config-tracks-per-basket               16           "# default number of tracks per basket"\
+  --config-basket-fld                       0           "# basket size for field"\
+  --config-basket-msc                       0           "# basket size for MSC"\
+  --config-basket-phy                       0           "# basket size for physics"

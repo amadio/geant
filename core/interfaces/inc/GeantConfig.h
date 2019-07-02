@@ -44,7 +44,10 @@ public:
   int fDebugStp      = -1;         /** Step to start debugging */
   int fDebugRep      = -1;         /** Number of steps to debug */
   int fMaxSteps      = 10000;      /** Maximum number of steps per track */
-  int fNperBasket    = 16;         /** Number of tracks per basket */
+  int fNperBasket    = 16;         /** Default number of tracks per basket */
+  int fNvecMSC       = 0;          /** Basket size for MSC (0 = use default threshold)*/
+  int fNvecFLD       = 0;          /** Basket size for field propagation (0 = use default threshold)*/
+  int fNvecPHY       = 0;          /** Basket size for physics (0 = use default threshold)*/
   int fMaxPerBasket  = 256;        /** Maximum number of tracks per basket */
   int fMaxPerEvent   = 0;          /** Maximum number of tracks per event */
   int fMaxDepth      = 0;          /** Maximum geometry depth */
