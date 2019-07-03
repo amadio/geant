@@ -136,9 +136,7 @@ install(TARGETS testScalarIntegrationDriver DESTINATION bin/tests/${RelativeCurr
 #----------------------------------------------------------------------------------------------
 # Copy the datafile to the bin directory
 #
-# configure_file(${CMAKE_SOURCE_DIR}/examples/magneticfield/simplifiedCMS/cmsmagfield2015.txt
-#                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmsmagfield2015.txt COPYONLY)
-configure_file(${CMAKE_SOURCE_DIR}/examples/physics/FullCMS/GeantV/cmsmagfield2015.txt 
+configure_file(${CMAKE_SOURCE_DIR}/data/cmsmagfield2015.txt 
                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/cmsmagfield2015.txt COPYONLY)
 
 #----------------------------------------------------------------------------------------------

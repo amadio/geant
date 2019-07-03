@@ -10,11 +10,14 @@ GUN_PRIMARY_TYPE="e-"
 GUN_PRIMARY_ENERGY=100 #GeV
 
 ### Field
-FIELD_ACTIVE=1
+FIELD_TYPE=2
 FIELD_USE_RK=1
 
 ### Configuration
 CONFIG_THREADS=$6
+if [ x"$CONFIG_THREADS" == x ]; then
+CONFIG_THREADS=1
+fi
 if [ x"$RUN_VALGRIND" != x ]; then
 CONFIG_EVENTS=1
 else
@@ -26,6 +29,11 @@ CONFIG_BASKETIZED_FIELD=$2
 CONFIG_BASKETIZED_PHYSICS=$3
 CONFIG_BASKETIZED_GEOM=$4
 CONFIG_BASKETIZED_MSC=$5
+# the following are currently hardcoded, but could be exposed as input
+# Basket size for different stages
+CONFIG_BASKET_FLD=512
+CONFIG_BASKET_MSC=256
+CONFIG_BASKET_PHY=64
 
 export GEANT_PHYSICS_DATA=@CMAKE_SOURCE_DIR@/physics/data
 INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
@@ -33,6 +41,9 @@ PATH="./${PATH}"
 
 ### Geometry file used
 CMS_GDML="@CMAKE_INSTALL_PREFIX@/bin/examples/FullCMS/GeantV/cms2018.gdml"
+### Field map used
+CMS_FIELD="@CMAKE_INSTALL_PREFIX@/bin/examples/FullCMS/GeantV/cmsmagfield2015.txt"
+
 ### Executables
 GEANTV_EXEC=$INSTALLATION_PATH/bin/examples/FullCMS/GeantV/FullCMS
 ### Benchmark config and output
@@ -57,7 +68,7 @@ echo "    - number of threads:   $CONFIG_THREADS"
 echo "    - number of events:    $CONFIG_EVENTS"
 echo "    - primaries per event: $CONFIG_PRIMARIES"
 echo "    - performance mode:    $CONFIG_PERFORMANCE"
-echo "    - field present:       $FIELD_ACTIVE"
+echo "    - field type:          $FIELD_TYPE"
 echo "    - field Runge-Kutta:   $FIELD_USE_RK"
 echo "    - basketized field:    $CONFIG_BASKETIZED_FIELD"
 echo "    - basketized physics:  $CONFIG_BASKETIZED_PHYSICS"
@@ -73,16 +84,20 @@ for i in $(seq 1 $TRIES);
   do
     echo -ne " testing ${i} ..." '\r';
     stdbuf -o0 -e0 $GEANTV_EXEC --det-set-gdml ${CMS_GDML} \
+             --det-set-field ${CMS_FIELD} \
              --gun-set-primary-energy ${GUN_PRIMARY_ENERGY} \
              --gun-set-primary-type   ${GUN_PRIMARY_TYPE} \
              --gun-set-primary-per-event ${CONFIG_PRIMARIES} \
-             --config-number-of-buffered-events    8 \
+             --config-number-of-buffered-events    16 \
              --config-total-number-of-events ${CONFIG_EVENTS} \
              --config-number-of-threads ${CONFIG_THREADS} \
              --config-number-of-propagators 1 \
              --config-tracks-per-basket    32 \
-             --field-active ${FIELD_ACTIVE} \
-             --field-vector x=0.,y=0,z=40 \
+             --config-basket-fld ${CONFIG_BASKET_FLD} \
+             --config-basket-msc ${CONFIG_BASKET_MSC} \
+             --config-basket-phy ${CONFIG_BASKET_PHY} \
+             --field-type ${FIELD_TYPE} \
+             --field-vector x=0,y=0,z=38 \
              --field-use-RK ${FIELD_USE_RK} \
              --field-eps-RK 0.0003 \
              --field-basketized ${CONFIG_BASKETIZED_FIELD} \

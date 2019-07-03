@@ -15,7 +15,7 @@
   --gun-set-primary-per-event              16           "# number of primary particles per event"\
 "###  --gun-set-primary-direction  x=0.1,y=0.9,z=0.1"   "# primary particle direction(will be normalized)"\
 "### field configuration parameters:"\
-  --field-type                              0           "# choose uniform field"\
+  --field-type                              2           "# field type: 0-no field, 1-uniform field, 2- field map"\
   --field-vector                 x=0,y=0,z=38           "# constant field vector [kilogauss]"\
   --field-use-RK                            1           "# use Runge-Kutta propagator"\
   --field-eps-RK                       0.0003           "# RK tolerance error"\
@@ -25,7 +25,6 @@
   --config-total-number-of-events         100           "# total number of events to be simulated"\
   --config-number-of-threads                4           "# number of working threads to be used"\
   --config-number-of-propagators            1           "# number of propagators"\
-  --config-tracks-per-basket               16           "# default number of tracks per basket"\
   --config-run-performance                  1           "# flag to activate performance mode i.e. no scoring"\
   --config-vectorized-geom                  0           "# flag to activate vectorized geometry"\
   --config-vectorized-physics               0           "# flag to activate vectorized physics"\
@@ -35,6 +34,6 @@
   --config-single-track                     0           "# flag to activate single track mode"\
 "### basket related parameters:"\
   --config-tracks-per-basket               16           "# default number of tracks per basket"\
-  --config-basket-fld                       0           "# basket size for field"\
-  --config-basket-msc                       0           "# basket size for MSC"\
-  --config-basket-phy                       0           "# basket size for physics"
+  --config-basket-fld                     512           "# basket size for field"\
+  --config-basket-msc                     256           "# basket size for MSC"\
+  --config-basket-phy                      64           "# basket size for physics"

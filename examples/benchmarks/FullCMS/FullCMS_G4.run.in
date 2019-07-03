@@ -10,7 +10,7 @@ GUN_PRIMARY_TYPE="e-"
 GUN_PRIMARY_ENERGY=100 #GeV
 
 ### Field
-FIELD_ACTIVE=1
+FIELD_TYPE=2
 FIELD_USE_RK=1
 
 ### Configuration
@@ -23,6 +23,9 @@ INSTALLATION_PATH=@CMAKE_INSTALL_PREFIX@
 PATH="./${PATH}"
 ### Geometry file used
 CMS_GDML="@CMAKE_INSTALL_PREFIX@/bin/examples/FullCMS/GeantV/cms2018.gdml"
+### Field map used
+CMS_FIELD="@CMAKE_INSTALL_PREFIX@/bin/examples/FullCMS/GeantV/cmsmagfield2015.txt"
+ln -s $CMS_FIELD cmsmagfield2015.txt
 ### Executables
 GEANT4_EXEC=$INSTALLATION_PATH/bin/examples/FullCMS/Geant4/full_cms
 ### Benchmark config and output
@@ -38,7 +41,7 @@ echo "    - number of threads:   $CONFIG_THREADS"
 echo "    - number of events:    $CONFIG_EVENTS"
 echo "    - primaries per event: $CONFIG_PRIMARIES"
 echo "    - performance mode:    $CONFIG_PERFORMANCE"
-echo "    - field present:       $FIELD_ACTIVE"
+echo "    - field type:          $FIELD_TYPE"
 echo "    - field Runge-Kutta:   $FIELD_USE_RK"
 echo ""
 
@@ -63,13 +66,20 @@ cat >FullCMS_G4.mac <<EOL
 ## ---------------------------------------------------------------------
 EOL
 
-if [ "$FIELD_ACTIVE" = "1" ]; then
+if [ "$FIELD_TYPE" = "1" ]; then
+echo "=== Using constant field of 3.8 tesla"
 cat >>FullCMS_G4.mac <<EOL
-##/mydet/setField    0.0 tesla
-##
-/mydet/setField 4.0 tesla
+/mydet/setField 3.8 tesla
 ## /mydet/useFieldMap
 EOL
+elif [ "$FIELD_TYPE" = "2" ]; then
+echo "=== Using cms2015 magnetic field map"
+cat >>FullCMS_G4.mac <<EOL
+##/mydet/setField 3.8 tesla
+/mydet/useFieldMap true
+EOL
+else
+  echo "=== No magnetic field selected"
 fi
 
 cat >>FullCMS_G4.mac <<EOL

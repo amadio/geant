@@ -17,7 +17,7 @@ include_directories(
 )
 
 set(ExampleScripts FullCMS.mac README ${CMAKE_SOURCE_DIR}/data/cms2018.gdml
-                   cmsmagfield2015.txt )
+                   ${CMAKE_SOURCE_DIR}/data/cmsmagfield2015.txt )
 
 # Set to 2 or more to exclude from the default set
 set(ExampleCTestLevel 2)
