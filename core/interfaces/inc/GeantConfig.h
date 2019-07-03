@@ -67,7 +67,7 @@ public:
   double fEmax = 10;    /** Max energy threshold [GeV] */
   // double fBfieldMag = 0.0;   /** Magnitude of field in case of const field [kiloGauss] */
   double fEpsilonRK     = 3.e-4; /** Relative error in RK integration */
-  float fFireFlushRatio = 0.5;    /** Ratio fired/flush to trigger basketizing */
+  float fFireFlushRatio = 0.5;   /** Ratio fired/flush to trigger basketizing */
 
   bool fUsePhysics           = true;  /** Enable/disable physics */
   bool fUseRungeKutta        = false; /** Enable/disable Runge-Kutta integration in field */

@@ -45,8 +45,8 @@ VECCORE_ATT_HOST_DEVICE
 int PropagationStage::CreateHandlers()
 {
   // Create all volume handlers.
-  int threshold                     = fPropagator->fConfig->fNperBasket;
-  int fldthreshold                  = (fPropagator->fConfig->fNvecFLD > 0) ? fPropagator->fConfig->fNvecFLD : threshold;
+  int threshold    = fPropagator->fConfig->fNperBasket;
+  int fldthreshold = (fPropagator->fConfig->fNvecFLD > 0) ? fPropagator->fConfig->fNvecFLD : threshold;
   geant::Print("", "=== using baskets of size %d for field", fldthreshold);
   LinearPropagationHandler *hlinear = new LinearPropagationHandler(threshold, fPropagator);
   FieldPropagationHandler *hfield   = new FieldPropagationHandler(fldthreshold, fPropagator);

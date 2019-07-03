@@ -379,11 +379,11 @@ geant::RunManager *RunManager()
   if (parConfigVectorizedGeom == 2) runConfig->fUseSDGeom = true;
 
   runConfig->fUseVectorizedPhysics = parConfigVectorizedPhysics;
-  runConfig->fNvecPHY = parConfigBsizePHY;
+  runConfig->fNvecPHY              = parConfigBsizePHY;
   if (parConfigVectorizedPhysics == 2) runConfig->fUseSDPhysics = true;
 
   runConfig->fUseVectorizedMSC = parConfigVectorizedMSC;
-  runConfig->fNvecMSC = parConfigBsizeMSC;
+  runConfig->fNvecMSC          = parConfigBsizeMSC;
   if (parConfigVectorizedMSC == 2) runConfig->fUseSDMSC = true;
 
   // create the real physics main manager/interface object and set it in the RunManager
@@ -445,7 +445,7 @@ void SetupFieldConfig(geant::RunManager *runMgr)
     // Create magnetic field and needed classes for trajectory integration
     config->fEpsilonRK          = parFieldEpsRK;
     config->fUseVectorizedField = parFieldBasketized;
-    config->fNvecFLD = parConfigBsizeFLD;
+    config->fNvecFLD            = parConfigBsizeFLD;
     if (parFieldBasketized == 2) config->fUseSDField = true;
     std::cout << "=== Created magnetic field and set up field-propagation.\n";
   } else {

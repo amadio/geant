@@ -425,7 +425,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   if (useRungeKutta || !fieldConfig->IsFieldUniform()) {
     assert(fieldPropagator);
     fieldPropagator->DoStep(Position, Direction, track.Charge(), track.P(), crtstep, PositionNew, DirectionNew);
-    assert((PositionNew - Position).Mag() <=  crtstep + 1.e-8);
+    assert((PositionNew - Position).Mag() <= crtstep + 1.e-8);
 #ifdef DEBUG_FIELD
 // cross check
 #ifndef CHECK_VS_BZ
