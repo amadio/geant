@@ -35,7 +35,7 @@ using Double_v = geant::Double_v;
 // #define REPORT_AND_CHECK 1
 
 // #define STATS_METHODS 1
-#define DEBUG_FIELD 1
+// #define DEBUG_FIELD 1
 
 #ifdef CHECK_VS_HELIX
 #define CHECK_VS_SCALAR 1
