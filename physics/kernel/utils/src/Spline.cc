@@ -84,7 +84,7 @@ double Spline::GetValueAt(double val)
     auto low  = fXdata + fLowerm + 1; // fLowerm is usually -1
     auto high = fXdata + fUpperm;
     m         = std::lower_bound(low, high, val) - low;
-    m -= 1; // correction so result is the same as in previous version
+    if (m > 0) m -= 1; // correction so result is the same as in previous version
 
   } else { // x0 > x1 > x2, not used
     int ml, mu, mav;
