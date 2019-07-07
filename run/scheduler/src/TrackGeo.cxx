@@ -9,9 +9,6 @@
 #include "Geant/ScalarNavInterfaceVG.h"
 #include "Geant/ScalarNavInterfaceVGM.h"
 #include "Geant/VectorNavInterface.h"
-#include "navigation/VNavigator.h"
-#include "navigation/SimpleNavigator.h"
-#include "navigation/ABBoxNavigator.h"
 #include "volumes/PlacedVolume.h" // equivalent of TGeoNode
 #include "base/Vector3D.h"
 #include "base/Transformation3D.h"
@@ -259,5 +256,5 @@ int TrackGeo_v::AddTracks(TrackVec_t const &array)
   return fNtracks;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

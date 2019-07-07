@@ -31,7 +31,7 @@ public:
   ~VectorNavInterface() {}
 
   /**
-   * @brief Function for navigation that find next boundary and step
+   * @brief Function for navigation that find next boundary
    *
    * @param ntracks Number of tracks
    * @param pstep proposed steps
@@ -47,12 +47,6 @@ public:
    * @param safe Safety distances
    * @param isonbdr Boundary flags set if next boundaries closer than proposed steps
    */
-  VECCORE_ATT_HOST_DEVICE
-  static void NavFindNextBoundaryAndStep(int ntracks, const double *pstep, const double *x, const double *y,
-                                         const double *z, const double *dirx, const double *diry, const double *dirz,
-                                         const VolumePath_t **instate, VolumePath_t **outstate, double *step,
-                                         double *safe, bool *isonbdr);
-
   VECCORE_ATT_HOST_DEVICE
   static void NavFindNextBoundary(int ntracks, const double *pstep, const double *x, const double *y, const double *z,
                                   const double *dirx, const double *diry, const double *dirz,
@@ -77,7 +71,7 @@ public:
                                 const double *diry, const double *dirz, const VolumePath_t **start, VolumePath_t **end,
                                 bool *same, VolumePath_t *tmpstate);
 };
-} // GEANT_IMPL_NAMESPACE
+} // namespace GEANT_IMPL_NAMESPACE
 
 #ifdef GEANT_CUDA_ENABLED
 #ifdef VECCORE_CUDA
@@ -90,5 +84,5 @@ class VectorNavInterface;
 }
 #endif
 #endif
-} // Geant
+} // namespace geant
 #endif

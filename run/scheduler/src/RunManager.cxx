@@ -24,12 +24,11 @@
 #include "TSystem.h"
 #include "TApplication.h"
 #include "TCanvas.h"
+#include "TGeoManager.h"
 #include "management/RootGeoManager.h"
 #endif
 
 #include "navigation/VNavigator.h"
-#include "navigation/SimpleNavigator.h"
-#include "navigation/NewSimpleNavigator.h"
 #include "navigation/SimpleABBoxNavigator.h"
 #include "navigation/SimpleABBoxLevelLocator.h"
 #include "navigation/HybridNavigator2.h"

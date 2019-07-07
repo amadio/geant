@@ -14,7 +14,7 @@
 #include "Geant/MCTruthMgr.h"
 #include "Geant/StdApplication.h"
 
-#include "navigation/SimpleNavigator.h"
+#include "navigation/GlobalLocator.h"
 #include "volumes/PlacedVolume.h"
 #include "management/GeoManager.h"
 
@@ -154,9 +154,8 @@ bool EventServer::AddEvent(Event *event)
   // Volume_t *vol = 0;
   // Initialize the start path
   VolumePath_t *startpath = VolumePath_t::MakeInstance(fRunMgr->GetConfig()->fMaxDepth);
-  vecgeom::SimpleNavigator nav;
   startpath->Clear();
-  nav.LocatePoint(GeoManager::Instance().GetWorld(), vertex, *startpath, true);
+  vecgeom::GlobalLocator::LocateGlobalPoint(GeoManager::Instance().GetWorld(), vertex, *startpath, true);
 
   // Check and fix tracks
   for (int itr = 0; itr < ntracks; ++itr) {

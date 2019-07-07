@@ -7,7 +7,6 @@
 #include "Geant/RunManager.h"
 
 #include "navigation/VNavigator.h"
-#include "navigation/SimpleNavigator.h"
 #include "navigation/NewSimpleNavigator.h"
 #include "navigation/SimpleABBoxNavigator.h"
 #include "navigation/SimpleABBoxLevelLocator.h"
@@ -15,6 +14,7 @@
 #include "Geant/Material.h"
 #include "Geant/Element.h"
 #ifdef USE_ROOT
+#include "TGeoManager.h"
 #include "TGeoRegion.h"
 #include "management/RootGeoManager.h"
 #endif
@@ -108,12 +108,12 @@ int UserDetectorConstruction::ImportRegions()
     electronCut = positronCut = gammaCut = protonCut = -1.;
     // loop cuts for this region
     for (int icut = 0; icut < region_root->GetNcuts(); ++icut) {
-      std::string cutname                  = region_root->GetCut(icut)->GetName();
-      double cutvalue                      = region_root->GetCut(icut)->GetCut();
-      if (cutname == "gamcut") gammaCut    = cutvalue;
-      if (cutname == "ecut") electronCut   = cutvalue;
+      std::string cutname = region_root->GetCut(icut)->GetName();
+      double cutvalue     = region_root->GetCut(icut)->GetCut();
+      if (cutname == "gamcut") gammaCut = cutvalue;
+      if (cutname == "ecut") electronCut = cutvalue;
       if (cutname == "poscut") positronCut = cutvalue;
-      if (cutname == "pcut") protonCut     = cutvalue;
+      if (cutname == "pcut") protonCut = cutvalue;
     }
     Region *region = new Region(std::string(region_root->GetName()), gammaCut, electronCut, positronCut, protonCut);
     printf("Created region %s with: gammaCut = %g [cm], eleCut = %g [cm], posCut = %g [cm], protonCut = %g [cm]\n",
@@ -193,5 +193,5 @@ std::function<void *(TGeoMaterial const *)> UserDetectorConstruction::CreateMate
 }
 #endif
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
