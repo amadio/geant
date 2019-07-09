@@ -277,7 +277,7 @@ inline void GUTCashKarpRKF45<T_Equation, Nvar>::StepWithErrorEstimate(const doub
     yTemp2[i] = yIn[i] + b21 * Step * dydx[i];
   }
   // std::cout<<" just before rhs calculation " << std::endl;
-  RightHandSideInl(yTemp2, charge, ak2, Bfield2); // 2nd Step
+  RightHandSideInl(yTemp2, charge, ak2); // , Bfield2); // 2nd Step
   // PrintField("yTemp2", yTemp2, Bfield2);
   // PrintDyDx("ak2", ak2, yTemp2);
   // std::cout<<" 1 RHS calculating " << std::endl;
