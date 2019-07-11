@@ -265,7 +265,7 @@ void LHCbFullApp::SteppingActions(geant::Track &track, geant::TaskData *td)
     hit->fY     = track.Y();
     hit->fZ     = track.Z();
     hit->fEdep  = 1000 * track.Edep();
-    hit->fTime  = track.Time();
+    hit->fTime  = track.GlobalTime();
     hit->fEvent = track.Event();
     hit->fTrack = track.Particle();
     hit->fVolId = ivol;
@@ -419,4 +419,4 @@ void LHCbFullApp::FinishRun()
   std::cout.setf(mode, std::ios::floatfield);
   std::cout.precision(prec);
 }
-}
+} // namespace lhcbapp

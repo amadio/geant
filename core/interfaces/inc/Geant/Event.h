@@ -30,6 +30,7 @@ class Event {
 
 private:
   vecgeom::Vector3D<double> fVertex; /** Vertex position */
+  double fTime       = 0.;           /** Global event time */
   bool fPrioritize   = false;        /** Prioritize this event */
   bool fTransported  = false;        /** Event transported */
   float fPriorityThr = 0.01;         /** Priority threshold in percent of max in flight */
@@ -92,6 +93,14 @@ public:
     fNprimaries = nprim;
     fPrimaries.reserve(nprim);
   }
+
+  /** @brief Function for setting the event global time. */
+  GEANT_FORCE_INLINE
+  void SetTime(double time) { fTime = time; }
+
+  /** @brief Function to get the event global time. */
+  GEANT_FORCE_INLINE
+  double GetTime() const { return fTime; }
 
   /** @brief Function that returns the event vertex */
   GEANT_FORCE_INLINE
@@ -204,7 +213,7 @@ public:
   virtual void FinalActions() {}
 };
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant
 
 #endif

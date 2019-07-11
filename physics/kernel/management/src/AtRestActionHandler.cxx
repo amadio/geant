@@ -116,7 +116,7 @@ void AtRestActionHandler::DoIt(geant::Track *track, geant::Basket &output, geant
       double secEkin = secLt[isec].GetKinE();
       geantTrack.SetP(std::sqrt(secEkin * (secEkin + 2.0 * geantTrack.Mass()))); // momentum of this secondadry particle
       geantTrack.SetEkin(secEkin);                                               // total E of this secondary particle
-      geantTrack.SetTime(track->Time());                                         // global time
+      geantTrack.SetGlobalTime(track->GlobalTime());                             // global time
       geantTrack.SetSafety(track->GetSafety());
       geantTrack.SetBoundary(track->Boundary());
       geantTrack.SetPath(track->Path());

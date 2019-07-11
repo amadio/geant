@@ -40,6 +40,8 @@ void PreStepHandler::DoIt(Track *track, Basket &output, TaskData *td)
     // Set the status to "in flight"
     track->SetStatus(kInFlight);
     track->SetPrePropagationDone(false);
+    track->SetPreStepVelocity(track->Velocity());
+    assert(track->PreStepVelocity() > 0);
   }
   // Copy to output
   output.AddTrack(track);

@@ -29,8 +29,9 @@
 
 class StepperFactory {
 public:
-  static const unsigned int Nposmom   = 6; // Position 3-vec + Momentum 3-vec
-  static const int DefaultStepperCode = 5; // Cash Karp
+  static const unsigned int Nposmom = 6;   // Position 3-vec + Momentum 3-vec
+                                           //  static const int DefaultStepperCode = 5; // Cash Karp
+  static const int DefaultStepperCode = 6; // Dormand Prince
 
   /**
    * @brief Track parametrized constructor
@@ -51,13 +52,13 @@ VScalarIntegrationStepper *StepperFactory::CreateStepper(EquationType *equation,
 {
   VScalarIntegrationStepper *stepper; // , *exactStepper;
 
-  const char *stepperName             = 0;
-  const char *const NameSimpleRunge   = "TSimpleRunge";
-  const char *const NameClassicalRK4  = "TClassicalRK4";
-  const char *const NameCashKarpRKF45 = "TCashKarpRKF45";
-  const char *const NameDormandPrinceRK45 = "TDormandPrinceRK45";  
+  const char *stepperName                 = 0;
+  const char *const NameSimpleRunge       = "TSimpleRunge";
+  const char *const NameClassicalRK4      = "TClassicalRK4";
+  const char *const NameCashKarpRKF45     = "TCashKarpRKF45";
+  const char *const NameDormandPrinceRK45 = "TDormandPrinceRK45";
 
-  int MaxStepperCode = 5;
+  int MaxStepperCode = 6;
 
   if ((StepperCode <= 0) || (StepperCode > MaxStepperCode) || (StepperCode == 2) // Missing in range  min - max
       || (StepperCode == 3))
@@ -71,23 +72,26 @@ VScalarIntegrationStepper *StepperFactory::CreateStepper(EquationType *equation,
   // case 2: stepper = new G4SimpleHeum(equation);   break;
   // case 3: stepper = new BogackiShampine23(equation); break;
   case 4:
-    stepper     = new TClassicalRK4<EquationType, Nposmom>(equation);
-    if( verbose ) std::cout << "StepperFactory: Created a stepper of type TClassicalRK4 <Equation, N="
-                            << Nposmom << ">." << std::endl;    
+    stepper = new TClassicalRK4<EquationType, Nposmom>(equation);
+    if (verbose)
+      std::cout << "StepperFactory: Created a stepper of type TClassicalRK4 <Equation, N=" << Nposmom << ">."
+                << std::endl;
     stepperName = NameClassicalRK4;
     break;
   case 5:
-    stepper     = new GUTCashKarpRKF45<EquationType, Nposmom>(equation);
-    if( verbose ) std::cout << "StepperFactory: Created a stepper of type GUTCashKarpRKF45 <Equation, N="
-                            << Nposmom << ">." << std::endl;
+    stepper = new GUTCashKarpRKF45<EquationType, Nposmom>(equation);
+    if (verbose)
+      std::cout << "StepperFactory: Created a stepper of type GUTCashKarpRKF45 <Equation, N=" << Nposmom << ">."
+                << std::endl;
     stepperName = NameCashKarpRKF45;
     break;
   case 6:
-    stepper     = new GUTDormandPrinceRK45<EquationType, Nposmom>(equation);
-    if( verbose ) std::cout << "StepperFactory: Created a stepper of type GUTDormandPrinceRK45 <Equation, N="
-                            << Nposmom << ">." << std::endl;
+    stepper = new GUTDormandPrinceRK45<EquationType, Nposmom>(equation);
+    if (verbose)
+      std::cout << "StepperFactory: Created a stepper of type GUTDormandPrinceRK45 <Equation, N=" << Nposmom << ">."
+                << std::endl;
     stepperName = NameDormandPrinceRK45;
-    break;    
+    break;
   default:
     stepper = (VScalarIntegrationStepper *)0;
     std::cerr << " ERROR> StepperFactory: No stepper selected. " << std::endl;

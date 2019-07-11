@@ -35,7 +35,7 @@ gtrack.fMother, gtrack.fE, gtrack.fPDG, gtrack.fXpos, gtrack.fYpos, gtrack.fZpos
     part->fXpos      = gtrack.X();
     part->fYpos      = gtrack.Y();
     part->fZpos      = gtrack.Z();
-    part->fTime      = gtrack.Time();
+    part->fTime      = gtrack.GlobalTime();
     part->fE         = gtrack.E();
     part->has_end    = false;
 
@@ -65,7 +65,7 @@ void MCTruthMgr::EndTrack(Track *track)
       current_particle->fXend   = track->X();
       current_particle->fYend   = track->Y();
       current_particle->fZend   = track->Z();
-      current_particle->fTend   = track->Time();
+      current_particle->fTend   = track->GlobalTime();
       current_particle->has_end = true;
     } else
       return;
@@ -73,5 +73,5 @@ void MCTruthMgr::EndTrack(Track *track)
     return;
 }
 
-} // GEANT_IMPL_NAMESPACE
-} // Geant
+} // namespace GEANT_IMPL_NAMESPACE
+} // namespace geant

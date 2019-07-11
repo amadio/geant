@@ -103,7 +103,9 @@ Track &Track::operator=(const Track &other)
     fP                  = other.fP;
     fE                  = other.fE;
     fLogEkin            = other.fLogEkin;
-    fTime               = other.fTime;
+    fLocalTime          = other.fLocalTime;
+    fGlobalTime         = other.fGlobalTime;
+    fVelocity           = other.fVelocity;
     fEdep               = other.fEdep;
     fPstep              = other.fPstep;
     fStep               = other.fStep;
@@ -159,7 +161,9 @@ void Track::Clear(const char *)
   fP           = 0.;
   fE           = 0.;
   fLogEkin     = -1;
-  fTime        = 0.;
+  fLocalTime   = 0.;
+  fGlobalTime  = 0.;
+  fVelocity    = 0.;
   fEdep        = 0;
   fPstep       = 1.E20;
   fStep        = 0.;
@@ -247,8 +251,8 @@ void Track::Print(const char *msg) const
          "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g "
          "ile=%g bdr=%d\n",
          msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, fGVcode, fEindex, fBindex, fCharge, fProcess, fNsteps,
-         (int)fSpecies, status[int(fStatus)], fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE, fTime, fPstep,
-         fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
+         (int)fSpecies, status[int(fStatus)], fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE, fLocalTime,
+         fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
 
   TrackDataMgr::GetInstance()->PrintUserData(*this);
 #ifndef VECCORE_CUDA

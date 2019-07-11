@@ -24,6 +24,7 @@
 #include <atomic>
 #include <mutex>
 #include "Geant/Typedefs.h"
+#include "Geant/PhysicalConstants.h"
 
 #ifndef GEANT_ALIGN_PADDING
 #define GEANT_ALIGN_PADDING 64
@@ -96,7 +97,7 @@ struct StepPointInfo {
   Vector3 fDir;        /** Direction */
   double fE;           /** Energy */
   double fP;           /** Momentum */
-  double fTime;        /** Time */
+  double fLocalTime;   /** Time */
   VolumePath_t *fPath; /** Paths for the particle in the geometry */
 };
 
@@ -148,7 +149,9 @@ private:
   double fP                = 0;       /** Momentum */
   double fE                = 0;       /** Energy */
   double fLogEkin          = 0;       /** Logarithm of energy */
-  double fTime             = 0;       /** Time */
+  double fLocalTime        = 0;       /** Time since track was produced */
+  double fGlobalTime       = 0;       /** Time since the event was produced */
+  double fVelocity         = 0;       /** Pre-step velocity */
   double fEdep             = 0;       /** Energy deposition in the step */
   double fPstep            = 1.e+20;  /** Selected physical step */
   double fStep             = 0;       /** Current step */
@@ -531,10 +534,15 @@ public:
     return nelem;
   }
 
-  /** Getter for the time */
+  /** Getter for the local time */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double Time() const { return fTime; }
+  double LocalTime() const { return fLocalTime; }
+
+  /** Getter for the global time */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double GlobalTime() const { return fGlobalTime; }
 
   /** @brief Getter for the energy deposition value */
   VECCORE_ATT_HOST_DEVICE
@@ -551,10 +559,33 @@ public:
   GEANT_FORCE_INLINE
   double GetStep() const { return fStep; }
 
+  /** @brief Returns the pre-step velocity */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double PreStepVelocity() const { return fVelocity; }
+
+  /** @brief Set the pre-step velocity */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetPreStepVelocity(double velocity) { fVelocity = velocity; }
+
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  double Velocity() const
+  {
+    // special case for photons
+    // if ( is_OpticalPhoton ) return CalculateVelocityForOpticalPhoton();
+
+    // particles other than optical photon
+    if (fMass < DBL_MIN) return units::kCLight;
+    double T = Ekin() / fMass;
+    return units::kCLight * std::sqrt(T * (T + 2.)) / (T + 1.0);
+  }
+
   /** @brief Getter for the time traveled in the step */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  double TimeStep(double step) const { return fE * step / fP; }
+  double TimeStep(double step) const { return step / fVelocity; }
 
   /** @brief Getter for the straight distance to next boundary */
   VECCORE_ATT_HOST_DEVICE
@@ -666,18 +697,18 @@ public:
   }
 
   /** @brief Getter for the curvature. To be changed when handling properly field*/
-/******   
-  VECCORE_ATT_HOST_DEVICE
-  GEANT_FORCE_INLINE
-  double Curvature(double Bz) const
-  {
-    // Curvature
-    double qB = fCharge * Bz;
-    if (fabs(qB) < kTiny) return kTiny;
-    return fabs(kB2C * qB / (Pt() + kTiny));
-  }
- *****/
-   
+  /******
+    VECCORE_ATT_HOST_DEVICE
+    GEANT_FORCE_INLINE
+    double Curvature(double Bz) const
+    {
+      // Curvature
+      double qB = fCharge * Bz;
+      if (fabs(qB) < kTiny) return kTiny;
+      return fabs(kB2C * qB / (Pt() + kTiny));
+    }
+   *****/
+
   /** @brief Getter for the gamma value*/
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -838,7 +869,7 @@ public:
   GEANT_FORCE_INLINE
   void SetDirection(double dx, double dy, double dz)
   {
-    assert ( dx != 0.0 || dz != 0.0 || dz != 0.0 );
+    assert(dx != 0.0 || dz != 0.0 || dz != 0.0);
     fXdir = dx;
     fYdir = dy;
     fZdir = dz;
@@ -849,7 +880,7 @@ public:
   GEANT_FORCE_INLINE
   void SetDirection(Vector3D<double> const &dir)
   {
-    assert ( dir.x() != 0.0 || dir.z() != 0.0 || dir.z() != 0.0 );
+    assert(dir.x() != 0.0 || dir.z() != 0.0 || dir.z() != 0.0);
     fXdir = dir.x();
     fYdir = dir.y();
     fZdir = dir.z();
@@ -883,15 +914,24 @@ public:
   GEANT_FORCE_INLINE
   void DecreaseE(double e) { fE -= e; }
 
-  /** @brief Setter for time */
+  /** @brief Setter for local time */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void SetTime(double time) { fTime = time; }
+  void SetLocalTime(double time) { fLocalTime = time; }
+
+  /** @brief Setter for global time */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetGlobalTime(double time) { fGlobalTime = time; }
 
   /** @brief Increase time */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void IncreaseTime(double time) { fTime += time; }
+  void IncreaseTime(double time)
+  {
+    fLocalTime += time;
+    fGlobalTime += time;
+  }
 
   /** @brief Setter for energy deposition */
   VECCORE_ATT_HOST_DEVICE
@@ -1057,12 +1097,13 @@ public:
   /** @brief Function that updates the current volume the particle is in */
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
-  void UpdateVolume() {
-     auto top= fPath->Top();
-     // const vecgeom::LogicalVolume* vol = nullptr;
-     // if( top ) vol = top->GetLogicalVolume();
-     auto * vol = ( top ) ? top->GetLogicalVolume():  nullptr;     
-     fVolume = vol;
+  void UpdateVolume()
+  {
+    auto top = fPath->Top();
+    // const vecgeom::LogicalVolume* vol = nullptr;
+    // if( top ) vol = top->GetLogicalVolume();
+    auto *vol = (top) ? top->GetLogicalVolume() : nullptr;
+    fVolume   = vol;
   }
 
   /** @brief Function to normalize direction */
@@ -1071,8 +1112,8 @@ public:
   void Normalize()
   {
     double mag2 = fXdir * fXdir + fYdir * fYdir + fZdir * fZdir;
-    assert ( mag2 > 0.0 );
-    double norm = 1. / Math::Sqrt( mag2 + kTiny );
+    assert(mag2 > 0.0);
+    double norm = 1. / Math::Sqrt(mag2 + kTiny);
     fXdir *= norm;
     fYdir *= norm;
     fZdir *= norm;
