@@ -58,6 +58,7 @@ void PrePropagationHandler::DoIt(geant::Track *track, geant::Basket &output, gea
   // copy the input track to the output
   // (secondaries should be copied as well but there is no secondary production in the msc along-step limit)
   output.AddTrack(track);
+  track->SetPrePropagationDone(true);
 }
 
 //______________________________________________________________________________

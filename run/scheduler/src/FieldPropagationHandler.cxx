@@ -190,7 +190,7 @@ void FieldPropagationHandler::DoIt(Track *track, Basket &output, TaskData *td)
   } else {
     // Crossing tracks continue to continuous processes, the rest have to
     // query again the geometry
-    if (!IsSameLocation(*track, td)) {
+    if ((track->GetSafety() < 1.E-10) && !IsSameLocation(*track, td)) {
       td->fNcross++;
       td->fNsteps++;
     } else {
@@ -247,7 +247,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
       track->SetStage(stageAfterCrossing); // kPostPropagationStage);
     } else {
       // Vector treatment was not requested, so proceed with scalar
-      if (!IsSameLocation(*track, td)) {
+      if ((track->GetSafety() < 1.E-10) && !IsSameLocation(*track, td)) {
         td->fNcross++;
         td->fNsteps++;
       } else {
@@ -267,7 +267,7 @@ void FieldPropagationHandler::DoIt(Basket &input, Basket &output, TaskData *td)
         output.AddTrack(track);
         continue;
       }
-      if (!IsSameLocation(*track, td)) {
+      if ((track->GetSafety() < 1.E-10) && !IsSameLocation(*track, td)) {
         td->fNcross++;
         td->fNsteps++;                       // Why not ?
         track->SetStage(stageAfterCrossing); // Future: (kPostPropagationStage);
@@ -380,22 +380,6 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
     }
   #endif
   *****/
-
-  // Reset relevant variables
-  track.SetStatus(kInFlight);
-  double pstep = track.GetPstep() - crtstep;
-  if (pstep < 1.E-10) {
-    pstep = 0;
-    track.SetStatus(kPhysics);
-  }
-  track.SetPstep(pstep);
-  double snext = track.GetSnext() - crtstep;
-  if (snext < 1.E-10) {
-    snext = 0;
-    if (track.Boundary()) track.SetStatus(kBoundary);
-  }
-  track.SetSnext(snext);
-  track.IncreaseStep(crtstep);
 
 #if DEBUG_FIELD
   bool verboseDiff = true; // If false, print just one line.  Else more details.
@@ -531,6 +515,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
   track.DecreaseSnext(crtstep);
   if (track.GetSnext() < 1.E-10) {
     track.SetSnext(0);
+    if (track.Boundary()) track.SetStatus(kBoundary);
   }
 
   double preSafety = track.GetSafety();
@@ -561,7 +546,6 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   auto fieldConfig = FieldLookup::GetFieldConfig();
   assert(fieldConfig != nullptr);
 
-#if 1 // VECTOR_FIELD_PROPAGATION
   using vecgeom::SOA3D;
   using vecgeom::Vector3D;
   constexpr int Npm = 6;
@@ -654,6 +638,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
       track.DecreaseSnext(stepSize[itr]);
       if (track.GetSnext() < 1.E-10) {
         track.SetSnext(0);
+        if (track.Boundary()) track.SetStatus(kBoundary);
       }
 
       double posShiftSq = positionMove.Mag2();
@@ -829,6 +814,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         track.DecreaseSnext(stepSize[itr]);
         if (track.GetSnext() < 1.E-10) {
           track.SetSnext(0);
+          if (track.Boundary()) track.SetStatus(kBoundary);
         }
 
         // Exact update of the safety - using true move (not distance along curve)
@@ -855,12 +841,6 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
     PrintStats();
   }
 #endif
-
-#else
-  // Placeholder - implemented just as a loop
-  for (int itr = 0; itr < nTracks; ++itr)
-    PropagateInVolume(*tracks[itr], stepSize[itr], td);
-#endif // VECTOR_FIELD_PROPAGATION
 }
 
 //______________________________________________________________________________

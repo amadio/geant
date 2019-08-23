@@ -41,6 +41,9 @@ void PreStepHandler::DoIt(Track *track, Basket &output, TaskData *td)
     track->SetStatus(kInFlight);
     track->SetPrePropagationDone(false);
     track->SetPreStepVelocity(track->Velocity());
+    // reset step length and energy deposit
+    track->SetStep(0.); // no setter for this member in Track
+    track->SetEdep(0.);
     assert(track->PreStepVelocity() > 0);
   }
   // Copy to output
