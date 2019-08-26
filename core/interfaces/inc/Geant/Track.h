@@ -134,6 +134,7 @@ private:
   int fCharge              = 0;       /** Particle charge */
   int fProcess             = -1;      /** Current process */
   int fNsteps              = 0;       /** Number of steps made */
+  int fNintSteps           = 0;       /** Number of integration steps made in the current step */
   int fMaxDepth            = 0;       /** Maximum geometry depth */
   int fStage               = 0;       /** Simulation stage */
   int fGeneration          = 0;       /** Track generation: 0=primary */
@@ -305,6 +306,11 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   int GetNsteps() const { return fNsteps; }
+
+  /** @brief Getter for the number of integration steps made in the current step */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  int GetNintSteps() const { return fNintSteps; }
 
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
@@ -818,6 +824,16 @@ public:
   VECCORE_ATT_HOST_DEVICE
   GEANT_FORCE_INLINE
   void IncrementNsteps(int nsteps = 1) { fNsteps += nsteps; }
+
+  /** @brief Setter for number of integration steps */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void SetNintSteps(int nsteps) { fNintSteps = nsteps; }
+
+  /** @brief Increment number of steps */
+  VECCORE_ATT_HOST_DEVICE
+  GEANT_FORCE_INLINE
+  void IncrementNintSteps(int nsteps = 1) { fNintSteps += nsteps; }
 
   /** @brief Setter for stage */
   VECCORE_ATT_HOST_DEVICE

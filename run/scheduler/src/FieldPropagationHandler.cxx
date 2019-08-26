@@ -505,6 +505,7 @@ void FieldPropagationHandler::PropagateInVolume(Track &track, double crtstep, Ta
 
   // Reset relevant variables
   track.SetStatus(kInFlight);
+  track.IncrementNintSteps();
   track.IncreaseStep(crtstep);
 
   track.DecreasePstep(crtstep);
@@ -568,8 +569,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
   SOA3D<double> &DirectionOut = *(wsp->fDirectionOutp);
 
   for (int itr = 0; itr < nTracks; ++itr) {
-    Track *pTrack = tracks[itr];
-
+    Track *pTrack    = tracks[itr];
     fltCharge[itr]   = pTrack->Charge();
     momentumMag[itr] = pTrack->P();
     steps[itr]       = stepSize[itr];
@@ -627,6 +627,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
 
       // Update status, step and safety
       track.SetStatus(kInFlight);
+      track.IncrementNintSteps();
       track.IncreaseStep(stepSize[itr]);
 
       track.DecreasePstep(stepSize[itr]);
@@ -803,6 +804,7 @@ void FieldPropagationHandler::PropagateInVolume(TrackVec_t &tracks, const double
         track.SetDirection(endDirVector);
         track.NormalizeFast();
         track.SetStatus(kInFlight);
+        track.IncrementNintSteps();
         track.IncreaseStep(stepSize[itr]);
 
         track.DecreasePstep(stepSize[itr]);

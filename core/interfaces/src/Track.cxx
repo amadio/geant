@@ -88,6 +88,7 @@ Track &Track::operator=(const Track &other)
     fCharge             = other.fCharge;
     fProcess            = other.fProcess;
     fNsteps             = other.fNsteps;
+    fNintSteps          = other.fNintSteps;
     fMaxDepth           = other.fMaxDepth;
     fStage              = other.fStage;
     fGeneration         = other.fGeneration;
@@ -149,6 +150,7 @@ void Track::Clear(const char *)
   fCharge      = 0;
   fProcess     = -1;
   fNsteps      = 0;
+  fNintSteps   = 0;
   fSpecies     = kHadron;
   fStatus      = kAlive;
   fMass        = 0.;
@@ -246,13 +248,13 @@ void Track::Print(const char *msg) const
 {
   const char *status[8] = {"alive", "killed", "inflight", "boundary", "exitSetup", "physics", "postponed", "new"};
 
-  printf("%s: evt=%d slt=%d part=%d prim=%d mth=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d spc=%d "
+  printf("%s: evt=%d slt=%d part=%d prim=%d mth=%d gvc=%d eind=%d bind=%d chg=%d proc=%d nstp=%d nintstp=%d spc=%d "
          "status=%s mass=%g "
          "xpos=%g ypos=%g zpos=%g xdir=%g ydir=%g zdir=%g mom=%g ene=%g time=%g pstp=%g stp=%g snxt=%g saf=%g nil=%g "
          "ile=%g bdr=%d\n",
          msg, fEvent, fEvslot, fParticle, fPrimaryIndx, fMother, fGVcode, fEindex, fBindex, fCharge, fProcess, fNsteps,
-         (int)fSpecies, status[int(fStatus)], fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE, fLocalTime,
-         fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
+         fNintSteps, (int)fSpecies, status[int(fStatus)], fMass, fXpos, fYpos, fZpos, fXdir, fYdir, fZdir, fP, fE,
+         fLocalTime, fPstep, fStep, fSnext, fSafety, fNintLen, fIntLen, fBoundary);
 
   TrackDataMgr::GetInstance()->PrintUserData(*this);
 #ifndef VECCORE_CUDA

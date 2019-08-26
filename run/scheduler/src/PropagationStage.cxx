@@ -64,10 +64,28 @@ int PropagationStage::CreateHandlers()
 
 //______________________________________________________________________________
 VECCORE_ATT_HOST_DEVICE
-Handler *PropagationStage::Select(Track *track, TaskData *)
+Handler *PropagationStage::Select(Track *track, TaskData *td)
 {
   // Retrieve the appropriate handler depending on the track charge
+  constexpr int kMaxIntSteps         = 1000;
+  constexpr double kWarning_Energy   = 100 * units::MeV;
+  constexpr double kImportant_Energy = 250 * units::MeV;
+
   if (!fHasField || track->Charge() == 0) return fHandlers[0];
+  // Check if we reached the maximum number of integration steps for this track
+  if (track->GetNintSteps() > kMaxIntSteps) {
+    if (track->Ekin() < kImportant_Energy || track->GetNintSteps() > 10 * kMaxIntSteps) {
+      if (track->Ekin() > kWarning_Energy)
+        Warning("PropagateInVolume", "Track %d from event %d killed because it was looping in magnetic field",
+                track->Particle(), track->Event());
+      track->SetStatus(kKilled);
+      track->Stop();
+      track->SetStage(kSteppingActionsStage);
+      td->fNkilled++;
+      return nullptr;
+    }
+  }
+
   return fHandlers[1];
 }
 

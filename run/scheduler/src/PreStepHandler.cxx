@@ -41,10 +41,12 @@ void PreStepHandler::DoIt(Track *track, Basket &output, TaskData *td)
     track->SetStatus(kInFlight);
     track->SetPrePropagationDone(false);
     track->SetPreStepVelocity(track->Velocity());
+    assert(track->PreStepVelocity() > 0);
     // reset step length and energy deposit
     track->SetStep(0.); // no setter for this member in Track
     track->SetEdep(0.);
-    assert(track->PreStepVelocity() > 0);
+    // reset number of integration steps
+    track->SetNintSteps(0);
   }
   // Copy to output
   output.AddTrack(track);
