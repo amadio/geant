@@ -75,7 +75,7 @@ void MyDetectorConstruction::ConstructSDandField()
       magField = uniformMagField;
       
       G4cout << G4endl
-             << " *** SETTING MAGNETIC FIELD : fieldValue = " << fFieldValue / tesla
+             << " *** SETTING MAGNETIC FIELD - CONSTANT FIELD: Constant fieldValue = " << fFieldValue / tesla
              << " Tesla *** " << G4endl
              << G4endl;
     } else {
@@ -96,10 +96,11 @@ void MyDetectorConstruction::ConstructSDandField()
     SetMagFieldValue( fieldArr[2] ); // Know that it is solinoidal - B // Bz at origin
     fieldVec *= 1.0 / tesla;
     G4cout << G4endl
-           << " *** SET MAGNETIC FIELD : Scalar RZ Mag Field From Map.  Value at origin = "
+           << " *** SET MAGNETIC FIELD - USING THE FIELD MAP: " << G4endl; 
+    G4cout << " *** Just for info: Scalar RZ Mag Field Value From The Map at Origin = "
         // << fieldArr[0] << " , "  << fieldArr[1] << " , "  << fieldArr[2]
            << fieldVec.x() << " , "  << fieldVec.y() << " , "  << fieldVec.z()       
-           << " Tesla *** " << G4endl;
+           << " Tesla *** " << G4endl << G4endl;
   }
   // G4cout << " Dbg:  fieldMgr = " << fieldMgr << G4endl;
 

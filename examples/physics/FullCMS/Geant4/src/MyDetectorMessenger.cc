@@ -50,7 +50,7 @@ void MyDetectorMessenger::SetNewValue(G4UIcommand* command, G4String newValue) {
     theDetector->SetMagFieldValue( theFieldCommand->GetNewDoubleValue(newValue) );
   }
   if ( command == theFieldMapCommand ) {
-    theDetector->UseUniformField(false);
+    theDetector->UseUniformField( !(theFieldMapCommand->GetNewBoolValue(newValue)) );
   }  
   if ( command == theGDMLCommand ) {
     theDetector->SetGDMLFileName( newValue );
