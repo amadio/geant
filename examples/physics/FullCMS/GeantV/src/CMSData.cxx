@@ -50,18 +50,20 @@ void CMSDataPerPrimary::Print()
             << "    Edep                    = " << std::setw(9) << std::right << fEdep << " [GeV] \n"
             << "    Track lenght (charged)  = " << std::setw(9) << std::right << fChargedTrackL << "  [cm] \n"
             << "    Track lenght (neutral)  = " << std::setw(9) << std::right << fNeutralTrackL << "  [cm] \n"
-            << "    Time (global-charged)   = " << std::setw(9) << std::right << fChargedTrackT/geant::units::ns << "  [ns] \n"
-            << "    Time (global-neutral)   = " << std::setw(9) << std::right << fNeutralTrackT/geant::units::ns << "  [ns] \n"
+            << "    Time (global-charged)   = " << std::setw(9) << std::right << fChargedTrackT / geant::units::ns
+            << "  [ns] \n"
+            << "    Time (global-neutral)   = " << std::setw(9) << std::right << fNeutralTrackT / geant::units::ns
+            << "  [ns] \n"
             << "    Steps (charged)         = " << std::setw(9) << std::right << fNumChargedSteps << "       \n"
             << "    Steps (neutral)         = " << std::setw(9) << std::right << fNumNeutralSteps << "       \n"
-            
-            << "    Secondary Gammas        = " << std::setw(9) << std::right  << fNumGammas << "       \n"
-            << "    Secondary Electrons     = " << std::setw(9) << std::right  << fNumElectrons << "       \n"
-            << "    Secondary Positrons     = " << std::setw(9) << std::right  << fNumPositrons << "       \n";
+
+            << "    Secondary Gammas        = " << std::setw(9) << std::right << fNumGammas << "       \n"
+            << "    Secondary Electrons     = " << std::setw(9) << std::right << fNumElectrons << "       \n"
+            << "    Secondary Positrons     = " << std::setw(9) << std::right << fNumPositrons << "       \n";
   for (size_t i = 0; i < fNumStepPerRegion.size(); ++i)
-    if( fNumStepPerRegion[i] > 0 ) 
-       std::cout << "    Steps per reg. " << std::setw(4) << i << "      = " << std::setw(13) << std::right
-                 << fNumStepPerRegion[i] << "       \n";
+    if (fNumStepPerRegion[i] > 0)
+      std::cout << "    Steps per reg. " << std::setw(4) << i << "      = " << std::setw(13) << std::right
+                << fNumStepPerRegion[i] << "       \n";
 }
 
 //--------------------------------------------------------------------------------------------------------------------//

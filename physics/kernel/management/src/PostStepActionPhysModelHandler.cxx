@@ -208,7 +208,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     auto track    = gtracks[secondaryLTs.GetTrackIndex(i)];
     int secGVcode = secondaryLTs.GetGVcode(i); // GV index of this secondary particle
     // compute current (post-step point) global time
-    double gtime = track->GlobalTime() + track->TimeStep(track->GetStep());
+    double gtime                = track->GlobalTime() + track->TimeStep(track->GetStep());
     const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
     // get a Track geantTrack;
     geant::Track &geantTrack = td->GetNewTrack();

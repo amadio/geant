@@ -110,7 +110,7 @@ void CMSFullApp::SteppingActions(geant::Track &track, geant::TaskData *td)
       (*fDataHandlerEvents)(td).GetDataPerEvent(track.EventSlot()).GetDataPerPrimary(track.PrimaryParticleIndex());
   // do the scoring:
   // 1. collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
-  //    that has just been added in this step)  
+  //    that has just been added in this step)
   if (track.Status() != geant::kNew) {
     if (charge == 0.0) {
       dataPerPrimary.AddNeutralStep();
@@ -128,7 +128,7 @@ void CMSFullApp::SteppingActions(geant::Track &track, geant::TaskData *td)
     } else {
       dataPerPrimary.AddChargedTrackT(track.GlobalTime());
     }
-  }  
+  }
   // Get the MaterialCuts from the LogicalVolume
   const geantphysics::MaterialCuts *matCut = static_cast<const geantphysics::MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(track.GetVolume())->GetMaterialCutsPtr()));
@@ -250,25 +250,25 @@ void CMSFullApp::FinishRun()
     double meanLNe       = runData.GetNeutralTrackL() * norm;
     double rmsLNe        = std::sqrt(std::abs(runData.GetNeutralTrackL2() * norm - meanLNe * meanLNe));
 
-    double meanTCh       = runData.GetChargedTrackT() * norm;
-    double rmsTCh        = std::sqrt(std::abs(runData.GetChargedTrackT2() * norm - meanTCh * meanTCh));
-    double meanTNe       = runData.GetNeutralTrackT() * norm;
-    double rmsTNe        = std::sqrt(std::abs(runData.GetNeutralTrackT2() * norm - meanTNe * meanTNe));
-    meanTCh = meanTCh/geant::units::ns;
-    rmsTCh  = rmsTCh/geant::units::ns;
-    meanTNe = meanTNe/geant::units::ns;
-    rmsTNe  = rmsTNe/geant::units::ns;
+    double meanTCh = runData.GetChargedTrackT() * norm;
+    double rmsTCh  = std::sqrt(std::abs(runData.GetChargedTrackT2() * norm - meanTCh * meanTCh));
+    double meanTNe = runData.GetNeutralTrackT() * norm;
+    double rmsTNe  = std::sqrt(std::abs(runData.GetNeutralTrackT2() * norm - meanTNe * meanTNe));
+    meanTCh        = meanTCh / geant::units::ns;
+    rmsTCh         = rmsTCh / geant::units::ns;
+    meanTNe        = meanTNe / geant::units::ns;
+    rmsTNe         = rmsTNe / geant::units::ns;
 
-    double meanStpCh     = runData.GetChargedSteps() * norm;
-    double rmsStpCh      = std::sqrt(std::abs(runData.GetChargedSteps2() * norm - meanStpCh * meanStpCh));
-    double meanStpNe     = runData.GetNeutralSteps() * norm;
-    double rmsStpNe      = std::sqrt(std::abs(runData.GetNeutralSteps2() * norm - meanStpNe * meanStpNe));
-    double meanNGam      = runData.GetGammas() * norm;
-    double rmsNGam       = std::sqrt(std::abs(runData.GetGammas2() * norm - meanNGam * meanNGam));
-    double meanNElec     = runData.GetElectrons() * norm;
-    double rmsNElec      = std::sqrt(std::abs(runData.GetElectrons2() * norm - meanNElec * meanNElec));
-    double meanNPos      = runData.GetPositrons() * norm;
-    double rmsNPos       = std::sqrt(std::abs(runData.GetPositrons2() * norm - meanNPos * meanNPos));
+    double meanStpCh = runData.GetChargedSteps() * norm;
+    double rmsStpCh  = std::sqrt(std::abs(runData.GetChargedSteps2() * norm - meanStpCh * meanStpCh));
+    double meanStpNe = runData.GetNeutralSteps() * norm;
+    double rmsStpNe  = std::sqrt(std::abs(runData.GetNeutralSteps2() * norm - meanStpNe * meanStpNe));
+    double meanNGam  = runData.GetGammas() * norm;
+    double rmsNGam   = std::sqrt(std::abs(runData.GetGammas2() * norm - meanNGam * meanNGam));
+    double meanNElec = runData.GetElectrons() * norm;
+    double rmsNElec  = std::sqrt(std::abs(runData.GetElectrons2() * norm - meanNElec * meanNElec));
+    double meanNPos  = runData.GetPositrons() * norm;
+    double rmsNPos   = std::sqrt(std::abs(runData.GetPositrons2() * norm - meanNPos * meanNPos));
 
     std::cout << "  Number of primaries        = " << nPrimaries << "  " << primName << std::endl;
     std::cout << "  Total energy deposit per primary = " << meanEdep << " +- " << rmsEdep << " [GeV]" << std::endl;
@@ -288,10 +288,10 @@ void CMSFullApp::FinishRun()
               << "     Positrons =  " << meanNPos << " +- " << rmsNPos << std::endl;
     std::cout << "  Total number of steps is : " << nTotSteps << std::endl;
     std::cout << "  Steps per region: " << std::endl;
-    int wdmax=12; 
+    int wdmax     = 12;
     int numRegion = (vecgeom::Region::GetTheRegionTable()).size();
     for (int i = 0; i < numRegion; i++)
-      if( nTotStepsPerReg[i] > 0 ) 
+      if (nTotStepsPerReg[i] > 0)
         std::cout << "     " << std::setw(3) << std::right << i << ": " << std::right << std::setw(wdmax)
                   << nTotStepsPerReg[i] << "\t\t " << std::setw(8) << std::left
                   << 100 * (double)nTotStepsPerReg[i] / (double)nTotSteps << " % of the total." << std::endl;
