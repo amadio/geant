@@ -27,6 +27,8 @@ void MyRun::FillPerEvent(const MyEventDataPerPrimary& data, G4int primtypeindx) 
   runData.fEdep        += data.fEdep;         runData.fEdep2        += data.fEdep*data.fEdep;
   runData.fTrackLCh    += data.fTrackLCh;     runData.fTrackLCh2    += data.fTrackLCh*data.fTrackLCh;
   runData.fTrackLNe    += data.fTrackLNe;     runData.fTrackLNe2    += data.fTrackLNe*data.fTrackLNe;
+  runData.fTrackTCh    += data.fTrackTCh;     runData.fTrackTCh2    += data.fTrackTCh*data.fTrackTCh;
+  runData.fTrackTNe    += data.fTrackTNe;     runData.fTrackTNe2    += data.fTrackTNe*data.fTrackTNe;
   runData.fChargedStep += data.fChargedStep;  runData.fChargedStep2 += data.fChargedStep*data.fChargedStep;
   runData.fNeutralStep += data.fNeutralStep;  runData.fNeutralStep2 += data.fNeutralStep*data.fNeutralStep;
   runData.fNGamma      += data.fNGamma;       runData.fNGamma2      += data.fNGamma*data.fNGamma;
@@ -55,7 +57,7 @@ void MyRun::EndOfRun() {
   std::ios::fmtflags mode = G4cout.flags();
   G4int  prec = G4cout.precision(2);
   G4cout<< " \n ==================================   Run summary   ===================================== \n" << G4endl;
-  G4cout<< std::setprecision(4);
+  G4cout<< std::setprecision(8);
   G4cout<< "    Number of events        = " << numEvents                                                     << G4endl;
   G4cout<< "    Total number of primary = " << numPrimaries                                                  << G4endl;
   G4cout<< " \n ---------------------------------------------------------------------------------------- \n" << G4endl;
@@ -78,6 +80,12 @@ void MyRun::EndOfRun() {
     G4double rmsLCh     = std::sqrt(std::abs(runData.fTrackLCh2*norm-meanLCh*meanLCh));
     G4double meanLNe    = runData.fTrackLNe*norm;
     G4double rmsLNe     = std::sqrt(std::abs(runData.fTrackLNe2*norm-meanLNe*meanLNe));
+
+    G4double meanTCh    = runData.fTrackTCh*norm;
+    G4double rmsTCh     = std::sqrt(std::abs(runData.fTrackTCh2*norm-meanTCh*meanTCh));
+    G4double meanTNe    = runData.fTrackTNe*norm;
+    G4double rmsTNe     = std::sqrt(std::abs(runData.fTrackTNe2*norm-meanTNe*meanTNe));
+
     G4double meanStpCh  = runData.fChargedStep*norm;
     G4double rmsStpCh   = std::sqrt(std::abs(runData.fChargedStep2*norm-meanStpCh*meanStpCh));
     G4double meanStpNe  = runData.fNeutralStep*norm;
@@ -94,6 +102,9 @@ void MyRun::EndOfRun() {
     G4cout<< G4endl;
     G4cout<< "  Total track length (charged) per primary = " << meanLCh/cm << " +- " << rmsLCh/cm <<  " [cm]" <<G4endl;
     G4cout<< "  Total track length (neutral) per primary = " << meanLNe/cm << " +- " << rmsLNe/cm <<  " [cm]" <<G4endl;
+    G4cout<< G4endl;
+    G4cout<< "  Time (global-charged) per primary = " << meanTCh/ns << " +- " << rmsTCh/ns <<  " [ns]" <<G4endl;
+    G4cout<< "  Time (global-neutral) per primary = " << meanTNe/ns << " +- " << rmsTNe/ns <<  " [ns]" <<G4endl;
     G4cout<< G4endl;
     G4cout<< "  Number of steps (charged) per primary = " << meanStpCh << " +- " << rmsStpCh << G4endl;
     G4cout<< "  Number of steps (neutral) per primary = " << meanStpNe << " +- " << rmsStpNe << G4endl;

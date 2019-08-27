@@ -110,7 +110,7 @@ void CMSFullApp::SteppingActions(geant::Track &track, geant::TaskData *td)
       (*fDataHandlerEvents)(td).GetDataPerEvent(track.EventSlot()).GetDataPerPrimary(track.PrimaryParticleIndex());
   // do the scoring:
   // 1. collet charged/neutral steps that were done in the target (do not count the creation step i.e. secondary tracks
-  //    that has just been added in this step)
+  //    that has just been added in this step)  
   if (track.Status() != geant::kNew) {
     if (charge == 0.0) {
       dataPerPrimary.AddNeutralStep();
@@ -121,6 +121,14 @@ void CMSFullApp::SteppingActions(geant::Track &track, geant::TaskData *td)
     }
     dataPerPrimary.AddEdep(track.Edep());
   }
+  // add global (starting point is at the event) tracking time when the tarck is terminated
+  if (track.Status() == geant::kKilled || track.Status() == geant::kExitingSetup) {
+    if (charge == 0.0) {
+      dataPerPrimary.AddNeutralTrackT(track.GlobalTime());
+    } else {
+      dataPerPrimary.AddChargedTrackT(track.GlobalTime());
+    }
+  }  
   // Get the MaterialCuts from the LogicalVolume
   const geantphysics::MaterialCuts *matCut = static_cast<const geantphysics::MaterialCuts *>(
       (const_cast<vecgeom::LogicalVolume *>(track.GetVolume())->GetMaterialCutsPtr()));
@@ -216,7 +224,7 @@ void CMSFullApp::FinishRun()
   int prec                = std::cout.precision(2);
   std::cout << " \n ==================================   Run summary   ===================================== \n"
             << std::endl;
-  std::cout << std::setprecision(4);
+  std::cout << std::setprecision(8);
   //  std::cout<< "    Number of events        = " << numEvents                                                     <<
   //  std::endl;
   std::cout << "    Total number of primaries = " << numPrimaries << std::endl;
@@ -241,6 +249,16 @@ void CMSFullApp::FinishRun()
     double rmsLCh        = std::sqrt(std::abs(runData.GetChargedTrackL2() * norm - meanLCh * meanLCh));
     double meanLNe       = runData.GetNeutralTrackL() * norm;
     double rmsLNe        = std::sqrt(std::abs(runData.GetNeutralTrackL2() * norm - meanLNe * meanLNe));
+
+    double meanTCh       = runData.GetChargedTrackT() * norm;
+    double rmsTCh        = std::sqrt(std::abs(runData.GetChargedTrackT2() * norm - meanTCh * meanTCh));
+    double meanTNe       = runData.GetNeutralTrackT() * norm;
+    double rmsTNe        = std::sqrt(std::abs(runData.GetNeutralTrackT2() * norm - meanTNe * meanTNe));
+    meanTCh = meanTCh/geant::units::ns;
+    rmsTCh  = rmsTCh/geant::units::ns;
+    meanTNe = meanTNe/geant::units::ns;
+    rmsTNe  = rmsTNe/geant::units::ns;
+
     double meanStpCh     = runData.GetChargedSteps() * norm;
     double rmsStpCh      = std::sqrt(std::abs(runData.GetChargedSteps2() * norm - meanStpCh * meanStpCh));
     double meanStpNe     = runData.GetNeutralSteps() * norm;
@@ -257,6 +275,9 @@ void CMSFullApp::FinishRun()
     std::cout << std::endl;
     std::cout << "  Total track length (charged) per primary = " << meanLCh << " +- " << rmsLCh << " [cm]" << std::endl;
     std::cout << "  Total track length (neutral) per primary = " << meanLNe << " +- " << rmsLNe << " [cm]" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  Time (global-charged) per primary = " << meanTCh << " +- " << rmsTCh << " [ns]" << std::endl;
+    std::cout << "  Time (global-neutral) per primary = " << meanTNe << " +- " << rmsTNe << " [ns]" << std::endl;
     std::cout << std::endl;
     std::cout << "  Number of steps (charged) per primary = " << meanStpCh << " +- " << rmsStpCh << std::endl;
     std::cout << "  Number of steps (neutral) per primary = " << meanStpNe << " +- " << rmsStpNe << std::endl;

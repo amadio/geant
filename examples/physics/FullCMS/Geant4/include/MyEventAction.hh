@@ -24,6 +24,7 @@ public:
 
   void  AddData(G4double edep, G4double length, G4bool ischarged, G4int primid);
   void  AddSecondaryTrack(const G4Track* track, G4int primid);
+  void  AddGlobalTime(G4double gtime, bool ischarged, G4int primid);
 
 private:
   G4int  fNumberOfPrimariesPerEvent;

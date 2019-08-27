@@ -21,6 +21,11 @@ public:
   G4double fTrackLNe;       // sum of neutral step length (per event)
   G4double fTrackLNe2;      // sum of neutral step length square
 
+  G4double fTrackTCh;       // sum of charged track (global) time (per event)
+  G4double fTrackTCh2;      // sum of charged track (global) time square
+  G4double fTrackTNe;       // sum of neutral track (global) time (per event)
+  G4double fTrackTNe2;      // sum of neutral track (global) time square
+
   G4double fChargedStep;    // sum of number of charged steps (per event)
   G4double fChargedStep2;   // sum of number of charged steps square
   G4double fNeutralStep;    // sum of number of neutral steps (per event)

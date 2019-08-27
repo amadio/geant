@@ -26,9 +26,11 @@ void MyTrackingAction::PreUserTrackingAction(const G4Track* theTrack) {
 
 void MyTrackingAction::PostUserTrackingAction(const G4Track* theTrack) {
   G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+  MyTrackInformation* info = static_cast<MyTrackInformation*>(theTrack->GetUserInformation());
+  G4int primaryTrackID = info->GetPrimaryTrackID(); // get the primary trackID
   if (secondaries) {
-    MyTrackInformation* info = static_cast<MyTrackInformation*>(theTrack->GetUserInformation());
-    G4int primaryTrackID = info->GetPrimaryTrackID(); // get the primary trackID
+//    MyTrackInformation* info = static_cast<MyTrackInformation*>(theTrack->GetUserInformation());
+//    G4int primaryTrackID = info->GetPrimaryTrackID(); // get the primary trackID
     G4int currentTrackID = theTrack->GetTrackID();    // track ID of theTrack
     size_t nSecondaries  = secondaries->size();
     for (size_t isec=0; isec<nSecondaries; ++isec) {
@@ -39,4 +41,8 @@ void MyTrackingAction::PostUserTrackingAction(const G4Track* theTrack) {
       }
     }
   }
+  // add global time since we are at the end of tracking this track
+  // (do it only if the status is killed)
+  if (theTrack->GetTrackStatus()==2)
+    fEventAction->AddGlobalTime(theTrack->GetGlobalTime(), theTrack->GetParticleDefinition()->GetPDGCharge()!=0.,primaryTrackID-1);
 }

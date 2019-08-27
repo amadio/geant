@@ -91,3 +91,12 @@ void MyEventAction::AddSecondaryTrack(const G4Track* track, G4int primid) {
     fEventDataPerPrimary[primid].fNPosit += 1.;
   }
 }
+
+
+void MyEventAction::AddGlobalTime(G4double gtime, bool ischarged, G4int primid) {
+  if (ischarged) {
+    fEventDataPerPrimary[primid].fTrackTCh += gtime;
+  } else {
+    fEventDataPerPrimary[primid].fTrackTNe += gtime;
+  }
+}

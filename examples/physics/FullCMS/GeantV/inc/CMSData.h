@@ -27,6 +27,12 @@ public:
   void AddNeutralTrackL(double val) { fNeutralTrackL += val; }
   double GetNeutralTrackL() const { return fNeutralTrackL; }
 
+  void AddChargedTrackT(double val) { fChargedTrackT += val; }
+  double GetChargedTrackT() const { return fChargedTrackT; }
+
+  void AddNeutralTrackT(double val) { fNeutralTrackT += val; }
+  double GetNeutralTrackT() const { return fNeutralTrackT; }
+
   void AddGamma() { fNumGammas += 1.; }
   double GetGammas() const { return fNumGammas; }
 
@@ -53,6 +59,8 @@ private:
   double fNumNeutralSteps;            // mean number of neutral steps per primary
   double fChargedTrackL;              // mean number of charged track length per primary
   double fNeutralTrackL;              // mean number of neutral track length per primary
+  double fChargedTrackT;              // mean charged track time (global) per primary
+  double fNeutralTrackT;              // mean neutral track time (global) per primary
   double fNumGammas;                  // mean number of secondary gamma particles per primary
   double fNumElectrons;               // mean number of secondary electron particles per primary
   double fNumPositrons;               // mean number of secondary positron particles per primary
@@ -105,6 +113,22 @@ public:
   double GetNeutralTrackL() const { return fNeutralTrackL; }
   double GetNeutralTrackL2() const { return fNeutralTrackL2; }
 
+  void AddChargedTrackT(double val)
+  {
+    fChargedTrackT += val;
+    fChargedTrackT2 += val * val;
+  }
+  double GetChargedTrackT() const { return fChargedTrackT; }
+  double GetChargedTrackT2() const { return fChargedTrackT2; }
+
+  void AddNeutralTrackT(double val)
+  {
+    fNeutralTrackT += val;
+    fNeutralTrackT2 += val * val;
+  }
+  double GetNeutralTrackT() const { return fNeutralTrackT; }
+  double GetNeutralTrackT2() const { return fNeutralTrackT2; }
+
   void AddGammas(double val)
   {
     fNumGammas += val;
@@ -155,6 +179,11 @@ private:
   double fChargedTrackL2; // mean number of charged track length  per primary square
   double fNeutralTrackL;  // mean number of neutral track length  per primary
   double fNeutralTrackL2; // mean number of neutral track length  per primary square
+
+  double fChargedTrackT;  // mean charged track time (global) per primary
+  double fChargedTrackT2; // mean charged track time (global) square per primary
+  double fNeutralTrackT;  // mean neutral track time (global) per primary
+  double fNeutralTrackT2; // mean neutral track time (global) square per primary
 
   double fNumGammas;     // mean number of secondary gamma particles per primary
   double fNumGammas2;    // mean number of secondary gamma particles per primary square

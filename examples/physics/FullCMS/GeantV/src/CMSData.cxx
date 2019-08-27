@@ -1,6 +1,8 @@
 
 #include "CMSData.h"
 
+#include "Geant/SystemOfUnits.h"
+
 #include <iostream>
 #include <iomanip>
 
@@ -16,6 +18,7 @@ CMSDataPerPrimary::CMSDataPerPrimary()
 void CMSDataPerPrimary::Clear()
 {
   fNumChargedSteps = fNumNeutralSteps = fChargedTrackL = fNeutralTrackL = 0.;
+  fChargedTrackT = fNeutralTrackT = 0.;
   fNumGammas = fNumElectrons = fNumPositrons = 0.;
   fEdep                                      = 0.;
   unsigned long numRegions                   = vecgeom::Region::GetTheRegionTable().size();
@@ -30,6 +33,8 @@ CMSDataPerPrimary &CMSDataPerPrimary::operator+=(const CMSDataPerPrimary &other)
   fNumNeutralSteps += other.fNumNeutralSteps;
   fChargedTrackL += other.fChargedTrackL;
   fNeutralTrackL += other.fNeutralTrackL;
+  fChargedTrackT += other.fChargedTrackT;
+  fNeutralTrackT += other.fNeutralTrackT;
   fNumGammas += other.fNumGammas;
   fNumElectrons += other.fNumElectrons;
   fNumPositrons += other.fNumPositrons;
@@ -45,6 +50,8 @@ void CMSDataPerPrimary::Print()
             << "    Edep                    = " << std::setw(9) << std::right << fEdep << " [GeV] \n"
             << "    Track lenght (charged)  = " << std::setw(9) << std::right << fChargedTrackL << "  [cm] \n"
             << "    Track lenght (neutral)  = " << std::setw(9) << std::right << fNeutralTrackL << "  [cm] \n"
+            << "    Time (global-charged)   = " << std::setw(9) << std::right << fChargedTrackT/geant::units::ns << "  [ns] \n"
+            << "    Time (global-neutral)   = " << std::setw(9) << std::right << fNeutralTrackT/geant::units::ns << "  [ns] \n"
             << "    Steps (charged)         = " << std::setw(9) << std::right << fNumChargedSteps << "       \n"
             << "    Steps (neutral)         = " << std::setw(9) << std::right << fNumNeutralSteps << "       \n"
             
@@ -69,6 +76,7 @@ void CMSDataPerPrimaryType::Clear()
   fNumPrimaries    = 0.;
   fNumChargedSteps = fNumNeutralSteps = fNumChargedSteps2 = fNumNeutralSteps2 = 0.;
   fChargedTrackL = fNeutralTrackL = fChargedTrackL2 = fNeutralTrackL2 = 0.;
+  fChargedTrackT = fNeutralTrackT = fChargedTrackT2 = fNeutralTrackT2 = 0.;
   fNumGammas = fNumGammas2 = fNumElectrons = fNumElectrons2 = 0.;
   fNumPositrons = fNumPositrons2 = fEdep = fEdep2 = 0.;
   unsigned long numRegions                        = vecgeom::Region::GetTheRegionTable().size();
@@ -84,6 +92,8 @@ void CMSDataPerPrimaryType::AddDataPerPrimary(CMSDataPerPrimary &data)
   AddNeutralSteps(data.GetNeutralSteps());
   AddChargedTrackL(data.GetChargedTrackL());
   AddNeutralTrackL(data.GetNeutralTrackL());
+  AddChargedTrackT(data.GetChargedTrackT());
+  AddNeutralTrackT(data.GetNeutralTrackT());
   AddGammas(data.GetGammas());
   AddElectrons(data.GetElectrons());
   AddPositrons(data.GetPositrons());

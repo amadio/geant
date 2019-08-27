@@ -7,6 +7,8 @@ MyEventDataPerPrimary::MyEventDataPerPrimary() {
   fEdep         = 0.;
   fTrackLCh     = 0.;
   fTrackLNe     = 0.;
+  fTrackTCh     = 0.;
+  fTrackTNe     = 0.;
   fChargedStep  = 0;
   fNeutralStep  = 0;
   fNGamma       = 0.;
@@ -22,6 +24,8 @@ void MyEventDataPerPrimary::Clear() {
   fEdep         = 0.;
   fTrackLCh     = 0.;
   fTrackLNe     = 0.;
+  fTrackTCh     = 0.;
+  fTrackTNe     = 0.;  
   fChargedStep  = 0 ;
   fNeutralStep  = 0 ;
   fNGamma       = 0.;
@@ -38,6 +42,8 @@ std::ostream& operator<<(std::ostream& flux, const MyEventDataPerPrimary& evtdat
        << "    Edep                   = " << evtdata.fEdep/GeV     << " [GeV] \n"
        << "    Track lenght (charged) = " << evtdata.fTrackLCh/cm  << "  [cm] \n"
        << "    Track lenght (neutral) = " << evtdata.fTrackLNe/cm  << "  [cm] \n"
+       << "    Time (global-charged)  = " << evtdata.fTrackTCh/ns  << "  [ns] \n"
+       << "    Time (global-neutral)  = " << evtdata.fTrackTNe/ns  << "  [ns] \n"
        << "    Steps (charged)        = " << evtdata.fChargedStep  << "       \n"
        << "    Steps (neutral)        = " << evtdata.fNeutralStep  << "       \n"
        << "    Secondary Gammas       = " << evtdata.fNGamma       << "       \n"

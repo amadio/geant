@@ -19,6 +19,11 @@ void MyRunDataPerPrimary::Clear() {
   fTrackLNe     = 0.;
   fTrackLNe2    = 0.;
 
+  fTrackTCh     = 0.;
+  fTrackTCh2    = 0.;
+  fTrackTNe     = 0.;
+  fTrackTNe2    = 0.;
+
   fChargedStep  = 0.;
   fChargedStep2 = 0.;
   fNeutralStep  = 0.;
@@ -41,6 +46,11 @@ MyRunDataPerPrimary& MyRunDataPerPrimary::operator+=(const MyRunDataPerPrimary& 
   fTrackLCh2    += right.fTrackLCh2;
   fTrackLNe     += right.fTrackLNe;
   fTrackLNe2    += right.fTrackLNe2;
+
+  fTrackTCh     += right.fTrackTCh;
+  fTrackTCh2    += right.fTrackTCh2;
+  fTrackTNe     += right.fTrackTNe;
+  fTrackTNe2    += right.fTrackTNe2;
 
   fChargedStep  += right.fChargedStep;
   fChargedStep2 += right.fChargedStep2;
