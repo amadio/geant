@@ -91,6 +91,8 @@ void AtRestActionHandler::DoIt(geant::Track *track, geant::Basket &output, geant
   //
   // create secondary tracks if there are any
   if (nSecParticles) {
+    // compute current (post-step point) global time
+    double gtime = track->GlobalTime() + track->TimeStep(track->GetStep());
     // get the list of secondary tracks
     LightTrack *secLt = td->fPhysicsData->GetListOfSecondaries();
     for (int isec = 0; isec < nSecParticles; ++isec) {
@@ -116,7 +118,7 @@ void AtRestActionHandler::DoIt(geant::Track *track, geant::Basket &output, geant
       double secEkin = secLt[isec].GetKinE();
       geantTrack.SetP(std::sqrt(secEkin * (secEkin + 2.0 * geantTrack.Mass()))); // momentum of this secondadry particle
       geantTrack.SetEkin(secEkin);                                               // total E of this secondary particle
-      geantTrack.SetGlobalTime(track->GlobalTime());                             // global time
+      geantTrack.SetGlobalTime(gtime);                                           // global time
       geantTrack.SetSafety(track->GetSafety());
       geantTrack.SetBoundary(track->Boundary());
       geantTrack.SetPath(track->Path());

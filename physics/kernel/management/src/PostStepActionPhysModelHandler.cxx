@@ -84,8 +84,10 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
 
   // create secondary tracks if there are any
   if (nSecParticles) {
+    // compute current (post-step point) global time
+    double gtime = track->GlobalTime() + track->TimeStep(track->GetStep());
+    // get the list of secondary tracks
     LightTrack *secLt = td->fPhysicsData->GetListOfSecondaries();
-
     for (int isec = 0; isec < nSecParticles; ++isec) {
       int secGVcode               = secLt[isec].GetGVcode(); // GV index of this secondary particle
       const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
@@ -107,7 +109,7 @@ void PostStepActionPhysModelHandler::DoIt(geant::Track *track, geant::Basket &ou
       double secEkin = secLt[isec].GetKinE();
       geantTrack.SetP(std::sqrt(secEkin * (secEkin + 2.0 * geantTrack.Mass()))); // momentum of this secondadry particle
       geantTrack.SetEkin(secEkin);                                               // kinetic E of this secondary particle
-      geantTrack.SetGlobalTime(track->GlobalTime());                             // global time
+      geantTrack.SetGlobalTime(gtime);                                           // global time
       geantTrack.SetSafety(track->GetSafety());
       geantTrack.SetBoundary(track->Boundary());
       geantTrack.SetPath(track->Path());
@@ -205,7 +207,8 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
   for (int i = 0; i < secondaryLTs.GetNtracks(); ++i) {
     auto track    = gtracks[secondaryLTs.GetTrackIndex(i)];
     int secGVcode = secondaryLTs.GetGVcode(i); // GV index of this secondary particle
-
+    // compute current (post-step point) global time
+    double gtime = track->GlobalTime() + track->TimeStep(track->GetStep());
     const Particle *secParticle = Particle::GetParticleByInternalCode(secGVcode);
     // get a Track geantTrack;
     geant::Track &geantTrack = td->GetNewTrack();
@@ -226,7 +229,7 @@ void PostStepActionPhysModelHandler::DoItVector(geant::Track **gtracks, int N, g
     double secEkin = secondaryLTs.GetKinE(i);
     geantTrack.SetP(std::sqrt(secEkin * (secEkin + 2.0 * geantTrack.Mass()))); // momentum of this secondadry particle
     geantTrack.SetEkin(secEkin);                                               // kinetic E of this secondary particle
-    geantTrack.SetGlobalTime(track->GlobalTime());                             // global time
+    geantTrack.SetGlobalTime(gtime);                                           // global time
     geantTrack.SetSafety(track->GetSafety());
     geantTrack.SetBoundary(track->Boundary());
     geantTrack.SetPath(track->Path());
